@@ -1,11 +1,12 @@
-const express = require('express'); 
-const app = express; 
+import express from "express"
+import ENV from "./configs/env.configs";
+const app = express(); 
 // đọc từ file .env 
-const PORT = process.env.PORT || 3000;
+const PORT = ENV.PORT || 3000;
 
-app.get('/', (req,res)=> {
-    res.send('Web game');
-})
+// app.get('/', (req,res)=> {
+//     res.send('Web game');
+// })
 
 
 app.listen(PORT, () => {

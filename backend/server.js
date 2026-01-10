@@ -1,13 +1,39 @@
 import express from "express"
+import cors from "cors";
 import ENV from "./configs/env.configs.js";
-const app = express(); 
+import db from "./configs/db.js";
+
+const app = express();
+app.use(cors());
 // đọc từ file .env 
 const PORT = ENV.PORT || 3000;
 
-app.get('/', (req,res)=> {
+//================ MIDDLEWARES parseJSON  ======================
+app.use(express.json());
+//==============================================================
+
+
+
+
+app.get('/', (req, res) => {
     res.send('Web game');
 })
 
+
+
+//=================== ROUTERS =====================
+import MessageRouter from "./routers/message.routers.js";
+import GameRouter from "./routers/game.routers.js";
+//================================================
+
+
+//=================== API =========================
+app.use("/api/messages", MessageRouter);
+app.use("/api/games", GameRouter);
+/*
+    [{"id":"add3473d-5391-43ff-942d-d1e29225a5db"},{"id":"60895966-8a03-40e1-94e1-f45565168e20"}]
+*/
+//================================================
 
 app.listen(PORT, () => {
     console.log(`Server is listening on http://localhost:${PORT}`)

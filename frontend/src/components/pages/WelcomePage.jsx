@@ -2,91 +2,30 @@ import { Gamepad2, Grid3x3, Grid2x2, X, Candy, Worm, Sparkles, Moon, Sun, CheckC
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
+import { GameService } from '../../services/game.service';
+import { useEffect, useState } from 'react';
+
+
+const ICON_MAP = {
+    Grid3x3: Grid3x3,
+    Grid2x2: Grid2x2,
+    X: X,
+    Candy: Candy,
+    Worm: Worm
+};
 
 export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
+   
     const { isDarkMode, toggleDarkMode } = useTheme();
-    const games = [
-        {
-            id: 'caro5',
-            name: 'Caro (5 in a row)',
-            icon: Grid3x3,
-            tagline: 'Classic Gomoku Strategy Game',
-            description: 'Trò chơi cờ caro truyền thống với luật 5 quân liên tiếp. Hai người chơi lần lượt đặt quân trên bàn cờ, người đầu tiên tạo được 5 quân liên tiếp theo hàng ngang, dọc hoặc chéo sẽ chiến thắng.',
-            howToPlay: [
-                'Lần lượt đặt quân X hoặc O lên bàn cờ',
-                'Mục tiêu: Tạo 5 quân liên tiếp theo hàng ngang, dọc hoặc chéo',
-                'Người chơi đầu tiên đạt được mục tiêu sẽ thắng',
-                'Nếu bàn cờ đầy mà không ai thắng thì trận đấu hòa'
-            ],
-            bgColor: 'bg-blue-500/10',
-            iconColor: 'text-blue-500',
-            borderColor: 'border-blue-500/20'
-        },
-        {
-            id: 'caro4',
-            name: 'Caro (4 in a row)',
-            icon: Grid2x2,
-            tagline: 'Fast-Paced Connect Four',
-            description: 'Phiên bản nhanh hơn của cờ caro với luật 4 quân liên tiếp. Trò chơi diễn ra trên bàn cờ nhỏ hơn, tạo nên những ván đấu kịch tính và nhanh chóng.',
-            howToPlay: [
-                'Đặt quân lần lượt trên bàn cờ nhỏ gọn',
-                'Mục tiêu: Tạo 4 quân liên tiếp',
-                'Bàn cờ nhỏ hơn tạo ra tốc độ chơi nhanh hơn',
-                'Yêu cầu chiến thuật và tư duy nhanh nhạy'
-            ],
-            bgColor: 'bg-purple-500/10',
-            iconColor: 'text-purple-500',
-            borderColor: 'border-purple-500/20'
-        },
-        {
-            id: 'tictactoe',
-            name: 'Tic Tac Toe',
-            icon: X,
-            tagline: 'Timeless Classic Game',
-            description: 'Trò chơi O-X kinh điển trên bàn cờ 3x3. Đơn giản nhưng đầy thú vị, phù hợp cho mọi lứa tuổi. Một trò chơi hoàn hảo để thư giãn và rèn luyện tư duy logic.',
-            howToPlay: [
-                'Bàn cờ 3x3 với 2 người chơi',
-                'Lần lượt đặt dấu X hoặc O vào ô trống',
-                'Người đầu tiên có 3 dấu liên tiếp sẽ thắng',
-                'Trò chơi đơn giản nhưng đầy chiến thuật'
-            ],
-            bgColor: 'bg-green-500/10',
-            iconColor: 'text-green-500',
-            borderColor: 'border-green-500/20'
-        },
-        {
-            id: 'candycrush',
-            name: 'Candy Crush',
-            icon: Candy,
-            tagline: 'Sweet Match-3 Puzzle',
-            description: 'Trò chơi xếp hình match-3 đầy màu sắc. Hoán đổi các viên kẹo để tạo thành hàng 3 kẹo cùng màu trở lên. Càng nhiều kẹo được ghép, điểm số càng cao!',
-            howToPlay: [
-                'Hoán đổi 2 viên kẹo kề nhau',
-                'Tạo hàng 3 kẹo cùng màu để xóa chúng',
-                'Ghép 4-5 kẹo tạo ra combo đặc biệt',
-                'Đạt điểm số cao nhất trong thời gian giới hạn'
-            ],
-            bgColor: 'bg-pink-500/10',
-            iconColor: 'text-pink-500',
-            borderColor: 'border-pink-500/20'
-        },
-        {
-            id: 'snake',
-            name: 'Snake Game',
-            icon: Worm,
-            tagline: 'Retro Arcade Challenge',
-            description: 'Trò chơi rắn săn mồi huyền thoại. Điều khiển con rắn ăn thức ăn để lớn dần lên, nhưng đừng để đầu rắn chạm vào thân hoặc tường. Thử thách phản xạ và kỹ năng của bạn!',
-            howToPlay: [
-                'Dùng phím mũi tên để điều khiển rắn',
-                'Ăn thức ăn để tăng độ dài',
-                'Tránh đâm vào tường hoặc thân rắn',
-                'Cố gắng đạt điểm số cao nhất'
-            ],
-            bgColor: 'bg-emerald-500/10',
-            iconColor: 'text-emerald-500',
-            borderColor: 'border-emerald-500/20'
-        }
-    ];
+    const [games, setGames] = useState([]);
+    useEffect(() => {
+        const fetchGames = async () => {
+            const games = await GameService.getAllGames();
+            console.log(games);
+            setGames(games);
+        };
+        fetchGames();
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col mt-16">
@@ -191,7 +130,7 @@ export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
                         </div>
                     </div>
 
-                    {/* Games Showcase */}
+                    Games Showcase
                     <div className="space-y-12 sm:space-y-16">
                         <div className="text-center mb-8 sm:mb-12">
                             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
@@ -203,7 +142,7 @@ export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
                         </div>
 
                         {games.map((game, index) => {
-                            const Icon = game.icon;
+                            const Icon = ICON_MAP[game.config.icon] || Grid3x3;
                             const isEven = index % 2 === 0;
 
                             return (
@@ -214,9 +153,9 @@ export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
                                 >
                                     {/* Game Icon/Visual */}
                                     <div className={`${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
-                                        <Card className={`border-2 ${game.borderColor} overflow-hidden`}>
-                                            <CardContent className={`${game.bgColor} p-12 sm:p-16 lg:p-20 flex items-center justify-center`}>
-                                                <Icon className={`w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 ${game.iconColor}`} strokeWidth={1.5} />
+                                        <Card className={`border-2 ${game.config.borderColor} overflow-hidden`}>
+                                            <CardContent className={`${game.config.bgColor} p-12 sm:p-16 lg:p-20 flex items-center justify-center`}>
+                                                <Icon className={`w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 ${game.config.iconColor}`} strokeWidth={1.5} />
                                             </CardContent>
                                         </Card>
                                     </div>
@@ -224,8 +163,8 @@ export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
                                     {/* Game Info */}
                                     <div className={`space-y-4 sm:space-y-6 ${isEven ? 'lg:order-2' : 'lg:order-1'}`}>
                                         <div>
-                                            <p className={`text-sm sm:text-base font-semibold mb-2 ${game.iconColor}`}>
-                                                {game.tagline}
+                                            <p className={`text-sm sm:text-base font-semibold mb-2 ${game.config.iconColor}`}>
+                                                {game.config.tagline}
                                             </p>
                                             <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
                                                 {game.name}
@@ -239,7 +178,7 @@ export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
                                         <div>
                                             <h4 className="text-base sm:text-lg font-bold mb-3">Cách chơi:</h4>
                                             <ul className="space-y-2">
-                                                {game.howToPlay.map((step, stepIndex) => (
+                                                {game.config.howToPlay.map((step, stepIndex) => (
                                                     <li key={stepIndex} className="flex items-start gap-2 sm:gap-3">
                                                         <CheckCircle2 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${game.iconColor}`} />
                                                         <span className="text-sm sm:text-base text-muted-foreground">{step}</span>

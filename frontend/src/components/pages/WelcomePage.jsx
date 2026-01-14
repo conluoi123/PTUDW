@@ -2,7 +2,7 @@ import { Gamepad2, Grid3x3, Grid2x2, X, Candy, Worm, Sparkles, Moon, Sun, CheckC
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '@mui/material';
 import { Card, CardContent } from '@mui/material';
-import { GameService } from '../../services/game.service';
+import { GameService } from '../../services/game.services.js';
 import { useEffect, useState } from 'react';
 
 

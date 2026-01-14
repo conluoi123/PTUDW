@@ -78,6 +78,21 @@ class Message {
             throw new Error("Lỗi lấy tin nhắn");
         }
     }
+
+    static async getHistory(user_id, partner_id, limit = 20, offset = 0) {
+        try {
+            const history = await db("messages").where(function () {
+                this.where("sender_id", user_id).andWhere("receiver_id", partner_id);
+            }).orWhere(function () {
+                this.where("sender_id", partner_id).andWhere("receiver_id", user_id);
+            }).orderBy("sent_at", "desc").limit(limit).offset(offset);
+            // đảo lại 
+            return history.reverse().map((msg) => new Message(msg));
+        } catch (err) {
+            console.error(err);
+            throw new Error("Lỗi lấy tin nhắn");
+        }
+    }
 }
 
 export default Message;

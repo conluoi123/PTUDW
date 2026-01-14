@@ -26,7 +26,32 @@ const getConversation = async (req, res) => {
     }
 }
 
+export const getHistory = async (req, res) => {
+    try {
+        const { user_id, partner_id } = req.query;
+        if (!user_id || !partner_id) {
+            return res.status(400).json({
+                message: "Thiếu user_id hoặc partner_id"
+            });
+        }
+        const history = await Message.getHistory(user_id, partner_id);
+        return res.status(200).json({
+            message: "Lấy tin nhắn thành công",
+            data: history,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            message: "Lỗi server",
+        })
+    }
+}
+
+
+
+
 export default {
     createMessage,
-    getConversation
+    getConversation,
+    getHistory
 }

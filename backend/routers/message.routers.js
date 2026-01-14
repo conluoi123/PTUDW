@@ -4,6 +4,6 @@ const router = Router();
 
 router.post("/", messageControllers.createMessage);
 router.get("/conversation/:user_id", messageControllers.getConversation);
-
+router.get("/history", messageControllers.getHistory);
 
 export default router;

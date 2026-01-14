@@ -1,4 +1,4 @@
-import db from "./configs/db.js";
+import db from "./models/db.js";
 await db.raw(`
   SELECT setval(
     pg_get_serial_sequence('achievements', 'id'), 

@@ -1,6 +1,6 @@
 import express from "express"
 import cors from "cors";
-import ENV from "./configs/env.configs.js";
+import ENV from "./models/env.configs.js";
 import cookieParser from "cookie-parser";
 import achievementRoutes from "./controllers/achievements/achievement.controller.js";
 const app = express();

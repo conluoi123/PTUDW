@@ -1,4 +1,4 @@
-import db from "../../configs/db.js";
+import db from "../../models/db.js";
 // dung de cap nhat bang user_achievements va achievements trong 1 transaction
 export async function insert_user_achieve_transaction(userId, achievements) {
   try {

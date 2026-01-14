@@ -25,3 +25,16 @@ export const acceptRequest = async (req, res) => {
   }
 }
 
+export const removeFriend = async (req, res) => {
+  try {
+    const targetId = req.params.id
+    const { currentUserId } = req.body
+    
+    await friendService.removeFriend(currentUserId, targetId)
+    res.status(200).json({ message: 'Friend removed' })
+  } 
+  catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+

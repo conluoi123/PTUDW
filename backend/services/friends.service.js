@@ -12,3 +12,14 @@ export const sendRequest = async (currentUserId, targetUserId) => {
 
   return await friendModel.createFriendship(currentUserId, targetUserId)
 }
+
+export const acceptRequest = async (requesterId, currentUserId) => {
+  const relation = await friendModel.findRelationship(requesterId, currentUserId)
+  
+  if (!relation || relation.status !== 'pending') {
+    throw new Error('No pending request found')
+  }
+
+  return await friendModel.updateStatus(requesterId, currentUserId, 'accepted')
+}
+

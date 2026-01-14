@@ -41,6 +41,26 @@ class Game {
             throw new Error("Lỗi tạo game");
         }
     }
+
+    static async update(id, data) {
+        try {
+            const updatedGame = await db("games").where({ id }).update(data).returning("*");
+            return updatedGame;
+        } catch (err) {
+            console.error(err);
+            throw new Error("Lỗi cập nhật game");
+        }
+    }
+
+    static async delete(id) {
+        try {
+            const deletedGame = await db("games").where({ id }).del();
+            return deletedGame;
+        } catch (err) {
+            console.error(err);
+            throw new Error("Lỗi xóa game");
+        }
+    }
 }
 
 export default Game;

@@ -41,8 +41,40 @@ const createGame = async (req, res) => {
         return res.status(400).json({ message: "Lỗi server" });
     }
 }
+
+const updateGame = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const data = req.body;
+        const updatedGame = await GameModel.update(id, data);
+        return res.status(200).json({
+            message: "Cập nhật game thành công",
+            data: updatedGame
+        })
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: "Lỗi server" });
+    }
+}
+
+const deleteGame = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const deletedGame = await GameModel.delete(id);
+        return res.status(200).json({
+            message: "Xóa game thành công",
+            data: deletedGame
+        })
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: "Lỗi server" });
+    }
+}
+
 export default {
     getAllGames,
     getGameById,
-    createGame
+    createGame,
+    updateGame,
+    deleteGame
 }

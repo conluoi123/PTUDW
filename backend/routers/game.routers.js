@@ -6,4 +6,6 @@ router.get("/", gameControllers.getAllGames);
 router.get("/:id", gameControllers.getGameById);
 // quyền admin, sau sẽ có authAdmin
 router.post("/", gameControllers.createGame);
+router.put("/:id", gameControllers.updateGame);
+router.delete("/:id", gameControllers.deleteGame);
 export default router;

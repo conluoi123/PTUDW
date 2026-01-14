@@ -11,7 +11,8 @@ export async function up(knex) {
         table.uuid("id").primary().defaultTo(knex.raw("gen_random_uuid()"));
         table.string("name");
         table.string("username").notNullable().unique();
-        table.string("password").notNullable();
+        table.string("password");
+        table.string("avatar");
         table.string("refresh_token");
         table.timestamp("expires_at");
         table.string("role");

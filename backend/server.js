@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors";
 import ENV from "./configs/env.configs.js";
 import cookieParser from "cookie-parser";
+import { userRouter } from "./routers/user.routers.js";
 
 const app = express();
 // đọc từ file .env 
@@ -15,6 +16,8 @@ app.use(
     credentials: true,
   })
 );
+
+userRouter(app);
 
 app.get('/', (req, res) => {
   res.send('Web game');

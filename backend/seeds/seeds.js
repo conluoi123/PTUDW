@@ -70,37 +70,100 @@ export async function seed(knex) {
       description: "Đạt 5 quân cờ liên tiếp để thắng.",
       instruction:
         "Người chơi luân phiên đặt X và O. Ai có chuỗi 5 trước sẽ thắng.",
+      config: JSON.stringify({
+        icon: "Grid3x3",
+        borderColor: "border-blue-200 dark:border-blue-900",
+        bgColor: "bg-blue-50 dark:bg-blue-900/20",
+        iconColor: "text-blue-500",
+        tagline: "Chiến thuật đỉnh cao",
+        howToPlay: ["Đặt X hoặc O vào ô trống", "Chặn đường đối thủ", "Tạo chuỗi 5 quân liên tiếp"],
+        path: "/games/caro",
+      }),
     },
     {
       name: "Caro hàng 4",
       description: "Biến thể nhanh của Caro.",
       instruction: "Tương tự Caro 5 nhưng chỉ cần chuỗi 4 quân.",
+      config: JSON.stringify({
+        icon: "Grid2x2",
+        borderColor: "border-cyan-200 dark:border-cyan-900",
+        bgColor: "bg-cyan-50 dark:bg-cyan-900/20",
+        iconColor: "text-cyan-500",
+        tagline: "Nhanh tay lẹ mắt",
+        howToPlay: ["Đặt X hoặc O", "Tạo chuỗi 4 quân", "Thắng nhanh thắng gọn"],
+        path: "/games/caro-4",
+      }),
     },
     {
       name: "Tic-tac-toe",
       description: "Trò chơi 3x3 kinh điển.",
       instruction: "Tạo hàng 3 quân cờ X hoặc O.",
+      config: JSON.stringify({
+        icon: "X",
+        borderColor: "border-indigo-200 dark:border-indigo-900",
+        bgColor: "bg-indigo-50 dark:bg-indigo-900/20",
+        iconColor: "text-indigo-500",
+        tagline: "Kinh điển nhưng không cũ",
+        howToPlay: ["Điền vào bảng 3x3", "Tạo 1 hàng 3 quân", "Hòa nhau là chuyện thường"],
+        path: "/games/tictactoe",
+      }),
     },
     {
       name: "Rắn săn mồi",
       description: "Điều khiển rắn ăn mồi và lớn dần.",
       instruction:
         "Sử dụng các phím mũi tên để điều hướng, tránh đâm vào thân hoặc tường.",
+      config: JSON.stringify({
+        icon: "Worm",
+        borderColor: "border-green-200 dark:border-green-900",
+        bgColor: "bg-green-50 dark:bg-green-900/20",
+        iconColor: "text-green-500",
+        tagline: "Sống còn & Phát triển",
+        howToPlay: ["Ăn mồi để dài ra", "Đừng tự cắn mình", "Tránh xa các bức tường"],
+        path: "/games/snake",
+      }),
     },
     {
       name: "Ghép hàng 3",
-      description: "Game tương tự Candy Rush.",
+      description: "Game tương tự Candy Crush.",
       instruction: "Hoán đổi các viên kẹo để tạo hàng 3 hoặc nhiều hơn.",
+      config: JSON.stringify({
+        icon: "Candy",
+        borderColor: "border-pink-200 dark:border-pink-900",
+        bgColor: "bg-pink-50 dark:bg-pink-900/20",
+        iconColor: "text-pink-500",
+        tagline: "Ngọt ngào & Thử thách",
+        howToPlay: ["Tìm bộ 3 giống nhau", "Tạo combo nổ lớn", "Đạt điểm cao nhất"],
+        path: "/games/match3",
+      }),
     },
     {
       name: "Cờ trí nhớ",
       description: "Tìm các cặp hình giống nhau.",
       instruction: "Lật các thẻ bài và ghi nhớ vị trí để tìm cặp trùng khớp.",
+      config: JSON.stringify({
+        icon: "Grid3x3", // Fallback icon
+        borderColor: "border-yellow-200 dark:border-yellow-900",
+        bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
+        iconColor: "text-yellow-500",
+        tagline: "Siêu trí nhớ",
+        howToPlay: ["Lật thẻ xem hình", "Ghi nhớ vị trí", "Tìm cặp giống nhau"],
+        path: "/games/memory",
+      }),
     },
     {
       name: "Bảng vẽ tự do",
       description: "Công cụ vẽ sáng tạo.",
       instruction: "Sử dụng chuột hoặc cảm ứng để vẽ lên bảng trắng.",
+      config: JSON.stringify({
+        icon: "Sparkles", // Use fallback icon map if needed, or import Sparkles
+        borderColor: "border-purple-200 dark:border-purple-900",
+        bgColor: "bg-purple-50 dark:bg-purple-900/20",
+        iconColor: "text-purple-500",
+        tagline: "Thỏa sức sáng tạo",
+        howToPlay: ["Chọn màu & cọ", "Vẽ bất cứ thứ gì", "Lưu lại tác phẩm"],
+        path: "/games/draw",
+      }),
     },
   ];
 
@@ -113,7 +176,7 @@ export async function seed(knex) {
       }))
     )
     .returning("*");
-  
+
   await knex("game_states").insert([
     {
       user_id: users[1].id,

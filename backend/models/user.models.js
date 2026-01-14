@@ -9,6 +9,13 @@ class User {
       throw new Error("Error finding user: " + error.message);
     }
   };
+  static findUserById = async (id) => {
+    try {
+      return await db("users").where({ id }).first();
+    } catch (error) {
+      throw new Error("Error finding user: " + error.message);
+    }
+  };
   static findUserByEmail = async (email) => {
     try {
       return await db("users").where({ email }).first();

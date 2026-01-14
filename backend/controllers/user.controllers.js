@@ -162,6 +162,10 @@ async function Login(req, res) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
+}
+
+async function Logout(req, res) {
   
 }
-export { SignInWithGG, DirectGoogle, Login, Register };
+
+export { SignInWithGG, DirectGoogle, Login, Register, Logout };

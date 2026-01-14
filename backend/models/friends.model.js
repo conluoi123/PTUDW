@@ -33,3 +33,24 @@ export const deleteFriendship = async (userId1, userId2) => {
     })
     .del()
 }
+
+export const getFriendsList = async (userId) => {
+  return await db('friendships')
+    .join('users', function () {
+      this.on('users.id', '=', 'friendships.requester_id').orOn(
+        'users.id',
+        '=',
+        'friendships.addressee_id'
+      )
+    })
+    .where(function () {
+      this.where('friendships.requester_id', userId).orWhere(
+        'friendships.addressee_id',
+        userId
+      )
+    })
+    .andWhere('friendships.status', 'accepted')
+    .andWhere('users.id', '!=', userId)
+    .select('users.id', 'users.username', 'users.name', 'users.email')
+}
+

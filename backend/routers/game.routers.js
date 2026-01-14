@@ -3,7 +3,7 @@ import gameControllers from "../controllers/game.controllers.js";
 
 const router = Router();
 router.get("/", gameControllers.getAllGames);
-
+router.get("/:id", gameControllers.getGameById);
 
 
 export default router;

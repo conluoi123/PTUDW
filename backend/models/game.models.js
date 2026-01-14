@@ -17,8 +17,18 @@ class Game {
             const games = await db("games").select("*");
             return games;
         } catch (error) {
-            console.log(error);
+            console.err(error);
             throw new Error("Lỗi lấy danh sách games");
+        }
+    }
+
+    static async getById(id) {
+        try {
+            const game = await db("games").select("*").where({ id });
+            return game;
+        } catch (err) {
+            console.error(err);
+            throw new Error("Lỗi lấy game thoe id");
         }
     }
 }

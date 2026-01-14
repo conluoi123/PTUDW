@@ -255,7 +255,22 @@ async function getProfile(req, res) {
 }
 
 async function updateProfile(req, res) {
-  
+  try {
+    const { name, avatar, phone, role } = req.body;
+    const emailDb = req.user.email;
+    const user = await User.findUserByEmail(emailDb);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const update = await User.updateProfile(req.user.id, name, avatar, phone, role);
+    const profile = userProfileModel(update);
+    return res.status(200).json({message: "Update profile successfully", profile})
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Update profile failed",
+    });
+  }
 }
 
 export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile, updateProfile };

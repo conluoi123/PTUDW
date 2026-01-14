@@ -27,3 +27,7 @@ export const removeFriend = async (currentUserId, targetId) => {
   return await friendModel.deleteFriendship(currentUserId, targetId)
 }
 
+export const getListFriends = async (userId) => {
+  return await friendModel.getFriendsList(userId)
+}
+

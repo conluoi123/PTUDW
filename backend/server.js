@@ -29,6 +29,9 @@ app.get('/', (req, res) => {
 import gameRouter from "./routers/game.routers.js";
 app.use("/api/games", gameRouter);
 
+// MESSAGES 
+import messageRouter from "./routers/message.routers.js";
+app.use("/api/messages", messageRouter);
 
 
 

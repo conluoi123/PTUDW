@@ -236,7 +236,20 @@ async function Logout(req, res) {
 }
 
 async function getProfile(req, res) {
-  
+  try {
+    const email = req.user.email;
+    const user = await User.findUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const profile = userProfileModel(user);
+    return res.status(200).json({ message: "Get profile successfully", profile });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Get profile failed",
+    });
+  }
 }
 
 export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile };

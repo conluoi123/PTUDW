@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { SignInWithGG, DirectGoogle, Register, Login, Logout } from "../controllers/user.controllers.js";
+import { SignInWithGG, DirectGoogle, Register, Login, Logout, getProfile } from "../controllers/user.controllers.js";
 
 const userRouter = (app) => {
   const directRouter = Router();
@@ -9,7 +9,8 @@ const userRouter = (app) => {
   callbackRouter.get("/google/callback", SignInWithGG);
   app.use("/api/user/login", callbackRouter);
   const router = Router();
-  router.post("/logout", Logout)
+  router.get("/profile", getProfile);
+  router.post("/logout", Logout);
   router.post("/login", Login);
   router.post("/register", Register);
   app.use("/api/user", router);

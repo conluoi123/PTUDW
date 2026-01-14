@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -13,45 +13,45 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
   /* Light Mode Colors - Facebook Style */
-  --background: #f0f2f5;
-  --foreground: #050505;
-  --card: #ffffff;
-  --card-foreground: #050505;
-  --popover: #ffffff;
-  --popover-foreground: #050505;
-  --primary: #1877f2; /* Facebook Blue */
-  --primary-foreground: #ffffff;
-  --secondary: #42b72a; /* Facebook Green */
-  --secondary-foreground: #ffffff;
-  --muted: #e4e6eb;
-  --muted-foreground: #65676b;
-  --accent: #f0f2f5;
-  --accent-foreground: #050505;
-  --destructive: #f02849; /* Facebook Red */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0); /* Facebook Blue */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0); /* Facebook Green */
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325); /* Facebook Red */
   --destructive-foreground: #ffffff;
-  --border: #ced0d4;
-  --input: #f0f2f5;
-  --ring: #1877f2;
-  
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+
   /* Chart colors - Facebook palette */
-  --chart-1: #1877f2; /* Blue */
-  --chart-2: #42b72a; /* Green */
-  --chart-3: #f02849; /* Red */
-  --chart-4: #ff9800; /* Orange */
-  --chart-5: #9c27b0; /* Purple */
-  
+  --chart-1: oklch(0.646 0.222 41.116); /* Blue */
+  --chart-2: oklch(0.6 0.118 184.704); /* Green */
+  --chart-3: oklch(0.398 0.07 227.392); /* Red */
+  --chart-4: oklch(0.828 0.189 84.429); /* Orange */
+  --chart-5: oklch(0.769 0.188 70.08); /* Purple */
+
   /* Sidebar colors */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #050505;
-  --sidebar-primary: #1877f2;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0f2f5;
-  --sidebar-accent-foreground: #050505;
-  --sidebar-border: #e4e6eb;
-  --sidebar-ring: #1877f2;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 a {
@@ -132,42 +132,42 @@ h1 {
 
 .dark {
   /* Dark Mode Colors - Facebook Dark Theme */
-  --background: #18191a;
-  --foreground: #e4e6eb;
-  --card: #242526;
-  --card-foreground: #e4e6eb;
-  --popover: #242526;
-  --popover-foreground: #e4e6eb;
-  --primary: #2e89ff; /* Facebook Blue (Dark) */
-  --primary-foreground: #ffffff;
-  --secondary: #42b72a; /* Facebook Green */
-  --secondary-foreground: #ffffff;
-  --muted: #3a3b3c;
-  --muted-foreground: #b0b3b8;
-  --accent: #3a3b3c;
-  --accent-foreground: #e4e6eb;
-  --destructive: #f02849; /* Facebook Red */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0); /* Facebook Blue (Dark) */
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0); /* Facebook Green */
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216); /* Facebook Red */
   --destructive-foreground: #ffffff;
-  --border: #3e4042;
-  --input: #3a3b3c;
-  --ring: #2e89ff;
-  
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+
   /* Chart colors - Facebook palette (Dark) */
-  --chart-1: #2e89ff; /* Blue */
-  --chart-2: #42b72a; /* Green */
-  --chart-3: #f02849; /* Red */
-  --chart-4: #ff9800; /* Orange */
-  --chart-5: #ab47bc; /* Purple */
-  
+  --chart-1: oklch(0.488 0.243 264.376); /* Blue */
+  --chart-2: oklch(0.696 0.17 162.48); /* Green */
+  --chart-3: oklch(0.769 0.188 70.08); /* Red */
+  --chart-4: oklch(0.627 0.265 303.9); /* Orange */
+  --chart-5: oklch(0.645 0.246 16.439); /* Purple */
+
   /* Sidebar colors (Dark) */
-  --sidebar: #242526;
-  --sidebar-foreground: #e4e6eb;
-  --sidebar-primary: #2e89ff;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #3a3b3c;
-  --sidebar-accent-foreground: #e4e6eb;
-  --sidebar-border: #3e4042;
-  --sidebar-ring: #2e89ff;
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {

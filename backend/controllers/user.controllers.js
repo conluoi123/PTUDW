@@ -1,13 +1,38 @@
 //https://accounts.google.com/o/oauth2/v2/auth?client_id=329995792104-sbn88825k2gvqtur01e5giepd0uafli9.apps.googleusercontent.com&redirect_uri=https://israel-ramose-premeditatingly.ngrok-free.dev/api/user/login/google/callback&response_type=code&scope=email%20profile&access_type=offline&prompt=select_account
 import ENV from "../configs/env.configs.js";
 import crypto from "crypto";
-import { verifyGoogleToken, createAccessToken } from "../services/user.services.js";
+import {
+  verifyGoogleToken,
+  createAccessToken,
+  hashPassword,
+} from "../services/user.services.js";
 import axios from "axios";
 import User from "../models/user.models.js";
 
+const defaultAvatar = "https://res.cloudinary.com/dz9xfcbey/image/upload/f_auto,q_auto,w_400,h_400,c_fill,g_center/avatars/cb9trd7wuoebrlbdhjqj";
 // Register
 async function Register(req, res) {
-  
+  try {
+    const { name, username, password, role, email, phone } = req.body;
+    if (!username || !password || !email ) {
+      return res.status(400).json({ error: "Missing required fields" })
+    };
+    const hashPass = hashPassword(password);
+    const user = await User.createNewUser(name, username, hashPass, defaultAvatar, role, email, phone, null);
+    const userInfo = {
+      id: user.id,
+      email: user.id,
+      name: user.name,
+      avatar: user.avatar,
+      phone: user.phone,
+      username: user.username,
+      role: user.role
+    }
+    return res.status(200).json({message: "Register successfully", userInfo})
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 }
 
 // GG
@@ -83,6 +108,7 @@ async function SignInWithGG(req, res) {
         userData.name,
         userData.email || email.split("@")[0],
         null,
+        avatar ? avatar : defaultAvatar,
         "user",
         userData.email,
         null,
@@ -99,7 +125,7 @@ async function SignInWithGG(req, res) {
       secure: true,
       sameSite: "none",
       maxAge: 15 * 24 * 3600 * 1000,
-      path: "/"
+      path: "/",
     });
 
     res.cookie("refreshToken", refToken, {
@@ -119,13 +145,8 @@ async function SignInWithGG(req, res) {
   }
 }
 
-// Login 
+// Login
 async function Login(req, res) {
   const { username, password } = req.body;
-  
 }
-export {
-  SignInWithGG,
-  DirectGoogle,
-  Login
-};
+export { SignInWithGG, DirectGoogle, Login, Register };

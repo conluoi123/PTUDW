@@ -24,3 +24,12 @@ export const updateStatus = async (requesterId, addresseeId, status) => {
     .returning('*')
 }
 
+export const deleteFriendship = async (userId1, userId2) => {
+  return await db('friendships')
+    .where((builder) => {
+      builder
+        .where({ requester_id: userId1, addressee_id: userId2 })
+        .orWhere({ requester_id: userId2, addressee_id: userId1 })
+    })
+    .del()
+}

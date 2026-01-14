@@ -47,11 +47,30 @@ export const getHistory = async (req, res) => {
     }
 }
 
-
+export const updateStatus = async (req, res) => {
+    try {
+        const { user_id, partner_id } = req.query;
+        if (!user_id || !partner_id) {
+            return res.status(400).json({
+                message: "Thiếu user_id hoặc partner_id"
+            });
+        }
+        await Message.updateStatus(user_id, partner_id);
+        return res.status(200).json({
+            message: "Cập nhật tin nhắn thành công",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            message: "Lỗi server",
+        })
+    }
+}
 
 
 export default {
     createMessage,
     getConversation,
-    getHistory
+    getHistory,
+    updateStatus
 }

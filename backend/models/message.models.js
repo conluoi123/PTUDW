@@ -93,6 +93,21 @@ class Message {
             throw new Error("Lỗi lấy tin nhắn");
         }
     }
+
+    static async updateStatus(user_id, partner_id) {
+        try {
+            await db("messages").where(function () {
+                this.where("sender_id", user_id).andWhere("receiver_id", partner_id);
+            }).orWhere(function () {
+                this.where("sender_id", partner_id).andWhere("receiver_id", user_id);
+            }).update({
+                status: "read"
+            });
+        } catch (err) {
+            console.error(err);
+            throw new Error("Lỗi cập nhật tin nhắn");
+        }
+    }
 }
 
 export default Message;

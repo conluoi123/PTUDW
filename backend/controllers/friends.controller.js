@@ -38,3 +38,16 @@ export const removeFriend = async (req, res) => {
   }
 }
 
+export const getListFriends = async (req, res) => {
+  try {
+    const currentUserId = req.query.userId || req.body.currentUserId
+    if (!currentUserId) return res.status(400).json({ message: 'Missing userId' })
+
+    const list = await friendService.getListFriends(currentUserId)
+    res.status(200).json({ data: list })
+  } 
+  catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+

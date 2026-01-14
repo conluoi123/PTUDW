@@ -243,7 +243,9 @@ async function getProfile(req, res) {
       return res.status(404).json({ error: "User not found" });
     }
     const profile = userProfileModel(user);
-    return res.status(200).json({ message: "Get profile successfully", profile });
+    return res
+      .status(200)
+      .json({ message: "Get profile successfully", profile });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -252,4 +254,8 @@ async function getProfile(req, res) {
   }
 }
 
-export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile };
+async function updateProfile(req, res) {
+  
+}
+
+export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile, updateProfile };

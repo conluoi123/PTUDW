@@ -1,5 +1,5 @@
 import db from "../configs/db.js";
-import {v4 as uuidv4} from "uuid"
+import { v4 as uuidv4 } from "uuid";
 
 class User {
   static findUserByRfToken = async (refreshToken) => {
@@ -8,7 +8,7 @@ class User {
     } catch (error) {
       throw new Error("Error finding user: " + error.message);
     }
-  }
+  };
   static findUserByEmail = async (email) => {
     try {
       return await db("users").where({ email }).first();
@@ -66,6 +66,21 @@ class User {
         .returning("*");
     } catch (error) {
       throw new Error("Error updating token: " + error.message);
+    }
+  };
+  static updateProfile = async (id, name, avatar, phone, role) => {
+    try {
+      return db("users")
+        .where({ id })
+        .update({
+          name,
+          avatar,
+          phone,
+          role,
+        })
+        .returning("*");
+    } catch (error) {
+      throw new Error("Error updating profile: " + error.message);
     }
   };
 }

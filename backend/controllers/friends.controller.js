@@ -51,3 +51,16 @@ export const getListFriends = async (req, res) => {
   }
 }
 
+export const searchFriendStatus = async (req, res) => {
+  try {
+    const targetId = req.params.id
+    const currentUserId = req.query.userId
+
+    const status = await friendService.checkStatus(currentUserId, targetId)
+    res.status(200).json({ data: status })
+  } 
+  catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+

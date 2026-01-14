@@ -4,6 +4,6 @@ import gameControllers from "../controllers/game.controllers.js";
 const router = Router();
 router.get("/", gameControllers.getAllGames);
 router.get("/:id", gameControllers.getGameById);
-
-
+// quyền admin, sau sẽ có authAdmin
+router.post("/", gameControllers.createGame);
 export default router;

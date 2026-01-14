@@ -27,7 +27,22 @@ const getGameById = async (req, res) => {
         return res.status(400).json({ message: "Lỗi server" });
     }
 }
+
+const createGame = async (req, res) => {
+    try {
+        const data = req.body;
+        const newGame = await GameModel.create(data);
+        return res.status(200).json({
+            message: "Tạo game thành công",
+            data: newGame
+        })
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: "Lỗi server" });
+    }
+}
 export default {
     getAllGames,
-    getGameById
+    getGameById,
+    createGame
 }

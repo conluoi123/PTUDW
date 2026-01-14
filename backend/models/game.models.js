@@ -31,6 +31,16 @@ class Game {
             throw new Error("Lỗi lấy game thoe id");
         }
     }
+
+    static async create(data) {
+        try {
+            const newGame = await db("games").insert(data).returning("*");
+            return newGame;
+        } catch (err) {
+            console.error(err);
+            throw new Error("Lỗi tạo game");
+        }
+    }
 }
 
 export default Game;

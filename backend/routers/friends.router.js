@@ -5,3 +5,4 @@ const router = express.Router()
 
 router.post('/request', friendController.sendRequest)
 router.post('/accept/:id', friendController.acceptRequest)
+router.delete('/remove/:id', friendController.removeFriend)

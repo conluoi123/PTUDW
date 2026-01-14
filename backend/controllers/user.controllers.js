@@ -1,9 +1,16 @@
 //https://accounts.google.com/o/oauth2/v2/auth?client_id=329995792104-sbn88825k2gvqtur01e5giepd0uafli9.apps.googleusercontent.com&redirect_uri=https://israel-ramose-premeditatingly.ngrok-free.dev/api/user/login/google/callback&response_type=code&scope=email%20profile&access_type=offline&prompt=select_account
 import ENV from "../configs/env.configs.js";
 import crypto from "crypto";
-import { verifyGoogleToken, createAccessToken } from "../services/login.services.js";
+import { verifyGoogleToken, createAccessToken } from "../services/user.services.js";
 import axios from "axios";
 import User from "../models/user.models.js";
+
+// Register
+async function Register(req, res) {
+  
+}
+
+// GG
 function DirectGoogle(req, res) {
   const state = crypto.randomBytes(16).toString("hex");
   req.session.oauthState = state;
@@ -111,7 +118,14 @@ async function SignInWithGG(req, res) {
       .json({ error: "Cannot Sign In/ Sign Up with Google" });
   }
 }
+
+// Login 
+async function Login(req, res) {
+  const { username, password } = req.body;
+  
+}
 export {
   SignInWithGG,
   DirectGoogle,
+  Login
 };

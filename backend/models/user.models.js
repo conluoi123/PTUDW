@@ -2,7 +2,6 @@ import db from "../configs/db.js";
 import {v4 as uuidv4} from "uuid"
 
 class User {
-  
   static findUserByEmail = async (email) => {
     try {
       return await db("users").where({ email }).first();
@@ -10,11 +9,18 @@ class User {
       throw new Error("Error finding user: " + error.message);
     }
   };
+  static findUserByUsername = async (username) => {
+    try {
+      return await db("users").where({ username }).first();
+    } catch (error) {
+      throw new Error("Error finding user: " + error.message);
+    }
+  };
   static createNewUser = async (
-    name, 
+    name,
     username,
     password,
-    role, 
+    role,
     email,
     phone,
     hashRefToken
@@ -32,7 +38,7 @@ class User {
           refresh_token: hashRefToken,
           expires_at: new Date(Date.now() + 15 * 24 * 3600 * 1000),
         })
-        .returning("*"); 
+        .returning("*");
 
       return newUser;
     } catch (error) {
@@ -48,7 +54,7 @@ class User {
           refresh_token: hashRefToken,
           expires_at: new Date(Date.now() + 15 * 24 * 3600 * 1000),
         })
-        .returning("*"); 
+        .returning("*");
     } catch (error) {
       throw new Error("Error updating token: " + error.message);
     }

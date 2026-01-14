@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { SignInWithGG, DirectGoogle } from "../controllers/login.controllers.js";
+import { SignInWithGG, DirectGoogle } from "../controllers/user.controllers.js";
 
 const userRouter = (app) => {
   const directRouter = Router();

@@ -1,228 +1,227 @@
-import { Gamepad2, Grid3x3, Grid2x2, X, Candy, Worm, Sparkles, Moon, Sun, CheckCircle2 } from 'lucide-react';
+import { Gamepad2, Grid3x3, Grid2x2, X, Candy, Worm, Sparkles, Moon, Sun, CheckCircle2, ChevronRight, Zap, Trophy, Users } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '@mui/material';
-import { Card, CardContent } from '@mui/material';
 import { GameService } from '../../services/game.services.js';
 import { useEffect, useState } from 'react';
-
 
 const ICON_MAP = {
     Grid3x3: Grid3x3,
     Grid2x2: Grid2x2,
     X: X,
     Candy: Candy,
-    Worm: Worm
+    Worm: Worm,
+    Sparkles: Sparkles
 };
 
 export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
-   
     const { isDarkMode, toggleDarkMode } = useTheme();
     const [games, setGames] = useState([]);
+    
     useEffect(() => {
         const fetchGames = async () => {
             const games = await GameService.getAllGames();
-            console.log(games);
             setGames(games);
         };
         fetchGames();
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col mt-16">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0f1115] text-gray-900 dark:text-white transition-colors duration-300 font-sans selection:bg-indigo-500/30">
+            {/* Animated Background Mesh */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] animate-pulse-slow" />
+                <div className="absolute bottom-1/4 right-0 w-[30rem] h-[30rem] bg-purple-500/20 rounded-full blur-[120px] animate-pulse-slower" />
+            </div>
+
             {/* Navigation Bar */}
-            <header className="fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-card/98 via-card/95 to-card/98 backdrop-blur-xl border-b border-border/50 z-40 shadow-lg shadow-primary/5">
-                <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 max-w-screen-2xl mx-auto">
-                    {/* Logo */}
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg shadow-primary/30">
-                            <Gamepad2 className="text-primary-foreground w-5 h-5 sm:w-6 sm:h-6" />
+            <header className="fixed top-0 inset-x-0 h-20 z-50 transition-all duration-300 backdrop-blur-md border-b border-gray-200/50 dark:border-white/5">
+                <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+                    <div className="flex items-center gap-3 group cursor-pointer">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-300">
+                            <Gamepad2 className="w-6 h-6 text-white" />
                         </div>
-                        <h1 className="text-sm sm:text-base font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Game Hub</h1>
+                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-indigo-800 to-gray-900 dark:from-white dark:via-gray-200 dark:to-gray-400">
+                            GameHub
+                        </span>
                     </div>
 
-                    {/* Right Actions */}
-                    <div className="flex items-center gap-2">
-                        {/* Dark Mode Toggle */}
+                    <div className="flex items-center gap-4">
                         {toggleDarkMode && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="p-2 h-9 w-9 hover:bg-primary/10 transition-colors"
+                            <button
                                 onClick={toggleDarkMode}
-                                aria-label="Toggle dark mode"
+                                className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400 transition-all active:scale-95"
                             >
-                                {isDarkMode ? (
-                                    <Sun className="w-5 h-5 text-yellow-500 hover:text-yellow-400" />
-                                ) : (
-                                    <Moon className="w-5 h-5 text-primary hover:text-primary/80" />
-                                )}
-                            </Button>
+                                {isDarkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5" />}
+                            </button>
                         )}
-
-                        {/* Login Button */}
                         <Button
-                            variant="outlined"
-                            className="h-9 px-3 sm:px-4 text-sm font-bold text-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                            variant="text"
+                            className="hidden sm:flex font-semibold text-gray-600 dark:text-gray-300 hover:bg-transparent hover:text-indigo-600 dark:hover:text-white px-4"
                             onClick={onShowLogin}
                         >
-                            Đăng nhập
+                            Log in
                         </Button>
-
-                        {/* Register Button */}
                         <Button
                             variant="contained"
-                            
-                            className="h-9 px-3 sm:px-4 text-sm font-bold text-white bg-primary hover:bg-primary/90 shadow-md transition-all"
+                            className="bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 font-bold px-6 py-2.5 rounded-full shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5"
                             onClick={onShowRegister}
                         >
-                            Đăng ký
+                            Get Started
                         </Button>
                     </div>
                 </div>
             </header>
 
-            {/* Main Content */}
-            <div className="flex-1 px-4 py-8 sm:py-12 pt-24">
-                <div className="max-w-6xl mx-auto space-y-16 sm:space-y-24">
-                    {/* Hero Section */}
-                    <div className="text-center animate-in fade-in zoom-in duration-700">
-                        {/* Logo */}
-                        <div className="relative inline-flex mb-6 sm:mb-8">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-gradient-to-br from-primary via-primary/90 to-primary/80 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 border-2 border-primary/20 transform hover:scale-105 transition-all">
-                                <Gamepad2 className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-white" />
-                            </div>
-                        </div>
+            <main className="relative pt-32 pb-20 px-6">
+                {/* Hero Section */}
+                <div className="max-w-7xl mx-auto text-center mb-32">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-semibold mb-8 animate-fade-in-up">
+                        <Zap className="w-4 h-4 fill-current" />
+                        <span>Next Gen Gaming Platform</span>
+                    </div>
+                    
+                    <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black mb-8 tracking-tight leading-[1.1]">
+                        Play. Compete. <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
+                            Conquer.
+                        </span>
+                    </h1>
+                    
+                    <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+                        Experience a collection of addictive mini-games designed to challenge your skills. 
+                        Join thousands of players, climb the leaderboards, and prove your mastery.
+                    </p>
 
-                        {/* Title */}
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6">
-                            <span className="text-foreground">
-                                Welcome to
-                            </span>
-                            <br />
-                            <span className="text-primary">
-                                Game Hub
-                            </span>
-                        </h1>
-
-                        {/* Subtitle */}
-                        <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
-                            Khám phá 5 mini games thú vị với gameplay đơn giản nhưng đầy thách thức.
-                            Đăng ký ngay để bắt đầu chơi!
-                        </p>
-
-                        {/* CTA Buttons */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-                            <Button
-                                size="lg"
-                                variant='contained'
-                                className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-white sm:text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-105 active:scale-95 border-0"
-                                onClick={onShowRegister}
-                            >
-                                <Sparkles className="w-5 h-5 mr-2 animate-pulse text-white" />
-                                Đăng ký ngay
-                            </Button>
-                            <Button
-                                size="lg"
-                                variant="outlined"
-                                className="w-full sm:w-auto h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg font-bold border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all hover:scale-105 active:scale-95 shadow-md"
-                                onClick={onShowLogin}
-                            >
-                                Đã có tài khoản? Đăng nhập
-                            </Button>
-                        </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-200">
+                        <button 
+                            onClick={onShowRegister}
+                            className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/40 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                        >
+                            Start Playing Now
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
+                        <button 
+                            onClick={onViewGames}
+                            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold rounded-2xl hover:bg-gray-50 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                        >
+                            Explore Games
+                        </button>
                     </div>
 
-                  
-                    <div className="space-y-12 sm:space-y-16">
-                        <div className="text-center mb-8 sm:mb-12">
-                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
-                                Khám phá các trò chơi
-                            </h2>
-                            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto font-medium">
-                                5 mini games với gameplay độc đáo, từ classic đến hiện đại
-                            </p>
-                        </div>
+                    {/* Stats */}
+                    <div className="mt-20 grid grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto pt-10 border-t border-gray-200/50 dark:border-white/5">
+                        {[
+                            { label: 'Active Players', value: '10K+', icon: Users },
+                            { label: 'Weekly Tournaments', value: '50+', icon: Trophy },
+                            { label: 'Mini Games', value: '5+', icon: Gamepad2 }
+                        ].map((stat, i) => (
+                            <div key={i} className="flex flex-col items-center gap-2">
+                                <stat.icon className="w-6 h-6 text-gray-400 mb-1" />
+                                <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
+                                    {stat.value}
+                                </span>
+                                <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                    {stat.label}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
+                {/* Games Grid */}
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex items-end justify-between mb-12">
+                        <div>
+                            <h2 className="text-3xl md:text-4xl font-bold mb-4">Trending Games</h2>
+                            <p className="text-gray-600 dark:text-gray-400">Curated collection of our most popular challenges</p>
+                        </div>
+                        <Button 
+                            className="hidden md:flex gap-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 font-bold"
+                            endIcon={<ChevronRight className="w-4 h-4" />}
+                        >
+                            View All
+                        </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                         {games.map((game, index) => {
-                            const Icon = ICON_MAP[game.config.icon] || Grid3x3;
-                            const isEven = index % 2 === 0;
+                            const config = game.config || {};
+                            const Icon = ICON_MAP[config.icon] || Gamepad2;
+                            const colors = {
+                                blue: 'from-blue-500/20 to-cyan-500/20 text-blue-500',
+                                purple: 'from-purple-500/20 to-pink-500/20 text-purple-500',
+                                green: 'from-emerald-500/20 to-teal-500/20 text-emerald-500', 
+                                orange: 'from-orange-500/20 to-red-500/20 text-orange-500',
+                                indigo: 'from-indigo-500/20 to-violet-500/20 text-indigo-500'
+                            };
+                            
+                            // Map config color to style object (simple mapping demo)
+                            const colorKey = config.iconColor?.includes('blue') ? 'blue' 
+                                : config.iconColor?.includes('pink') ? 'purple'
+                                : config.iconColor?.includes('green') ? 'green' 
+                                : config.iconColor?.includes('yellow') ? 'orange'
+                                : 'indigo';
+                                
+                            const themeStyle = colors[colorKey];
 
                             return (
-                                <div
+                                <div 
                                     key={game.id}
-                                    className={`grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center animate-in fade-in duration-700`}
-                                    style={{ animationDelay: `${index * 100}ms` }}
+                                    className="group relative bg-white dark:bg-[#16181d] rounded-3xl p-6 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-black/20 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full overflow-hidden"
                                 >
-                                    {/* Game Icon/Visual */}
-                                    <div className={`${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
-                                        <Card className={`border-2 ${game.config.borderColor} overflow-hidden`}>
-                                            <CardContent className={`${game.config.bgColor} p-12 sm:p-16 lg:p-20 flex items-center justify-center`}>
-                                                <Icon className={`w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 ${game.config.iconColor}`} strokeWidth={1.5} />
-                                            </CardContent>
-                                        </Card>
+                                    <div className={`absolute top-0 right-0 p-32 bg-gradient-to-br ${themeStyle.split(' ')[0]} blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                                    
+                                    <div className="relative z-10 flex-1">
+                                        <div className={`w-16 h-16 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 ring-1 ring-inset ring-black/5 dark:ring-white/10 ${themeStyle.split(' ').pop()}`}>
+                                            <Icon className="w-8 h-8" />
+                                        </div>
+                                        
+                                        <div className="mb-2">
+                                            <span className={`text-xs font-bold uppercase tracking-wider ${themeStyle.split(' ').pop()}`}>
+                                                {config.tagline || 'Strategy'}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-xl font-bold mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            {game.name}
+                                        </h3>
+                                        
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6 line-clamp-3">
+                                            {game.description}
+                                        </p>
+
+                                        <div className="space-y-3 mb-8">
+                                            {(config.howToPlay || []).slice(0, 2).map((step, i) => (
+                                                <div key={i} className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+                                                    <CheckCircle2 className={`w-4 h-4 ${themeStyle.split(' ').pop()}`} />
+                                                    <span className="truncate">{step}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
 
-                                    {/* Game Info */}
-                                    <div className={`space-y-4 sm:space-y-6 ${isEven ? 'lg:order-2' : 'lg:order-1'}`}>
-                                        <div>
-                                            <p className={`text-sm sm:text-base font-bold mb-2 ${game.config.iconColor}`}>
-                                                {game.config.tagline}
-                                            </p>
-                                            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
-                                                {game.name}
-                                            </h3>
-                                            <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed font-medium">
-                                                {game.description}
-                                            </p>
-                                        </div>
-
-                                        {/* How to Play */}
-                                        <div>
-                                            <h4 className="text-base sm:text-lg font-extrabold mb-3">Cách chơi:</h4>
-                                            <ul className="space-y-2">
-                                                {game.config.howToPlay.map((step, stepIndex) => (
-                                                    <li key={stepIndex} className="flex items-start gap-2 sm:gap-3">
-                                                        <CheckCircle2 className={`w-5 h-5 flex-shrink-0 mt-0.5 ${game.iconColor}`} />
-                                                        <span className="text-sm sm:text-base text-foreground font-medium">{step}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-
-                                        {/* CTA */}
-                                        <Button
-                                            size="lg"
-                                            className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 font-bold bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg hover:scale-105 transition-all"
+                                    <div className="relative z-10 pt-6 mt-auto border-t border-gray-100 dark:border-white/5">
+                                        <button 
                                             onClick={onShowRegister}
+                                            className="w-full py-3 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white font-bold hover:bg-gray-100 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white dark:group-hover:bg-indigo-600"
                                         >
-                                            Chơi ngay
-                                        </Button>
+                                            Play Now
+                                            <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                                        </button>
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
-
-                    {/* Final CTA */}
-                    <div className="text-center py-12 sm:py-16 animate-in fade-in duration-1000 delay-500">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">
-                            Sẵn sàng bắt đầu?
-                        </h2>
-                        <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto font-medium">
-                            Tạo tài khoản miễn phí để trải nghiệm toàn bộ 5 mini games và cạnh tranh với người chơi khác!
-                        </p>
-                        <Button
-                            size="lg"
-                            variant='contained'
-                            className="h-12 sm:h-14 px-8 sm:px-12 text-base sm:text-lg font-bold bg-primary text-white hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
-                            onClick={onShowRegister}
-                        >
-                            <Sparkles className="w-5 h-5 mr-2 text-white" />
-                            Tạo tài khoản miễn phí
-                        </Button>
-                    </div>
                 </div>
-            </div>
+
+                {/* Footer simple */}
+                <div className="mt-32 border-t border-gray-200 dark:border-white/5 pt-8 text-center">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        © 2024 GameHub Platform. All rights reserved.
+                    </p>
+                </div>
+            </main>
         </div>
     );
 }

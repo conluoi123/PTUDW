@@ -13,7 +13,7 @@ export async function up(knex) {
         table.string("username").notNullable().unique();
         table.string("password");
         table.string("avatar");
-        table.string("refresh_token");
+        table.string("refresh_token").unique();
         table.timestamp("expires_at");
         table.string("role");
         table.string("email").notNullable().unique();

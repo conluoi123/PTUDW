@@ -10,18 +10,28 @@ import {
 import axios from "axios";
 import User from "../models/user.models.js";
 
-const defaultAvatar = "https://res.cloudinary.com/dz9xfcbey/image/upload/f_auto,q_auto,w_400,h_400,c_fill,g_center/avatars/cb9trd7wuoebrlbdhjqj";
+const defaultAvatar =
+  "https://res.cloudinary.com/dz9xfcbey/image/upload/f_auto,q_auto,w_400,h_400,c_fill,g_center/avatars/cb9trd7wuoebrlbdhjqj";
 // Register
 async function Register(req, res) {
   try {
     const { name, username, password, role, email, phone } = req.body;
-    if (!username || !password || !email ) {
-      return res.status(400).json({ error: "Missing required fields" })
-    };
+    if (!username || !password || !email) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
     const hashPass = hashPassword(password);
-    const user = await User.createNewUser(name, username, hashPass, defaultAvatar, role, email, phone, null);
+    const user = await User.createNewUser(
+      name,
+      username,
+      hashPass,
+      defaultAvatar,
+      role,
+      email,
+      phone,
+      null
+    );
     const userInfo = userInfoModel(user);
-    return res.status(200).json({message: "Register successfully", userInfo})
+    return res.status(200).json({ message: "Register successfully", userInfo });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: "Internal server error" });
@@ -156,8 +166,30 @@ async function Login(req, res) {
     if (user.password !== hash) {
       return res.status(401).json({ error: "Password is wrong" });
     }
+    const refToken = crypto.randomBytes(64).toString("hex");
+    const hashRefToken = crypto
+      .createHash("sha256")
+      .update(refToken)
+      .digest("hex");
+    user = await User.updateRefreshToken(user.id, hashRefToken);
+    const accessToken = createAccessToken(user);
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 15 * 24 * 3600 * 1000,
+      path: "/",
+    });
+
+    res.cookie("refreshToken", refToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none", // none là fe và be không cùng 1 url nếu cùng thì là "strict"
+      maxAge: 15 * 24 * 3600 * 1000,
+      path: "/",
+    });
     const userInfo = userInfoModel(user);
-    return res.status(200).json({message: "Login successfully", userInfo})
+    return res.status(200).json({ message: "Login successfully", userInfo });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
@@ -165,7 +197,41 @@ async function Login(req, res) {
 }
 
 async function Logout(req, res) {
-  
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      const hashRefreshToken = crypto
+        .createHash("sha256")
+        .update(refreshToken)
+        .digest("hex");
+      const user = await User.findUserByRfToken(hashRefreshToken);
+      if (user) {
+        await User.updateRefreshToken(user.id, null);
+      }
+    }
+
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    });
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    });
+
+    return res.status(200).json({
+      message: "Logout successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Logout failed",
+    });
+  }
 }
 
 export { SignInWithGG, DirectGoogle, Login, Register, Logout };

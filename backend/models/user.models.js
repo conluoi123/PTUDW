@@ -2,6 +2,13 @@ import db from "../configs/db.js";
 import {v4 as uuidv4} from "uuid"
 
 class User {
+  static findUserByRfToken = async (refreshToken) => {
+    try {
+      return await db("users").where("refresh_token", refreshToken).first();
+    } catch (error) {
+      throw new Error("Error finding user: " + error.message);
+    }
+  }
   static findUserByEmail = async (email) => {
     try {
       return await db("users").where({ email }).first();

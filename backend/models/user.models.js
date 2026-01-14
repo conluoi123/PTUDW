@@ -90,6 +90,14 @@ class User {
       throw new Error("Error updating profile: " + error.message);
     }
   };
+  static deleteUser = async (id) => {
+    try {
+      const cnt = await db("users").where({ id: id }).del();
+      return cnt;
+    } catch (error) {
+      throw new Error("Error delete user: " + error.message);
+    }
+  }
 }
 
 export default User;

@@ -16,3 +16,11 @@ export const createFriendship = async (requesterId, addresseeId) => {
     })
     .returning('*')
 }
+
+export const updateStatus = async (requesterId, addresseeId, status) => {
+  return await db('friendships')
+    .where({ requester_id: requesterId, addressee_id: addresseeId })
+    .update({ status: status })
+    .returning('*')
+}
+

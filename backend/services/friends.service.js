@@ -23,3 +23,7 @@ export const acceptRequest = async (requesterId, currentUserId) => {
   return await friendModel.updateStatus(requesterId, currentUserId, 'accepted')
 }
 
+export const removeFriend = async (currentUserId, targetId) => {
+  return await friendModel.deleteFriendship(currentUserId, targetId)
+}
+

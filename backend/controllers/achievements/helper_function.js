@@ -1,5 +1,6 @@
 import db from "../../configs/db.js";
-export async function insert_user_achieve(userId, achievements) {
+// dung de cap nhat bang user_achievements va achievements trong 1 transaction
+export async function insert_user_achieve_transaction(userId, achievements) {
   try {
     await db.transaction(async (trx) => {
       const [result] = await trx("achievements")
@@ -23,7 +24,17 @@ export async function insert_user_achieve(userId, achievements) {
     console.error("Insert failed, changes rolled back:", error);
   }
 }
-
+export async function insert_user_achieve(userId, achievements_id) {
+    try {
+        await db("user_achievements").insert({
+            achievement_id: achievements_id,
+            user_id: userId,
+            unlocked_at: new Date(),
+        }).onConflict(['achievement_id', 'user_id']).ignore();
+    } catch (error) {
+        console.error("Insert failed, changes rolled back:", error);
+    }
+}
 async function load_achievements_me(req, res, next) {
   try {
     const id_user = req.userId;

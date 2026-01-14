@@ -24,8 +24,8 @@ router.post("/me", getUserId, async (req, res) => {
       return res.status(400).json({ message: "Achievements array cannot be empty" });
     }
 
-    achievements.forEach(async (achievement) => {
-      await insert_user_achieve(id_user, achievement);
+    achievements.forEach(async (achievement_id) => {
+      await insert_user_achieve(id_user, achievement_id);
     });
     return res.status(200).json({ message: "Achievements created successfully" });
   } catch (error) {

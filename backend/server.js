@@ -2,9 +2,9 @@ import express from "express"
 import cors from "cors";
 import ENV from "./configs/env.configs.js";
 import cookieParser from "cookie-parser";
+import friendRouter from "./routers/friends.router.js"
 
 const app = express();
-// đọc từ file .env 
 const PORT = ENV.PORT || 3000;
 
 app.use(express.json())
@@ -19,6 +19,8 @@ app.use(
 app.get('/', (req, res) => {
   res.send('Web game');
 })
+
+app.use('/api/friends', friendRouter)
 
 app.listen(PORT, () => {
   console.log(`Server is listening on http://localhost:${PORT}`)

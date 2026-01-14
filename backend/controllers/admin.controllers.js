@@ -12,4 +12,13 @@ async function deleteUser(req, res) {
     }
 }
 
+async function getUserInfo() {
+    try {
+        
+
+    } catch (error) {
+        
+    }
+}
+
 export {deleteUser}

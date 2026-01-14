@@ -15,6 +15,18 @@ const createMessage = async (req, res) => {
     }
 }
 
+const getConversation = async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const messages = await Message.getConversation(user_id);
+        res.status(200).json(messages);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Lỗi lấy tin nhắn" });
+    }
+}
+
 export default {
-    createMessage
+    createMessage,
+    getConversation
 }

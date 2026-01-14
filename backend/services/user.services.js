@@ -39,4 +39,21 @@ function userInfoModel(user) {
   };
 }
 
-export { verifyGoogleToken, createAccessToken, hashPassword, userInfoModel };
+function userProfileModel(user) {
+  return {
+    email: user.id,
+    name: user.name,
+    avatar: user.avatar,
+    phone: user.phone,
+    username: user.username,
+    role: user.role,
+  };
+}
+
+export {
+  verifyGoogleToken,
+  createAccessToken,
+  hashPassword,
+  userInfoModel,
+  userProfileModel,
+};

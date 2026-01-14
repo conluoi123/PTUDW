@@ -6,6 +6,7 @@ import {
   createAccessToken,
   hashPassword,
   userInfoModel,
+  userProfileModel,
 } from "../services/user.services.js";
 import axios from "axios";
 import User from "../models/user.models.js";
@@ -234,4 +235,8 @@ async function Logout(req, res) {
   }
 }
 
-export { SignInWithGG, DirectGoogle, Login, Register, Logout };
+async function getProfile(req, res) {
+  
+}
+
+export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile };

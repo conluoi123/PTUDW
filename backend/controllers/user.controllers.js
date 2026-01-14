@@ -5,6 +5,7 @@ import {
   verifyGoogleToken,
   createAccessToken,
   hashPassword,
+  userInfoModel,
 } from "../services/user.services.js";
 import axios from "axios";
 import User from "../models/user.models.js";
@@ -19,15 +20,7 @@ async function Register(req, res) {
     };
     const hashPass = hashPassword(password);
     const user = await User.createNewUser(name, username, hashPass, defaultAvatar, role, email, phone, null);
-    const userInfo = {
-      id: user.id,
-      email: user.id,
-      name: user.name,
-      avatar: user.avatar,
-      phone: user.phone,
-      username: user.username,
-      role: user.role
-    }
+    const userInfo = userInfoModel(user);
     return res.status(200).json({message: "Register successfully", userInfo})
   } catch (error) {
     console.log(error);
@@ -147,7 +140,28 @@ async function SignInWithGG(req, res) {
 
 // Login
 async function Login(req, res) {
-  const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    let user = await User.findUserByUsername(username);
+    if (!user) {
+      user = await User.findUserByEmail(username);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+    }
+    const hash = hashPassword(password);
+    if (user.password !== hash) {
+      return res.status(401).json({ error: "Password is wrong" });
+    }
+    const userInfo = userInfoModel(user);
+    return res.status(200).json({message: "Login successfully", userInfo})
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
   
 }
 export { SignInWithGG, DirectGoogle, Login, Register };

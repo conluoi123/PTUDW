@@ -17,7 +17,7 @@ class Game {
             const games = await db("games").select("*");
             return games;
         } catch (error) {
-            console.err(error);
+            console.error(error); // Fixed console.err
             throw new Error("Lỗi lấy danh sách games");
         }
     }
@@ -28,7 +28,7 @@ class Game {
             return game;
         } catch (err) {
             console.error(err);
-            throw new Error("Lỗi lấy game thoe id");
+            throw new Error("Lỗi lấy game theo id");
         }
     }
 

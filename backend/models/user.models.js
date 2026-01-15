@@ -42,7 +42,7 @@ class User {
     hashRefToken
   ) => {
     try {
-      const avatarDb = avatar || defaultAvatar
+      const avatarDb = avatar || defaultAvatar;
       const [newUser] = await db("users")
         .insert({
           id: uuidv4(),
@@ -99,7 +99,43 @@ class User {
     } catch (error) {
       throw new Error("Error delete user: " + error.message);
     }
-  }
+  };
+  static updateUser = async (
+    id,
+    name,
+    username,
+    password,
+    role,
+    email,
+    phone,
+    avatar
+  ) => {
+    try {
+      return db("users")
+        .where({ id })
+        .update({
+          name,
+          username,
+          password,
+          avatar,
+          phone,
+          role,
+          email,
+        })
+        .returning("*");
+    } catch (error) {
+      throw new Error("Error updating profile: " + error.message);
+    }
+  };
+  static checkConflict = async (userId, username, email) => {
+    const user = await db("users")
+      .where((builder) => {
+        builder.where({ username }).orWhere({ email });
+      })
+      .andWhereNot({ id: userId })
+      .first();
+    return !!user;
+  };
 }
 
 export default User;

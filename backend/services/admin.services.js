@@ -15,4 +15,14 @@ const checkExistUser = async (username, email) => {
   }
 };
 
-export { checkExistUser };
+const checkConflicUpdate = async (userId, username, email) => {
+  try {
+    const isConflic = await User.checkConflict(userId, username, email);
+    if (isConflic) return true;
+    return false;
+  } catch (error) {
+    console.error("checkExistUser error:", error);
+    throw new Error("Failed to check existing user");
+  }
+};
+export { checkExistUser, checkConflicUpdate };

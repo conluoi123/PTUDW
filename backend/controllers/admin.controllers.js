@@ -1,5 +1,5 @@
 import User from "../models/user.models.js";
-import { checkExistUser } from "../services/admin.services.js";
+import { checkConflicUpdate, checkExistUser } from "../services/admin.services.js";
 async function deleteUser(req, res) {
   const { userId } = req.params;
   try {
@@ -58,7 +58,35 @@ async function addUser(req, res) {
 }
 
 async function updateUser(req, res) {
-    
+  try {
+    const { userId } = req.params;
+    const { name, username, password, role, email, phone, avatar } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    const isConflic = await checkConflicUpdate(userId, username, email);
+    if (isConflic) {
+      return res.status(400).json({ error: "Username or email is exist" });
+    }
+    let user = await User.findUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    user = await User.updateUser(
+      userId,
+      name,
+      username,
+      password,
+      role,
+      email,
+      phone,
+      avatar
+    );
+    return res.status(200).json({ message: "Update user successfully", user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 }
 
-export { deleteUser, getUserInfo, addUser };
+export { deleteUser, getUserInfo, addUser, updateUser };

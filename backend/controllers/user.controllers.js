@@ -1,4 +1,4 @@
-//https://accounts.google.com/o/oauth2/v2/auth?client_id=329995792104-sbn88825k2gvqtur01e5giepd0uafli9.apps.googleusercontent.com&redirect_uri=https://israel-ramose-premeditatingly.ngrok-free.dev/api/user/login/google/callback&response_type=code&scope=email%20profile&access_type=offline&prompt=select_account
+//https://accounts.google.com/o/oauth2/v2/auth?client_id=329995792104-sbn88825k2gvqtur01e5giepd0uafli9.apps.googleusercontent.com&redirect_uri=http://localhost:3000/api/user/login/google/callback&response_type=code&scope=email%20profile&access_type=offline&prompt=select_account
 import ENV from "../configs/env.configs.js";
 import crypto from "crypto";
 import {

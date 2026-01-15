@@ -1,4 +1,4 @@
-import db from "../../models/db.js";
+
 import express from "express";
 import { insert_user_achieve } from "./helper_function.js";
 

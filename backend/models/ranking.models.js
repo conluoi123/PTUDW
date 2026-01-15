@@ -1,4 +1,4 @@
-import db from "../configs/db.js";
+import db from "../models/db.js";
 
 class Ranking {
   static rankingGlobal = async (gameId) => {

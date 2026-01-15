@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useMemo, useCallback, memo, useEffect } from 'react';
 import { UserPlus, UserCheck, UserMinus, Search, Users, Clock, X } from 'lucide-react';
 import { Button } from '@mui/material';
 import { Input } from '@mui/material';
@@ -162,11 +162,74 @@ const SuggestionCard = memo(({ suggestion, onSendRequest }) => (
 ))
 
 export function FriendsPage() {
-    const [activeTab, setActiveTab] = useState('friends');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [friends, setFriends] = useState(mockFriends);
-    const [friendRequests, setFriendRequests] = useState(mockFriendRequests);
-    const [suggestions, setSuggestions] = useState(mockSuggestions);
+    const [activeTab, setActiveTab] = useState('friends')
+    const [searchQuery, setSearchQuery] = useState('')
+
+    // data states - initialized as empty arrays
+    const [friends, setFriends] = useState([])
+    const [friendRequests, setFriendRequests] = useState([])
+    const [suggestions, setSuggestions] = useState([])
+    
+    // user state
+    const [currentUserId, setCurrentUserId] = useState(null)
+    const [loading, setLoading] = useState(true)
+
+    // fetch user_id based on email from localStorage
+    useEffect(() => {
+        const fetchUserId = async () => {
+        const storedEmail = localStorage.getItem('email')
+
+        if (!storedEmail) {
+            console.error('No email found in localStorage')
+            setLoading(false)
+            return
+        }
+
+        try {
+            // call api to find user by email
+            const res = await fetch(`${API_BASE}/users/find?email=${storedEmail}`)
+            
+            if (!res.ok) throw new Error('User not found')
+
+            const data = await res.json()
+
+            if (data.data && data.data.id) {
+            setCurrentUserId(data.data.id)
+            fetchAllData(data.data.id)
+            }
+        } catch (error) {
+            console.error('Error fetching user ID:', error)
+            setLoading(false)
+        }
+        }
+
+        fetchUserId()
+    }, [])
+
+    // fetch all friend-related data
+    const fetchAllData = async (userId) => {
+        setLoading(true)
+        try {
+        const [friendsRes, requestsRes, suggestionsRes] = await Promise.all([
+            fetch(`${API_BASE}/friends/list?userId=${userId}`),
+            fetch(`${API_BASE}/friends/requests?userId=${userId}`),
+            fetch(`${API_BASE}/friends/suggestions?userId=${userId}`)
+        ])
+
+        const friendsData = await friendsRes.json()
+        const requestsData = await requestsRes.json()
+        const suggestionsData = await suggestionsRes.json()
+
+        // set state with enriched data
+        setFriends(friendsData.data.map(enrichUserData))
+        setFriendRequests(requestsData.data.map(enrichUserData))
+        setSuggestions(suggestionsData.data.map(enrichUserData))
+        } catch (error) {
+        console.error('Failed to fetch friends data:', error)
+        } finally {
+        setLoading(false)
+        }
+    }
 
     const handleAcceptRequest = useCallback((requestId) => {
         const request = friendRequests.find(r => r.id === requestId);

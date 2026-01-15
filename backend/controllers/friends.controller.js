@@ -64,3 +64,12 @@ export const searchFriendStatus = async (req, res) => {
   }
 }
 
+export const getPendingRequests = async (req, res) => {
+  try {
+    const currentUserId = req.query.userId || req.body.currentUserId
+    const list = await friendService.getPendingRequests(currentUserId)
+    res.status(200).json({ data: list })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}

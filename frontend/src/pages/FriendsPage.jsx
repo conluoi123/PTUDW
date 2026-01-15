@@ -33,4 +33,58 @@ const mockSuggestions = [
     { id: 's5', name: 'Paula Diaz', avatar: 'PD', level: 44, isOnline: true, mutualFriends: 12 },
 ];
 
+const OnlineStatusIndicator = memo(({ isOnline }) => (
+    <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-background ${isOnline ? 'bg-green-500' : 'bg-muted-foreground'}`} />
+));
+
+const FriendCard = memo(({
+    friend,
+    onRemove,
+    showActions = false
+}) => (
+    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+        <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+                <div className="relative">
+                    <Avatar className="w-14 h-14">
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                            {friend.avatar}
+                        </AvatarFallback>
+                    </Avatar>
+                    <OnlineStatusIndicator isOnline={friend.isOnline} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold truncate">{friend.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">Level {friend.level}</Badge>
+                        {friend.mutualFriends && (
+                            <span className="text-xs text-muted-foreground">
+                                {friend.mutualFriends} mutual friends
+                            </span>
+                        )}
+                    </div>
+                    {!friend.isOnline && friend.lastSeen && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            <span>{friend.lastSeen}</span>
+                        </div>
+                    )}
+                </div>
+
+                {showActions && onRemove && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onRemove(friend.id)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                        <UserMinus className="w-4 h-4" />
+                    </Button>
+                )}
+            </div>
+        </CardContent>
+    </Card>
+));
+
 export function FriendsPage() { return <div>Loading...</div> }

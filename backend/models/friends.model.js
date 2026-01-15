@@ -61,3 +61,18 @@ export const getPendingRequests = async (userId) => {
     .andWhere('friendships.status', 'pending')
     .select('users.id', 'users.username', 'users.name', 'users.email', 'friendships.create_at as requestedAt')
 }
+
+export const getSuggestions = async (userId) => {
+  const subquery = db('friendships')
+    .select('requester_id')
+    .where('addressee_id', userId)
+    .union(function() {
+      this.select('addressee_id').from('friendships').where('requester_id', userId)
+    });
+
+  return await db('users')
+    .whereNotIn('id', subquery)
+    .andWhere('id', '!=', userId)
+    .limit(10)
+    .select('id', 'username', 'name')
+}

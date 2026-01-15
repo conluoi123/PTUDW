@@ -76,3 +76,7 @@ export const getSuggestions = async (userId) => {
     .limit(10)
     .select('id', 'username', 'name')
 }
+
+export const getUserByEmail = async (email) => {
+  return await db('users').where('email', email).first();
+}

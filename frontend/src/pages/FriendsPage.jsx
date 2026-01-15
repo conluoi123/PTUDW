@@ -87,4 +87,93 @@ const FriendCard = memo(({
     </Card>
 ));
 
+const FriendRequestCard = memo(({
+    request,
+    onAccept,
+    onReject
+}) => (
+    <Card className="hover:shadow-lg transition-all duration-200">
+        <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+                <Avatar className="w-14 h-14 flex-shrink-0">
+                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                        {request.avatar}
+                    </AvatarFallback>
+                </Avatar>
+
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold">{request.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">Level {request.level}</Badge>
+                        <span className="text-xs text-muted-foreground">
+                            {request.mutualFriends} mutual friends
+                        </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{request.requestedAt}</p>
+
+                    <div className="flex gap-2 mt-3">
+                        <Button
+                            size="sm"
+                            onClick={() => onAccept(request.id)}
+                            className="flex-1"
+                            variant="contained" color="primary"
+                        >
+                            <UserCheck className="w-4 h-4 mr-1" />
+                            Accept
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outlined" color="primary"
+                            onClick={() => onReject(request.id)}
+                            className="flex-1"
+                        >
+                            <X className="w-4 h-4 mr-1" />
+                            Reject
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+));
+
+const SuggestionCard = memo(({
+    suggestion,
+    onSendRequest
+}) => (
+    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+        <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+                <div className="relative">
+                    <Avatar className="w-14 h-14">
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                            {suggestion.avatar}
+                        </AvatarFallback>
+                    </Avatar>
+                    <OnlineStatusIndicator isOnline={suggestion.isOnline} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold truncate">{suggestion.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">Level {suggestion.level}</Badge>
+                        {suggestion.mutualFriends && (
+                            <span className="text-xs text-muted-foreground">
+                                {suggestion.mutualFriends} mutual
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <Button
+                    size="sm"
+                    onClick={() => onSendRequest(suggestion.id)}
+                >
+                    <UserPlus className="w-4 h-4" />
+                </Button>
+            </div>
+        </CardContent>
+    </Card>
+));
+
 export function FriendsPage() { return <div>Loading...</div> }

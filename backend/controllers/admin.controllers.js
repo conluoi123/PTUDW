@@ -29,4 +29,8 @@ async function getUserInfo(req, res) {
     }
 }
 
+async function addUser(req, res) {
+    
+}
+
 export {deleteUser, getUserInfo}

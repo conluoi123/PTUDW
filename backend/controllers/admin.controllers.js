@@ -57,4 +57,8 @@ async function addUser(req, res) {
   }
 }
 
+async function updateUser(req, res) {
+    
+}
+
 export { deleteUser, getUserInfo, addUser };

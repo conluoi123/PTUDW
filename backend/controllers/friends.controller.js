@@ -73,3 +73,13 @@ export const getPendingRequests = async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 }
+
+export const getSuggestions = async (req, res) => {
+  try {
+    const currentUserId = req.query.userId || req.body.currentUserId
+    const list = await friendService.getSuggestions(currentUserId)
+    res.status(200).json({ data: list })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}

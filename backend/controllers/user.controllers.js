@@ -347,4 +347,27 @@ async function refreshAccessToken(req, res) {
   }
 }
 
-export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile, updateProfile, authMe, refreshAccessToken };
+const findUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ message: "Please provide an email" });
+    }
+    const user = await User.findUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Only return safe public info
+    return res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile, updateProfile, authMe, refreshAccessToken, findUserByEmail };

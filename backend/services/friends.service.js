@@ -1,4 +1,4 @@
-import * as friendModel from '../models/friends.models.js'
+import * as friendModel from '../models/friends.model.js'
 
 export const sendRequest = async (currentUserId, targetUserId) => {
   if (currentUserId === targetUserId) {
@@ -15,7 +15,7 @@ export const sendRequest = async (currentUserId, targetUserId) => {
 
 export const acceptRequest = async (requesterId, currentUserId) => {
   const relation = await friendModel.findRelationship(requesterId, currentUserId)
-  
+
   if (!relation || relation.status !== 'pending') {
     throw new Error('No pending request found')
   }

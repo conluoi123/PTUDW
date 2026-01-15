@@ -8,7 +8,7 @@ import ratingRouter from "./routers/ratings.routers.js";
 
 
 
-import { userRouter } from "./routers/user.routers.js";
+
 import adminRouter from "./routers/admin.routers.js";
 import friendRouter from "./routers/friends.router.js"
 import achievementRoutes from "./controllers/achievement.controller.js";

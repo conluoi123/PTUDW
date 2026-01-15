@@ -2,10 +2,13 @@ import express from "express"
 import cors from "cors";
 import ENV from "./configs/env.configs.js";
 import cookieParser from "cookie-parser";
+
 import { userRouter } from "./routers/user.routers.js";
 import adminRouter from "./routers/admin.routers.js";
+
+import friendRouter from "./routers/friends.router.js"
+
 const app = express();
-// đọc từ file .env 
 const PORT = ENV.PORT || 3000;
 
 app.use(express.json())
@@ -23,6 +26,7 @@ app.get('/', (req, res) => {
   res.send('Web game');
 })
 
+
 //======================= MIDDLEWARE =======================
 
 
@@ -36,6 +40,9 @@ app.use("/api/games", gameRouter);
 import messageRouter from "./routers/message.routers.js";
 app.use("/api/messages", messageRouter);
 
+
+
+app.use('/api/friends', friendRouter)
 
 
 app.listen(PORT, () => {

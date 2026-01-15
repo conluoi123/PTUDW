@@ -83,6 +83,7 @@ export async function seed(knex) {
         tagline: "Chiến thuật đỉnh cao",
         howToPlay: ["Đặt X hoặc O vào ô trống", "Chặn đường đối thủ", "Tạo chuỗi 5 quân liên tiếp"],
         path: "/games/caro",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQ1VyCuMqltqwed-9J8Nn4GqPqNOt7TgOHLw&s",
       }),
     },
     {
@@ -97,6 +98,7 @@ export async function seed(knex) {
         tagline: "Nhanh tay lẹ mắt",
         howToPlay: ["Đặt X hoặc O", "Tạo chuỗi 4 quân", "Thắng nhanh thắng gọn"],
         path: "/games/caro-4",
+        image: "https://play-lh.googleusercontent.com/bitpex65sLaVVy_99YDobaffIqVgxNRVBEgV8fs6G5rupbM_bMpaFyP41PrpH63had8"
       }),
     },
     {
@@ -111,6 +113,7 @@ export async function seed(knex) {
         tagline: "Kinh điển nhưng không cũ",
         howToPlay: ["Điền vào bảng 3x3", "Tạo 1 hàng 3 quân", "Hòa nhau là chuyện thường"],
         path: "/games/tictactoe",
+        image: "https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=204,height=204,fit=cover,f=auto/591a911d9b73482c052270a8fe4cfc95/tic-tac-toe.png"
       }),
     },
     {
@@ -126,6 +129,7 @@ export async function seed(knex) {
         tagline: "Sống còn & Phát triển",
         howToPlay: ["Ăn mồi để dài ra", "Đừng tự cắn mình", "Tránh xa các bức tường"],
         path: "/games/snake",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFcm1WpjaBlbWvSICd97VEi1FlqdbVXGHQdQ&s"
       }),
     },
     {
@@ -140,6 +144,7 @@ export async function seed(knex) {
         tagline: "Ngọt ngào & Thử thách",
         howToPlay: ["Tìm bộ 3 giống nhau", "Tạo combo nổ lớn", "Đạt điểm cao nhất"],
         path: "/games/match3",
+        image: "https://store-images.s-microsoft.com/image/apps.7458.13510798882606697.b6a31126-a832-4c65-8788-783028e60938.f9619292-7e34-4b90-b30f-98c1ff47cd7f"
       }),
     },
     {
@@ -154,6 +159,7 @@ export async function seed(knex) {
         tagline: "Siêu trí nhớ",
         howToPlay: ["Lật thẻ xem hình", "Ghi nhớ vị trí", "Tìm cặp giống nhau"],
         path: "/games/memory",
+        image: "https://png.pngtree.com/template/20221110/ourmid/pngtree-memory-game-for-kids-image_1864686.jpg"
       }),
     },
     {
@@ -168,6 +174,7 @@ export async function seed(knex) {
         tagline: "Thỏa sức sáng tạo",
         howToPlay: ["Chọn màu & cọ", "Vẽ bất cứ thứ gì", "Lưu lại tác phẩm"],
         path: "/games/draw",
+        image: "https://play-lh.googleusercontent.com/9hzF89O4kseRs0R6jSNUwSqxlQn_1H0kTlJmwcC550r3dA5RjXINdNZFsLCb1tDtjg=w526-h296-rw"
       }),
     },
   ];

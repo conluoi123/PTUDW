@@ -8,6 +8,7 @@ export const GameService = {
                 throw new Error('Failed to fetch list games');
             }
             const data = await response.json();
+            console.log(data);
             return data.data;
         } catch (err) {
             console.log(err);

@@ -2,6 +2,7 @@ import ENV from "../configs/env.configs.js";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";
+import User from "../models/user.models.js";
 
 const client = new OAuth2Client(ENV.GOOGLE_CLIENT_ID);
 async function verifyGoogleToken(idToken) {
@@ -30,7 +31,7 @@ function hashPassword(password) {
 function userInfoModel(user) {
   return {
     id: user.id,
-    email: user.id,
+    email: user.email,
     name: user.name,
     avatar: user.avatar,
     phone: user.phone,
@@ -41,7 +42,7 @@ function userInfoModel(user) {
 
 function userProfileModel(user) {
   return {
-    email: user.id,
+    email: user.email,
     name: user.name,
     avatar: user.avatar,
     phone: user.phone,

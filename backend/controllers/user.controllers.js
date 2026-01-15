@@ -7,12 +7,14 @@ import {
   hashPassword,
   userInfoModel,
   userProfileModel,
+  checkExistUser, // Added import
 } from "../services/user.services.js";
 import axios from "axios";
 import User from "../models/user.models.js";
 
 const defaultAvatar =
   "https://res.cloudinary.com/dz9xfcbey/image/upload/f_auto,q_auto,w_400,h_400,c_fill,g_center/avatars/cb9trd7wuoebrlbdhjqj";
+
 // Register
 async function Register(req, res) {
   try {
@@ -71,9 +73,6 @@ async function SignInWithGG(req, res) {
     const codeUser = req.query.code;
     if (!codeUser)
       return res.status(400).json({ error: "Missing code redirect_uri" });
-
-    const stateReturn = req.query.state;
-    const savedState = req.session.oauthState;
 
     // const stateReturn = req.query.state;
     // const savedState = req.session.oauthState;

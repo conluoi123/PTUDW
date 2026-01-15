@@ -43,7 +43,7 @@ export function MainLayout({ user, logout }) {
         />
 
         <main className="flex-1 transition-all duration-300 pt-16 lg:ml-20 min-h-screen">
-          <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-screen-2xl mx-auto">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-screen-4xl mx-auto">
             <Outlet /> {/* Nơi render các page con */}
           </div>
         </main>

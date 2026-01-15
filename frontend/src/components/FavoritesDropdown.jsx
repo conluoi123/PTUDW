@@ -10,21 +10,21 @@ export function FavoritesDropdown({ isOpen, onClose, onPlayGame }) {
             id: 'caro5',
             name: 'Caro (5 in a row)',
             plays: 45,
-            lastPlayed: 'Hôm nay',
+            lastPlayed: 'Today',
             gradient: 'from-blue-500 to-cyan-600'
         },
         {
             id: 'tictactoe',
             name: 'Tic Tac Toe',
             plays: 32,
-            lastPlayed: 'Hôm qua',
+            lastPlayed: 'Yesterday',
             gradient: 'from-green-500 to-emerald-600'
         },
         {
             id: 'snake',
             name: 'Snake Game',
             plays: 16,
-            lastPlayed: '2 ngày trước',
+            lastPlayed: '2 days ago',
             gradient: 'from-emerald-500 to-green-600'
         }
     ]);
@@ -59,81 +59,80 @@ export function FavoritesDropdown({ isOpen, onClose, onPlayGame }) {
     return (
         <div
             ref={dropdownRef}
-            className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] animate-in slide-in-from-top duration-200 z-50"
+            className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] animate-in slide-in-from-top-2 fade-in duration-200 z-50 transform origin-top-right"
         >
-            <Card className="shadow-xl border-2">
-                <CardContent className="p-0">
-                    {/* Header */}
-                    <div className="p-4 border-b flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
-                            <h3 className="font-semibold">Yêu thích</h3>
+            <div className="rounded-2xl border border-gray-200/50 dark:border-white/10 shadow-2xl shadow-indigo-500/10 overflow-hidden bg-white/90 dark:bg-[#16181d]/90 backdrop-blur-xl">
+                <div className="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-pink-500/10 p-1.5 rounded-lg">
+                            <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
                         </div>
+                        <h3 className="font-bold text-sm">Favorites</h3>
                     </div>
+                    <span className="text-xs font-medium text-gray-400">{favorites.length} items</span>
+                </div>
 
-                    {/* Favorites List */}
-                    <div className="max-h-[400px] overflow-y-auto scrollbar-thin">
-                        {favorites.length === 0 ? (
-                            <div className="p-8 text-center text-muted-foreground">
-                                <Heart className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                <p>Chưa có trò chơi yêu thích</p>
-                                <p className="text-xs mt-1">Thêm trò chơi vào danh sách yêu thích để truy cập nhanh</p>
+                <div className="max-h-[320px] overflow-y-auto scrollbar-thin p-2">
+                    {favorites.length === 0 ? (
+                        <div className="p-8 text-center">
+                            <div className="w-12 h-12 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Heart className="w-6 h-6 text-gray-300 dark:text-gray-600" />
                             </div>
-                        ) : (
-                            favorites.map((game) => (
-                                <div
-                                    key={game.id}
-                                    className="p-4 border-b last:border-b-0 hover:bg-accent transition-colors group"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        {/* Game Icon */}
-                                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${game.gradient} flex items-center justify-center flex-shrink-0`}>
-                                            <Play className="w-6 h-6 text-white" fill="currentColor" />
-                                        </div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">No favorites yet</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Add games to your favorites list for quick access</p>
+                        </div>
+                    ) : (
+                        favorites.map((game) => (
+                            <div
+                                key={game.id}
+                                className="group p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-all flex items-center gap-3 relative"
+                            >
+                                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${game.gradient} flex items-center justify-center shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform`}>
+                                    <Play className="w-4 h-4 text-white fill-white" />
+                                </div>
 
-                                        {/* Game Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-sm truncate">{game.name}</p>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                                <span>{game.plays} lượt chơi</span>
-                                                <span>•</span>
-                                                <span>{game.lastPlayed}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-1 flex-shrink-0">
-                                            <Button
-                                                size="sm"
-                                                onClick={() => handlePlayGame(game.id)}
-                                                className="h-8 px-3"
-                                            >
-                                                <Play className="w-3 h-3 mr-1" fill="currentColor" />
-                                                Chơi
-                                            </Button>
-                                            <button
-                                                onClick={() => removeFavorite(game.id)}
-                                                className="p-2 rounded-lg hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
-                                            >
-                                                <X className="w-4 h-4 text-destructive" />
-                                            </button>
-                                        </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate pr-6">{game.name}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <span>{game.plays} plays</span>
+                                        <span className="w-0.5 h-0.5 bg-gray-300 rounded-full" />
+                                        <span>{game.lastPlayed}</span>
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
 
-                    {/* Footer */}
-                    {favorites.length > 0 && (
-                        <div className="p-3 border-t text-center">
-                            <Button variant="ghost" size="sm" className="w-full">
-                                Quản lý yêu thích
-                            </Button>
-                        </div>
+                                <div className="absolute right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white dark:bg-[#1e2025] shadow-lg rounded-lg p-1 border border-gray-100 dark:border-white/5 z-10">
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handlePlayGame(game.id)}
+                                        className="h-7 px-2 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-md"
+                                    >
+                                        Play
+                                    </Button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeFavorite(game.id);
+                                        }}
+                                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-400 hover:text-red-500 rounded-md transition-colors"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
                     )}
-                </CardContent>
-            </Card>
+                </div>
+
+                {favorites.length > 0 && (
+                    <div className="p-3 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5">
+                        <Button variant="ghost" size="sm" className="w-full text-xs font-medium h-8 rounded-lg text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400">
+                            Manage Favorites
+                        </Button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

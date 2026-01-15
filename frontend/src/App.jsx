@@ -5,7 +5,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { MessagesPage } from './components/pages/MessagePage';
 import { HomePage } from './components/pages/HomePage';
 import { MainLayout } from './components/layouts/MainLayout';
-
+import { AchievementsPage } from './components/pages/AchievementsPage';
 function App() {
     // Mock user data for protected routes
     const mockUser = { name: "Player", avatar: "P" };
@@ -19,6 +19,8 @@ function App() {
                     <Route element={<MainLayout user={mockUser} logout={handleLogout} />}>
                         <Route path="/messages" element={<MessagesPage />} />
                         <Route path="/home" element={<HomePage />} />
+                        <Route path="/achievements" element={<AchievementsPage />} />
+
                     </Route>
                 </Routes>
             </ThemeProvider>

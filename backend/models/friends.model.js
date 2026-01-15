@@ -1,4 +1,4 @@
-import db from '../configs/db.js'
+import db from '../models/db.js'
 
 export const findRelationship = async (userId1, userId2) => {
   return await db('friendships')

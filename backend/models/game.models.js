@@ -1,4 +1,4 @@
-import db from "../configs/db.js";
+import db from "../models/db.js";
 
 class Game {
     constructor(data = {}) {

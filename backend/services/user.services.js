@@ -1,4 +1,4 @@
-import ENV from "../configs/env.configs.js";
+import ENV from "../models/env.configs.js";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 import crypto from "crypto";

@@ -42,5 +42,41 @@ class Ranking {
       throw error;
     }
   };
+  static rankingListFriends = async (gameId, userId) => {
+    try {
+      const friendIds = db("friends")
+        .where("user_id_01", userId)
+        .select("user_id_02 as id")
+        .union(
+          db("friends").where("user_id_02", userId).select("user_id_01 as id")
+        );
+
+      const ranking = await db
+        .select(
+          "u.name",
+          "t.max_score",
+          db.raw("RANK() OVER (ORDER BY t.max_score DESC) as ranking")
+        )
+        .from(function () {
+          this.select("user_id")
+            .max("score as max_score")
+            .from("game_sessions")
+            .where("game_id", gameId)
+            .whereIn("user_id", function () {
+              this.select("id")
+                .from(friendIds.as("all_friends"))
+                .union(db.raw("select ?", [userId]));
+            })
+            .groupBy("user_id")
+            .as("t");
+        })
+        .join("users as u", "t.user_id", "u.id")
+        .orderBy("ranking", "asc");
+
+      return ranking;
+    } catch (error) {
+      throw error;
+    }
+  };
 }
 export default Ranking;

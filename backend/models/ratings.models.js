@@ -14,7 +14,7 @@ class Rating {
           user_id: userId,
           game_id: gameId,
         })
-        .first(); 
+        .first();
 
       return rating || null;
     } catch (error) {
@@ -34,6 +34,20 @@ class Rating {
       return newRatings;
     } catch (error) {
       throw new Error("Error adding ratings: " + error.message);
+    }
+  };
+  static updateRate = async (ratingId, point, comment) => {
+    try {
+      const upRatings = await db("ratings")
+        .where("id", ratingId)
+        .update({
+          point,
+          comment,
+        })
+        .returning("*");
+      return upRatings;
+    } catch (error) {
+      throw new Error("Error updating ratings: " + error.message);
     }
   };
 }

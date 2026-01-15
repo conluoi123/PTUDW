@@ -38,4 +38,21 @@ const addRatings = async (req, res) => {
   }
 };
 
-export { getAllRatings, addRatings };
+const updateRating = async (req, res) => {
+  try {
+    const { ratingId } = req.params;
+    const { point, comment } = req.body;
+    if (!gameId) {
+      return res.status(400).json({ error: "Missing require field" });
+    }
+    const ratings = await Rating.updateRate(ratingId, point, comment);
+    return res
+      .status(200)
+      .json({ message: "get rating successfully", ratings });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export { getAllRatings, addRatings, updateRating };

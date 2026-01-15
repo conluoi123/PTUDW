@@ -136,6 +136,22 @@ class User {
       .first();
     return !!user;
   };
+  static getAllUsers = async () => {
+    try {
+      return await db("users").select(
+        "id",
+        "name",
+        "username",
+        "email",
+        "role",
+        "avatar",
+        "phone",
+        "created_at"
+      );
+    } catch (error) {
+      throw new Error("Error fetching users: " + error.message);
+    }
+  };
 }
 
 export default User;

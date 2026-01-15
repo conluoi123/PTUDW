@@ -89,4 +89,23 @@ async function updateUser(req, res) {
   }
 }
 
-export { deleteUser, getUserInfo, addUser, updateUser };
+async function getAllUsers(req, res) {
+    try {
+        const listUser = await User.getAllUsers();
+        if (listUser.length === 0) {
+          return res
+            .status(200)
+            .json({ message: "No users found in the system" });
+        } 
+        return res.status(200).json({
+          message: "Users retrieved successfully",
+          listUser
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+          error: "Internal server error",
+        });
+    }
+}
+export { deleteUser, getUserInfo, addUser, updateUser, getAllUsers };

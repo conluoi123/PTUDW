@@ -1,6 +1,7 @@
 import db from "../configs/db.js";
 import { v4 as uuidv4 } from "uuid";
-
+const defaultAvatar =
+  "https://res.cloudinary.com/dz9xfcbey/image/upload/f_auto,q_auto,w_400,h_400,c_fill,g_center/avatars/cb9trd7wuoebrlbdhjqj";
 class User {
   static findUserByRfToken = async (refreshToken) => {
     try {
@@ -41,13 +42,14 @@ class User {
     hashRefToken
   ) => {
     try {
+      const avatarDb = avatar || defaultAvatar
       const [newUser] = await db("users")
         .insert({
           id: uuidv4(),
           name,
           username,
           password,
-          avatar,
+          avatar: avatarDb,
           role,
           email,
           phone,

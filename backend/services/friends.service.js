@@ -43,3 +43,11 @@ export const getPendingRequests = async (userId) => {
 export const getSuggestions = async (userId) => {
   return await friendModel.getSuggestions(userId)
 }
+
+export const findUserByEmail = async (email) => {
+  const user = await userModel.getUserByEmail(email)
+  if (!user) {
+    throw new Error('User not found')
+  }
+  return user
+}

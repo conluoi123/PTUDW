@@ -1,17 +1,42 @@
 import Rating from "../models/ratings.models.js";
+import User from "../models/user.models.js";
+import { checkExistRatings } from "../services/ratings.services.js";
 
-const getAllRatings = async (req,res) => {
-    try {
-        const { gameId } = req.params;
-        if (!gameId) {
-            return res.status(400).json({ error: "Missing require field" });
-        }
-        const ratings = await Rating.getRatings(gameId);
-        return res.status(200).json({ message: "get rating successfully", ratings });
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({error: "Internal server error"})
+const getAllRatings = async (req, res) => {
+  try {
+    const { gameId } = req.params;
+    if (!gameId) {
+      return res.status(400).json({ error: "Missing require field" });
     }
-}
+    const ratings = await Rating.getRatings(gameId);
+    return res
+      .status(200)
+      .json({ message: "get rating successfully", ratings });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
-export {getAllRatings}
+const addRatings = async (req, res) => {
+  try {
+    const { gameId } = req.params;
+    const { score, comment } = req.body;
+    if (!gameId) {
+      return res.status(400).json({ error: "Missing require field" });
+      }
+      const isRating = await checkExistRatings(gameId, req.userId);
+      if (isRating) {
+          return res.status(403).json({error: "You are already rating"})
+      }
+    const ratings = await Rating.addRate(gameId);
+    return res
+      .status(200)
+      .json({ message: "get rating successfully", ratings });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export { getAllRatings, addRatings };

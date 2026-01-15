@@ -3,6 +3,7 @@ import cors from "cors";
 import ENV from "./configs/env.configs.js";
 import cookieParser from "cookie-parser";
 import { userRouter } from "./routers/user.routers.js";
+import ratingRouter from "./routers/ratings.routers.js";
 
 const app = express();
 // đọc từ file .env 
@@ -18,7 +19,7 @@ app.use(
 );
 
 userRouter(app);
-
+ratingRouter(app);
 app.get('/', (req, res) => {
   res.send('Web game');
 })

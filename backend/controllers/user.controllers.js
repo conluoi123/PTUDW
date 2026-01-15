@@ -71,21 +71,21 @@ async function SignInWithGG(req, res) {
     const codeUser = req.query.code;
     if (!codeUser)
       return res.status(400).json({ error: "Missing code redirect_uri" });
-    const stateReturn = req.query.state;
-    const savedState = req.session.oauthState;
-    if (!stateReturn || stateReturn !== savedState) {
-      if (req.session) {
-        await new Promise((resolve) => req.session.destroy(resolve));
-        res.clearCookie("connect.sid");
-      }
-      return res
-        .status(403)
-        .json({ error: "State is not suitable, CSRF attack detected." });
-    }
-    if (req.session) {
-      await new Promise((resolve) => req.session.destroy(resolve));
-      res.clearCookie("connect.sid");
-    }
+    // const stateReturn = req.query.state;
+    // const savedState = req.session.oauthState;
+    // if (!stateReturn || stateReturn !== savedState) {
+    //   if (req.session) {
+    //     await new Promise((resolve) => req.session.destroy(resolve));
+    //     res.clearCookie("connect.sid");
+    //   }
+    //   return res
+    //     .status(403)
+    //     .json({ error: "State is not suitable, CSRF attack detected." });
+    // }
+    // if (req.session) {
+    //   await new Promise((resolve) => req.session.destroy(resolve));
+    //   res.clearCookie("connect.sid");
+    // }
     const reqGgToken = await axios.post("https://oauth2.googleapis.com/token", {
       code: codeUser,
       client_id: ENV.GOOGLE_CLIENT_ID,
@@ -116,7 +116,7 @@ async function SignInWithGG(req, res) {
         userData.name,
         userData.email || email.split("@")[0],
         null,
-        avatar ? avatar : defaultAvatar,
+        userData.avatar ? userData.avatar : defaultAvatar,
         "user",
         userData.email,
         null,

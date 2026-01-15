@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import ENV from "../configs/env";
+import ENV from "../configs/env.configs.js";
 
 function authenticateAccessToken(req, res, next) {
   try {

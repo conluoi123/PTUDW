@@ -3,7 +3,7 @@ import cors from "cors";
 import ENV from "./configs/env.configs.js";
 import cookieParser from "cookie-parser";
 import { userRouter } from "./routers/user.routers.js";
-
+import adminRouter from "./routers/admin.routers.js";
 const app = express();
 // đọc từ file .env 
 const PORT = ENV.PORT || 3000;
@@ -18,7 +18,7 @@ app.use(
 );
 
 userRouter(app);
-
+adminRouter(app);
 app.get('/', (req, res) => {
   res.send('Web game');
 })

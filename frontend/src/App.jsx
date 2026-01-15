@@ -7,10 +7,12 @@ import { MessagesPage } from './components/pages/MessagePage';
 function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<WelcomePage />} />
-                <Route path="/messages" element={<MessagesPage />} />
-            </Routes>
+            <ThemeProvider>
+                <Routes>
+                    <Route path="/" element={<WelcomePage />} />
+                    <Route path="/messages" element={<MessagesPage />} />
+                </Routes>
+            </ThemeProvider>
         </BrowserRouter>
     );
 }

@@ -231,33 +231,75 @@ export function FriendsPage() {
         }
     }
 
-    const handleAcceptRequest = useCallback((requestId) => {
-        const request = friendRequests.find(r => r.id === requestId);
-        if (request) {
-            const newFriend = {
-                id: request.userId,
-                name: request.name,
-                avatar: request.avatar,
-                level: request.level,
-                isOnline: Math.random() > 0.5,
-                mutualFriends: request.mutualFriends,
-            };
-            setFriends(prev => [newFriend, ...prev]);
-            setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+    // handle accepting friend request
+    const handleAcceptRequest = useCallback(
+        async (requesterId) => {
+        if (!currentUserId) return
+        try {
+            const res = await fetch(`${API_BASE}/friends/accept/${requesterId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentUserId: currentUserId })
+            })
+
+            if (res.ok) {
+            const acceptedUser = friendRequests.find((r) => r.id === requesterId)
+            setFriendRequests((prev) => prev.filter((r) => r.id !== requesterId))
+            setFriends((prev) => [acceptedUser, ...prev])
+            }
+        } catch (error) {
+            console.error('Error accepting:', error)
         }
-    }, [friendRequests]);
+        },
+        [friendRequests, currentUserId]
+    )
 
-    const handleRejectRequest = useCallback((requestId) => {
-        setFriendRequests(prev => prev.filter(r => r.id !== requestId));
-    }, []);
+    // handle rejecting request or removing friend
+    const handleRejectOrRemove = useCallback(
+        async (targetId) => {
+        if (!currentUserId) return
+        try {
+            const res = await fetch(`${API_BASE}/friends/remove/${targetId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentUserId: currentUserId })
+            })
 
-    const handleSendRequest = useCallback((suggestionId) => {
-        setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
-    }, []);
+            if (res.ok) {
+            setFriendRequests((prev) => prev.filter((r) => r.id !== targetId))
+            setFriends((prev) => prev.filter((f) => f.id !== targetId))
+            }
+        } catch (error) {
+            console.error('Error removing:', error)
+        }
+        },
+        [currentUserId]
+    )
 
-    const handleRemoveFriend = useCallback((friendId) => {
-        setFriends(prev => prev.filter(f => f.id !== friendId));
-    }, []);
+    // handle sending friend request from suggestions
+    const handleSendRequest = useCallback(
+        async (targetUserId) => {
+        if (!currentUserId) return
+        try {
+            const res = await fetch(`${API_BASE}/friends/request`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                currentUserId: currentUserId,
+                targetUserId: targetUserId
+            })
+            })
+
+            if (res.ok) {
+            setSuggestions((prev) => prev.filter((s) => s.id !== targetUserId))
+            alert('Friend request sent!')
+            }
+        } catch (error) {
+            console.error('Error sending request:', error)
+        }
+        },
+        [currentUserId]
+    )
 
     const filteredFriends = useMemo(() => {
         if (!searchQuery) return friends;
@@ -265,6 +307,10 @@ export function FriendsPage() {
             friend.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [friends, searchQuery]);
+
+    if (loading) {
+        return <div className="p-8 text-center">Loading data...</div>
+    }
 
     const onlineFriends = useMemo(() =>
         friends.filter(f => f.isOnline).length

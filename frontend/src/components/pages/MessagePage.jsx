@@ -140,7 +140,7 @@ const ConversationItem = memo(({
         <div className="flex items-center gap-4">
             <div className="relative flex-shrink-0">
                 <Avatar className="w-12 h-12 ring-2 ring-gray-100 dark:ring-white/10">
-                    <AvatarFallback className={`bg-gradient-to-br ${isActive ? 'from-indigo-500 to-purple-600 text-white' : 'from-gray-100 to-gray-200 dark:from-white/10 dark:to-white/5 dark:text-gray-300'} font-bold`}>
+                    <AvatarFallback className={`${isActive ? 'bg-indigo-500 text-white' : 'bg-gray-100 dark:bg-white/10 dark:text-gray-300'} font-bold`}>
                         {conversation.avatar}
                     </AvatarFallback>
                 </Avatar>
@@ -186,7 +186,7 @@ const MessageBubble = memo(({
             <div className={`
                 px-5 py-3 rounded-2xl shadow-sm text-sm leading-relaxed
                 ${isSentByMe
-                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-br-sm'
+                    ? 'bg-indigo-500 text-white rounded-br-sm'
                     : 'bg-white dark:bg-[#1e2025] text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-white/5 rounded-bl-sm'
                 }
             `}>
@@ -223,7 +223,7 @@ const ChatHeader = memo(({
 
             <div className="relative">
                 <Avatar className="w-10 h-10 ring-2 ring-indigo-500/20">
-                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-sm">
+                    <AvatarFallback className="bg-indigo-500 text-white font-bold text-sm">
                         {conversation.avatar}
                     </AvatarFallback>
                 </Avatar>
@@ -349,11 +349,11 @@ export function MessagesPage() {
                 <div className="p-5 border-b border-gray-200/50 dark:border-white/5">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                            {/* <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                                 <MessageCircle className="w-5 h-5 text-white" />
-                            </div>
+                            </div> */}
                             <div>
-                                <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-none">Chats</h1>
+                                <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-none">Chat</h1>
                                 {totalUnread > 0 && (
                                     <p className="text-xs text-indigo-500 dark:text-indigo-400 font-medium mt-1">
                                         {totalUnread} new messages
@@ -377,7 +377,7 @@ export function MessagesPage() {
                 </div>
 
                 {/* Conversation List */}
-                <ScrollArea className="flex-1 bg-white/30 dark:bg-transparent">
+                <ScrollArea className="flex-1 bg-white/30 dark:bg-transparent h-[calc(100vh-200px)]" type='always'>
                     <div className="divide-y divide-gray-100 dark:divide-white/5">
                         {filteredConversations.map(conversation => (
                             <ConversationItem
@@ -418,7 +418,7 @@ export function MessagesPage() {
                         />
 
                         {/* Messages Area */}
-                        <ScrollArea className="flex-1 p-4 lg:p-6">
+                        <ScrollArea className="flex-1 p-4 lg:p-6 h-[calc(100vh-200px)]" type='always'>
                             <div className="max-w-screen mx-auto space-y-6">
                                 <div className="text-center py-6">
                                     <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
@@ -449,7 +449,7 @@ export function MessagesPage() {
                                 <div className="flex-1 py-2">
                                     <input
                                         type="text"
-                                        placeholder="Type a message..."
+                                        placeholder="Nhập tin nhắn..."
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
@@ -465,7 +465,7 @@ export function MessagesPage() {
                                     className={`
                                         h-10 w-10 rounded-full transition-all duration-300 shadow-lg
                                         ${newMessage.trim() 
-                                            ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:scale-105 active:scale-95' 
+                                            ? 'bg-indigo-500 text-white hover:scale-105 active:scale-95' 
                                             : 'bg-gray-200 dark:bg-white/10 text-gray-400 cursor-not-allowed'
                                         }
                                     `}
@@ -477,7 +477,7 @@ export function MessagesPage() {
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                        <div className="w-24 h-24 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                        <div className="w-24 h-24 bg-indigo-500/20 rounded-full flex items-center justify-center mb-6 animate-pulse">
                             <div className="w-16 h-16 bg-white dark:bg-[#16181d] rounded-full flex items-center justify-center shadow-lg">
                                 <MessageCircle className="w-8 h-8 text-indigo-500 dark:text-indigo-400" />
                             </div>
@@ -488,7 +488,7 @@ export function MessagesPage() {
                         <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-8">
                             Select a friend from the sidebar to verify strategies, accept challenges, or just chat.
                         </p>
-                        <Button className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
+                        <Button className="bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
                             Start a New Chat
                         </Button>
                     </div>

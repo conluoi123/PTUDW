@@ -54,3 +54,10 @@ export const getFriendsList = async (userId) => {
     .select('users.id', 'users.username', 'users.name', 'users.email')
 }
 
+export const getPendingRequests = async (userId) => {
+  return await db('friendships')
+    .join('users', 'users.id', '=', 'friendships.requester_id')
+    .where('friendships.addressee_id', userId)
+    .andWhere('friendships.status', 'pending')
+    .select('users.id', 'users.username', 'users.name', 'users.email', 'friendships.create_at as requestedAt')
+}

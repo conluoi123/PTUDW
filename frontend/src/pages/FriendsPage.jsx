@@ -223,8 +223,137 @@ export function FriendsPage() {
         , [friends]);
 
     return (
-         <div className="p-4">
-            Loading UI Logic... (Hooks initialized: {friends.length} friends)
-         </div>
+        <div className="space-y-6 animate-fadeIn">
+            {/* Header */}
+            <Card className="border-0 bg-primary text-primary-foreground shadow-xl">
+                <CardContent className="p-8">
+                    <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-primary-foreground/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                            <Users className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold">Friends</h1>
+                            <p className="text-primary-foreground/80 mt-1">
+                                {friends.length} friends • {onlineFriends} online
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)}>
+                <TabsList className="w-full justify-start">
+                    <TabsTrigger value="friends" className="flex-1 sm:flex-none">
+                        All Friends ({friends.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="requests" className="flex-1 sm:flex-none">
+                        <span className="flex items-center gap-2">
+                            Friend Requests
+                            {friendRequests.length > 0 && (
+                                <Badge variant="destructive" className="text-xs">
+                                    {friendRequests.length}
+                                </Badge>
+                            )}
+                        </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="suggestions" className="flex-1 sm:flex-none">
+                        Suggestions ({suggestions.length})
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="friends" className="space-y-4">
+                    {/* Search Bar */}
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                            type="text"
+                            placeholder="Search friends..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-12 h-12"
+                        />
+                    </div>
+
+                    {/* Friends Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {filteredFriends.map(friend => (
+                            <FriendCard
+                                key={friend.id}
+                                friend={friend}
+                                onRemove={handleRemoveFriend}
+                                showActions={true}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Empty State */}
+                    {filteredFriends.length === 0 && (
+                        <Card>
+                            <CardContent className="text-center py-12">
+                                <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold">
+                                    {searchQuery ? 'No friends found' : 'No friends yet'}
+                                </h3>
+                                <p className="text-muted-foreground mt-2">
+                                    {searchQuery ? 'Try a different search term' : 'Start adding friends to connect with other players'}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="requests" className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {friendRequests.map(request => (
+                            <FriendRequestCard
+                                key={request.id}
+                                request={request}
+                                onAccept={handleAcceptRequest}
+                                onReject={handleRejectRequest}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Empty State */}
+                    {friendRequests.length === 0 && (
+                        <Card>
+                            <CardContent className="text-center py-12">
+                                <UserCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold">No pending requests</h3>
+                                <p className="text-muted-foreground mt-2">
+                                    You don't have any friend requests at the moment
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="suggestions" className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {suggestions.map(suggestion => (
+                            <SuggestionCard
+                                key={suggestion.id}
+                                suggestion={suggestion}
+                                onSendRequest={handleSendRequest}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Empty State */}
+                    {suggestions.length === 0 && (
+                        <Card>
+                            <CardContent className="text-center py-12">
+                                <UserPlus className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold">No suggestions</h3>
+                                <p className="text-muted-foreground mt-2">
+                                    We'll show you friend suggestions based on mutual connections
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
+                </TabsContent>
+            </Tabs>
+        </div>
     );
 }

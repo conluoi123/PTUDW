@@ -80,7 +80,7 @@ export const Header = memo(function Header({
                             className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => setCurrentPage('home')}
                         >
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                            <div className="w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
                                 <Gamepad2 className="w-5 h-5 text-white" />
                             </div>
                             <span className="hidden sm:block text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-indigo-800 to-gray-900 dark:from-white dark:via-gray-200 dark:to-gray-400">
@@ -170,7 +170,7 @@ export const Header = memo(function Header({
                                     className="w-9 h-9 cursor-pointer ring-2 ring-indigo-500/20 hover:ring-indigo-500 transition-all"
                                     onClick={handleUserClick}
                                 >
-                                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-bold text-xs">
+                                    <AvatarFallback className="bg-indigo-500 text-white font-bold text-xs">
                                         {user.name.substring(0, 2).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>

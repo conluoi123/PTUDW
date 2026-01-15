@@ -1,5 +1,4 @@
 import Rating from "../models/ratings.models.js";
-import User from "../models/user.models.js";
 import { checkExistRatings } from "../services/ratings.services.js";
 
 const getAllRatings = async (req, res) => {
@@ -21,7 +20,7 @@ const getAllRatings = async (req, res) => {
 const addRatings = async (req, res) => {
   try {
     const { gameId } = req.params;
-    const { score, comment } = req.body;
+    const { point, comment } = req.body;
     if (!gameId) {
       return res.status(400).json({ error: "Missing require field" });
       }
@@ -29,7 +28,7 @@ const addRatings = async (req, res) => {
       if (isRating) {
           return res.status(403).json({error: "You are already rating"})
       }
-    const ratings = await Rating.addRate(gameId);
+    const ratings = await Rating.addRate(gameId, req.userId, point, comment);
     return res
       .status(200)
       .json({ message: "get rating successfully", ratings });

@@ -1,3 +1,7 @@
-GET http://localhost:3000/achievements/3
+POST http://localhost:3000/achievements/me
 Content-Type: application/json
 
+{
+    "achievements": [{"name":"Kiện tướng Caro","game_id":1,"score":100},{"name":"Thợ săn mồi","game_id":4,"score":500},{"name":"Họa sĩ nhí","game_id":7,"score":10}],
+    "userId" : "58446a41-0366-4322-87eb-ea6a3c34bc8e"
+}

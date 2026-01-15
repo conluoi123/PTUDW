@@ -1,6 +1,6 @@
 import express from "express"
 import cors from "cors";
-import ENV from "./configs/env.configs.js";
+import ENV from "./models/env.configs.js";
 import cookieParser from "cookie-parser";
 
 import { userRouter } from "./routers/user.routers.js";
@@ -13,6 +13,7 @@ import adminRouter from "./routers/admin.routers.js";
 import friendRouter from "./routers/friends.router.js"
 import achievementRoutes from "./controllers/achievement.controller.js";
 import rankingRouter from "./routers/ranking.routers.js";
+import achievementRoutes from "./controllers/achievements/achievement.controller.js";
 const app = express();
 const PORT = ENV.PORT || 3000;
 
@@ -20,7 +21,7 @@ app.use(express.json())
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ENV.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );

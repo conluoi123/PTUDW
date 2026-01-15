@@ -1,5 +1,5 @@
 // Update with your config settings.
-import ENV from "./configs/env.configs.js";
+import ENV from "./models/env.configs.js";
 /**
  * @type { import("knex").Knex.Config }
  */

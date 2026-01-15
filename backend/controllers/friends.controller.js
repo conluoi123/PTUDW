@@ -83,3 +83,17 @@ export const getSuggestions = async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 }
+
+export const findUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.query
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' })
+    }
+
+    const user = await userService.findUserByEmail(email)
+    res.status(200).json({ data: user })
+  } catch (error) {
+    res.status(404).json({ message: error.message })
+  }
+}

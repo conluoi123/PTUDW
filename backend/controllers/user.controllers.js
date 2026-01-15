@@ -20,6 +20,10 @@ async function Register(req, res) {
     if (!username || !password || !email) {
       return res.status(400).json({ error: "Missing required fields" });
     }
+    const isExistUser = await checkExistUser(username, email);
+    if (isExistUser) {
+      return res.status(400).json({ error: "User is exist. Please modify email or username" });
+    }
     const hashPass = hashPassword(password);
     const user = await User.createNewUser(
       name,

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { SignInWithGG, DirectGoogle, Register, Login, Logout, getProfile, updateProfile } from "../controllers/user.controllers.js";
-
+import { authenticateAccessToken } from "../middlewares/jwt.middlewares.js";
 const userRouter = (app) => {
   const directRouter = Router();
   directRouter.get("/google", DirectGoogle);
@@ -9,8 +9,8 @@ const userRouter = (app) => {
   callbackRouter.get("/google/callback", SignInWithGG);
   app.use("/api/user/login", callbackRouter);
   const router = Router();
-  router.patch("/profile", updateProfile);
-  router.get("/profile", getProfile);
+  router.patch("/profile", authenticateAccessToken, updateProfile);
+  router.get("/profile", authenticateAccessToken, getProfile);
   router.post("/logout", Logout);
   router.post("/login", Login);
   router.post("/register", Register);

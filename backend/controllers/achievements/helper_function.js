@@ -69,7 +69,7 @@ async function load_achievements_id(req, res, next) {
 }
 // TODO: hardcode userId, sẽ lấy từ token sau
 function getUserId(req, res, next) {
-  req.userId = req.userId || "58446a41-0366-4322-87eb-ea6a3c34bc8e";
+  req.userId = req.userId || "b7fb6b0a-0653-43b0-ad32-9b0a43be4ffa";
   next();
 }
 export { load_achievements_me, load_achievements_id, getUserId };

@@ -6,10 +6,9 @@ import cookieParser from "cookie-parser";
 
 import { userRouter } from "./routers/user.routers.js";
 import adminRouter from "./routers/admin.routers.js";
-
 import friendRouter from "./routers/friends.router.js"
 import achievementRoutes from "./controllers/achievement.controller.js";
-
+import rankingRouter from "./routers/ranking.routers.js";
 const app = express();
 const PORT = ENV.PORT || 3000;
 
@@ -24,6 +23,7 @@ app.use(
 
 userRouter(app);
 adminRouter(app);
+rankingRouter(app);
 app.get('/', (req, res) => {
   res.send('Web game');
 })

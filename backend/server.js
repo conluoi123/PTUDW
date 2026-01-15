@@ -22,8 +22,8 @@ app.use(
   })
 );
 
-userRouter(app);
-adminRouter(app);
+//userRouter(app);
+//adminRouter(app);
 rankingRouter(app);
 ratingRouter(app);
 app.get('/', (req, res) => {

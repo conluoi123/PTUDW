@@ -5,7 +5,7 @@ const api = axios.create({
 const BACKEND_URL = "http://localhost:3000";
 export async function fetchAchievements(){
   try{
-    const response = await api.get( "/achievements/me");
+    const response = await api.get(BACKEND_URL +  "/achievements/me");
     return response.data;
   }
   catch(error){

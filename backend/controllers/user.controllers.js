@@ -277,4 +277,69 @@ async function updateProfile(req, res) {
   }
 }
 
-export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile, updateProfile };
+const authMe = async (req, res) => {
+  try {
+    const user = await User.findUserByEmail(req.user.email);
+    if (!user) {
+      return res.status(404).json("Tài khoản không tồn tại!");
+    }
+    const data = {
+      userId: user._id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+    };
+    return res.status(200).json({ data });
+  } catch (error) {
+    console.error("Error when get user");
+  }
+};
+
+async function refreshAccessToken(req, res) {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token is wrong" });
+    }
+
+    const hashRefreshToken = crypto
+      .createHash("sha256")
+      .update(refreshToken)
+      .digest("hex");
+    const user = await User.findUserByRfToken(hashRefreshToken);
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "refresh token is expired or wrong" });
+    }
+    const newRefreshToken = crypto.randomBytes(64).toString("hex");
+    const newHashRefreshToken = crypto
+      .createHash("sha256")
+      .update(refToken)
+      .digest("hex");
+    await User.updateRefreshToken(user.id, newHashRefreshToken);
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 15 * 24 * 3600 * 1000,
+      path: "/",
+    });
+    const newAccessToken = createAccessToken(user);
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 15 * 24 * 3600 * 1000,
+      path: "/",
+    });
+    return res.status(200).json({ message: "Refresh successfully" });
+  } catch (error) {
+    console.log("REFRESH TOKEN IS EXPIRED OR WRONG", error);
+    return res
+      .status(401)
+      .json({ message: "REFRESH TOKEN IS EXPIRED OR WRONG" });
+  }
+}
+
+export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile, updateProfile, authMe, refreshAccessToken };

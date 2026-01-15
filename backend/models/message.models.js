@@ -20,6 +20,7 @@ class Message {
                     sender_id: data.sender_id,
                     receiver_id: data.receiver_id,
                     content: data.content,
+                    status: 'unread'
                 })
                 .returning("*");
             if (newmsg.length > 0) {
@@ -56,7 +57,7 @@ class Message {
                     FROM messages m2 
                     WHERE m2.receiver_id = ?
                     AND m2.sender_id = u.id
-                    AND m2.status = 'unread'
+                    AND (m2.status != 'read' OR m2.status IS NULL)
                 ) as unread_count
             FROM users u 
             INNER JOIN LATERAL (

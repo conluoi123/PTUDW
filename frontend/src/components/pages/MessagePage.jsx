@@ -5,117 +5,13 @@ import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { Avatar, AvatarFallback } from '../ui/avatar';
+import { MessageService } from '@/services/message.services';
 
-// Mock data
-const baseConversations = [
-    {
-        id: 'c1',
-        userId: 'u1',
-        userName: 'Alice Johnson',
-        avatar: 'AJ',
-        isOnline: true,
-        lastMessage: "Let's play Caro later!",
-        lastMessageTime: '5m',
-        unreadCount: 2,
-        messages: [
-            { id: 'm1', senderId: 'u1', content: 'Hey! How are you?', timestamp: '10:30 AM', isRead: true },
-            { id: 'm2', senderId: 'me', content: 'Hi! I\'m good, thanks! You?', timestamp: '10:32 AM', isRead: true },
-            { id: 'm3', senderId: 'u1', content: 'Great! I just unlocked a new achievement', timestamp: '10:35 AM', isRead: true },
-            { id: 'm4', senderId: 'me', content: 'Awesome! Which one?', timestamp: '10:36 AM', isRead: true },
-            { id: 'm5', senderId: 'u1', content: 'The "Game Master" achievement for winning 100 games!', timestamp: '10:38 AM', isRead: true },
-            { id: 'm6', senderId: 'me', content: 'Wow, congratulations! 🎉', timestamp: '10:40 AM', isRead: true },
-            { id: 'm7', senderId: 'u1', content: 'By the way, did you check the new leaderboards?', timestamp: '10:42 AM', isRead: true },
-            { id: 'm8', senderId: 'me', content: 'Not yet, I was busy playing Snake.', timestamp: '10:43 AM', isRead: true },
-            { id: 'm9', senderId: 'u1', content: 'You should! There are some insane scores there.', timestamp: '10:44 AM', isRead: true },
-            { id: 'm10', senderId: 'me', content: 'I bet. I need to practice more if I want to climb up.', timestamp: '10:45 AM', isRead: true },
-            { id: 'm11', senderId: 'u1', content: 'We can practice together sometime.', timestamp: '10:46 AM', isRead: true },
-            { id: 'm12', senderId: 'me', content: 'Sounds like a plan! How about this weekend?', timestamp: '10:47 AM', isRead: true },
-            { id: 'm13', senderId: 'u1', content: 'Sure, Saturday works for me.', timestamp: '10:48 AM', isRead: true },
-            { id: 'm14', senderId: 'me', content: 'Perfect. See you then!', timestamp: '10:49 AM', isRead: true },
-            { id: 'm15', senderId: 'u1', content: "Let's play Caro later!", timestamp: '2m ago', isRead: false },
-            { id: 'm16', senderId: 'u1', content: 'Are you free?', timestamp: '1m ago', isRead: false },
-        ],
-    },
-    {
-        id: 'c2',
-        userId: 'u2',
-        userName: 'Bob Smith',
-        avatar: 'BS',
-        isOnline: true,
-        lastMessage: 'GG! That was a great game',
-        lastMessageTime: '15m',
-        unreadCount: 0,
-        messages: [
-            { id: 'm1', senderId: 'u2', content: 'Want to play Snake?', timestamp: '9:00 AM', isRead: true },
-            { id: 'm2', senderId: 'me', content: 'Sure! Let me finish this round', timestamp: '9:02 AM', isRead: true },
-            { id: 'm3', senderId: 'u2', content: 'No rush, take your time', timestamp: '9:03 AM', isRead: true },
-            { id: 'm4', senderId: 'me', content: 'Ready now!', timestamp: '9:10 AM', isRead: true },
-            { id: 'm5', senderId: 'u2', content: 'GG! That was a great game', timestamp: '15m ago', isRead: true },
-        ],
-    },
-    {
-        id: 'c3',
-        userId: 'u3',
-        userName: 'Diana Prince',
-        avatar: 'DP',
-        isOnline: false,
-        lastMessage: 'Thanks for the tips!',
-        lastMessageTime: '1h',
-        unreadCount: 0,
-        messages: [
-            { id: 'm1', senderId: 'u3', content: 'How do you play Candy Crush so well?', timestamp: 'Yesterday', isRead: true },
-            { id: 'm2', senderId: 'me', content: 'Focus on creating special candies and combos', timestamp: 'Yesterday', isRead: true },
-            { id: 'm3', senderId: 'u3', content: 'Thanks for the tips!', timestamp: '1h ago', isRead: true },
-        ],
-    },
-    {
-        id: 'c4',
-        userId: 'u4',
-        userName: 'Charlie Brown',
-        avatar: 'CB',
-        isOnline: false,
-        lastMessage: 'See you tomorrow!',
-        lastMessageTime: '2h',
-        unreadCount: 0,
-        messages: [
-            { id: 'm1', senderId: 'me', content: 'Up for a Tic Tac Toe match?', timestamp: '2h ago', isRead: true },
-            { id: 'm2', senderId: 'u4', content: 'Not right now, maybe tomorrow?', timestamp: '2h ago', isRead: true },
-            { id: 'm3', senderId: 'me', content: 'Sure, no problem!', timestamp: '2h ago', isRead: true },
-            { id: 'm4', senderId: 'u4', content: 'See you tomorrow!', timestamp: '2h ago', isRead: true },
-        ],
-    },
-    {
-        id: 'c5',
-        userId: 'u5',
-        userName: 'Ethan Hunt',
-        avatar: 'EH',
-        isOnline: true,
-        lastMessage: 'Check out the new ranking!',
-        lastMessageTime: '3h',
-        unreadCount: 1,
-        messages: [
-            { id: 'm1', senderId: 'u5', content: 'Did you see the new ranking?', timestamp: '3h ago', isRead: true },
-            { id: 'm2', senderId: 'me', content: 'Not yet, why?', timestamp: '3h ago', isRead: true },
-            { id: 'm3', senderId: 'u5', content: 'Check out the new ranking!', timestamp: '3h ago', isRead: false },
-        ],
-    },
-];
+// Hardcoded User ID for testing
+const CURRENT_USER_ID = "b7fb6b0a-0653-43b0-ad32-9b0a43be4ffa";
+// hardcoded test tính năng đã xem 
+// const CURRENT_USER_ID = "f0f35623-f74a-4ccd-9499-229e6428e413";
 
-// Generate more conversations to demonstrate scrolling
-const mockConversations = [
-    ...baseConversations,
-    ...Array.from({ length: 15 }).map((_, i) => ({
-        id: `c${i + 10}`,
-        userId: `u${i + 10}`,
-        userName: `Player ${i + 1}`,
-        avatar: `P${i + 1}`,
-        isOnline: i % 3 === 0,
-        lastMessage: 'Anyone up for a game?',
-        lastMessageTime: `${i + 1}d`,
-        unreadCount: 0,
-        messages: []
-    }))
-];
 
 const OnlineIndicator = memo(({ isOnline }) => (
     <div className={`w-3 h-3 rounded-full border-2 border-white dark:border-[#16181d] ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
@@ -237,10 +133,10 @@ const ChatHeader = memo(({
                     {conversation.userName}
                 </h2>
                 <div className="flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full ${conversation.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                    {/* <span className={`w-1.5 h-1.5 rounded-full ${conversation.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} /> */}
+                    {/* <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         {conversation.isOnline ? 'Active now' : 'Offline'}
-                    </span>
+                    </span> */}
                 </div>
             </div>
         </div>
@@ -262,14 +158,49 @@ const ChatHeader = memo(({
 
 export function MessagesPage() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [conversations, setConversations] = useState(mockConversations);
+    const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [newMessage, setNewMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
+
+    // Fetch conversations list
+    useEffect(() => {
+        const fetchConversations = async () => {
+            try {
+                const data = await MessageService.getConversations(CURRENT_USER_ID);
+                
+                // Map backend data to UI format
+                const formattedConversations = data.map(conv => ({
+                    id: conv.partner_id, // Use partner_id as conversation id
+                    userId: conv.partner_id,
+                    userName: conv.name || conv.username,
+                    avatar: (conv.name || conv.username || '?').charAt(0).toUpperCase(),
+                    isOnline: false, // Online status not yet implemented in backend
+                    lastMessage: conv.last_message,
+                    lastMessageTime: new Date(conv.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    unreadCount: parseInt(conv.unread_count) || 0,
+                    messages: [] // Will fetch on select
+                }));
+                
+                setConversations(formattedConversations);
+            } catch (error) {
+                console.error("Error loading conversations:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchConversations();
+        
+        // Vì ko realtime nên setInterval 10s sẽ useEffect một lần
+        const interval = setInterval(fetchConversations, 10000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
@@ -286,38 +217,52 @@ export function MessagesPage() {
         conversations.reduce((sum, conv) => sum + conv.unreadCount, 0)
         , [conversations]);
 
-    const handleSendMessage = useCallback(() => {
+    const handleSendMessage = useCallback(async () => {
         if (!newMessage.trim() || !selectedConversation) return;
 
-        const newMsg = {
-            id: `m${Date.now()}`,
-            senderId: 'me',
-            content: newMessage.trim(),
-            timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-            isRead: true,
+        const messageContent = newMessage.trim();
+        // Optimistic UI update
+        const tempId = `temp-${Date.now()}`;
+        const newMsgOptimistic = {
+            id: tempId,
+            sender_id: CURRENT_USER_ID, // Use backend field name format
+            senderId: 'me', // Keep UI format for rendering logic consistency if needed, or unify
+            content: messageContent,
+            sent_at: new Date().toISOString(),
+            isRead: true, // Self messages are read
         };
+
+        // Update UI immediately
+        setNewMessage('');
+        
+        setSelectedConversation(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                messages: [...(prev.messages || []), newMsgOptimistic],
+            };
+        });
 
         setConversations(prev => prev.map(conv => {
             if (conv.id === selectedConversation.id) {
                 return {
                     ...conv,
-                    messages: [...conv.messages, newMsg],
-                    lastMessage: newMessage.trim(),
+                    lastMessage: messageContent,
                     lastMessageTime: 'Just now',
                 };
             }
             return conv;
         }));
 
-        setSelectedConversation(prev => {
-            if (!prev) return null;
-            return {
-                ...prev,
-                messages: [...prev.messages, newMsg],
-            };
-        });
+        try {
+            await MessageService.sendMessage(CURRENT_USER_ID, selectedConversation.userId, messageContent);
+            // Re-fetch conversation to keep in sync or handle response typically
+            // For now, optimistic update is fine.
+        } catch (error) {
+            console.error("Error sending message:", error);
+            // Could revert optimistic update here
+        }
 
-        setNewMessage('');
     }, [newMessage, selectedConversation]);
 
     const handleKeyPress = useCallback((e) => {
@@ -327,12 +272,46 @@ export function MessagesPage() {
         }
     }, [handleSendMessage]);
 
-    const handleSelectConversation = useCallback((conversation) => {
-        // Mark as read
+    const handleSelectConversation = useCallback(async (conversation) => {
+        // Optimistically set selected to show UI immediately
+        setSelectedConversation({ ...conversation, messages: [] });
+        
+        // Mark as read in UI
         setConversations(prev => prev.map(conv =>
             conv.id === conversation.id ? { ...conv, unreadCount: 0 } : conv
         ));
-        setSelectedConversation(conversation);
+
+        // Mark as read in Backend
+        try {
+            await MessageService.markAsRead(conversation.userId, CURRENT_USER_ID);
+        } catch (err) {
+            console.error("Error marking read:", err);
+        }
+
+        // Fetch Message History
+        try {
+            const history = await MessageService.getHistory(CURRENT_USER_ID, conversation.userId, 50);
+            
+            // update trạng thái đã xem
+            setSelectedConversation(prev => {
+                if (prev && prev.id === conversation.id) {
+                    return {
+                        ...prev,
+                        messages: history.map(msg => ({
+                            id: msg.id,
+                            senderId: msg.sender_id === CURRENT_USER_ID ? 'me' : msg.sender_id,
+                            content: msg.content,
+                            timestamp: new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            isRead: msg.status === 'read'
+                        }))
+                    };
+                }
+                return prev;
+            });
+        } catch (error) {
+            console.error("Error fetching history:", error);
+        }
+
     }, []);
 
     const handleBackToList = useCallback(() => {
@@ -349,9 +328,6 @@ export function MessagesPage() {
                 <div className="p-5 border-b border-gray-200/50 dark:border-white/5">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            {/* <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                <MessageCircle className="w-5 h-5 text-white" />
-                            </div> */}
                             <div>
                                 <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-none">Chat</h1>
                                 {totalUnread > 0 && (
@@ -379,7 +355,9 @@ export function MessagesPage() {
                 {/* Conversation List */}
                 <ScrollArea className="flex-1 bg-white/30 dark:bg-transparent h-[calc(100vh-200px)]" type='always'>
                     <div className="divide-y divide-gray-100 dark:divide-white/5">
-                        {filteredConversations.map(conversation => (
+                        {isLoading ? (
+                             <div className="p-8 text-center text-gray-500 text-sm">Loading conversations...</div>
+                        ) : filteredConversations.map(conversation => (
                             <ConversationItem
                                 key={conversation.id}
                                 conversation={conversation}
@@ -389,7 +367,7 @@ export function MessagesPage() {
                         ))}
                     </div>
 
-                    {filteredConversations.length === 0 && (
+                    {!isLoading && filteredConversations.length === 0 && (
                         <div className="text-center py-12 px-6">
                             <MessageCircle className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -422,10 +400,10 @@ export function MessagesPage() {
                             <div className="max-w-screen mx-auto space-y-6">
                                 <div className="text-center py-6">
                                     <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
-                                        Today, {new Date().toLocaleDateString()}
+                                        Bây giờ
                                     </span>
                                 </div>
-                                {selectedConversation.messages.map((message) => (
+                                {selectedConversation.messages && selectedConversation.messages.map((message) => (
                                     <MessageBubble
                                         key={message.id}
                                         message={message}

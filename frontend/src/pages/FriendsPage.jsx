@@ -176,4 +176,55 @@ const SuggestionCard = memo(({
     </Card>
 ));
 
-export function FriendsPage() { return <div>Loading...</div> }
+export function FriendsPage() {
+    const [activeTab, setActiveTab] = useState('friends');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [friends, setFriends] = useState(mockFriends);
+    const [friendRequests, setFriendRequests] = useState(mockFriendRequests);
+    const [suggestions, setSuggestions] = useState(mockSuggestions);
+
+    const handleAcceptRequest = useCallback((requestId) => {
+        const request = friendRequests.find(r => r.id === requestId);
+        if (request) {
+            const newFriend = {
+                id: request.userId,
+                name: request.name,
+                avatar: request.avatar,
+                level: request.level,
+                isOnline: Math.random() > 0.5,
+                mutualFriends: request.mutualFriends,
+            };
+            setFriends(prev => [newFriend, ...prev]);
+            setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+        }
+    }, [friendRequests]);
+
+    const handleRejectRequest = useCallback((requestId) => {
+        setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+    }, []);
+
+    const handleSendRequest = useCallback((suggestionId) => {
+        setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
+    }, []);
+
+    const handleRemoveFriend = useCallback((friendId) => {
+        setFriends(prev => prev.filter(f => f.id !== friendId));
+    }, []);
+
+    const filteredFriends = useMemo(() => {
+        if (!searchQuery) return friends;
+        return friends.filter(friend =>
+            friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [friends, searchQuery]);
+
+    const onlineFriends = useMemo(() =>
+        friends.filter(f => f.isOnline).length
+        , [friends]);
+
+    return (
+         <div className="p-4">
+            Loading UI Logic... (Hooks initialized: {friends.length} friends)
+         </div>
+    );
+}

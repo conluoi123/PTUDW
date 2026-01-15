@@ -3,6 +3,10 @@ import cors from "cors";
 import ENV from "./configs/env.configs.js";
 import cookieParser from "cookie-parser";
 
+import { userRouter } from "./routers/user.routers.js";
+import ratingRouter from "./routers/ratings.routers.js";
+
+
 
 import { userRouter } from "./routers/user.routers.js";
 import adminRouter from "./routers/admin.routers.js";
@@ -24,6 +28,7 @@ app.use(
 userRouter(app);
 adminRouter(app);
 rankingRouter(app);
+ratingRouter(app);
 app.get('/', (req, res) => {
   res.send('Web game');
 })

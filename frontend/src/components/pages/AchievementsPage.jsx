@@ -8,6 +8,41 @@ import { useState } from "react";
 import { fetchAchievements } from "@/services/achievements.services";
 
 
+// TODO : Phải đổi backend có userId để có thể lấy achievements của user đó
+export function AchievementsPage() {
+  const [achievementsRepo, setAchievementsRepo] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    try {
+      const fetchData = async()=>{
+        const data = await fetchAchievements();
+        setAchievementsRepo(data);
+        setIsLoading(false);
+      }
+      fetchData();
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+    }
+  }, []);
+  if(isLoading){
+    return <div>Loading...</div>;
+  }
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      <div>
+        <h1 className="mb-2 text-2xl font-bold">Achievements</h1>
+        <p className="text-muted-foreground">
+          Track your progress and unlock rewards
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
+          {achievementsRepo.map((achievement) => (
+            <AchievementCard key={achievement.id} achievement={achievement}  />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 function AchievementCard({ achievement }) {

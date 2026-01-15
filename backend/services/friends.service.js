@@ -35,3 +35,7 @@ export const checkStatus = async (currentUserId, targetId) => {
   const relation = await friendModel.findRelationship(currentUserId, targetId)
   return relation || { status: 'none' }
 }
+
+export const getPendingRequests = async (userId) => {
+  return await friendModel.getPendingRequests(userId)
+}

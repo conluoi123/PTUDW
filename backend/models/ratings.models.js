@@ -49,6 +49,15 @@ class Rating {
     } catch (error) {
       throw new Error("Error updating ratings: " + error.message);
     }
-  };
+    };
+    static deleteRate = async (ratingId) => {
+        try {
+            return await db("ratings")
+                .where("id", ratingId)
+                .del();
+        } catch (error) {
+          throw new Error("Error deleting ratings: " + error.message);
+        }
+    }
 }
 export default Rating;

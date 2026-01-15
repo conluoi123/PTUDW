@@ -17,6 +17,7 @@ const userMiddleware = async (req, res, next) => {
     res.status(404).json("Tài khoản không tồn tại!");
   }
   res.locals.userInfo = user;
+  req.userId = user.id;
   next();
 };
 

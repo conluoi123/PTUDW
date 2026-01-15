@@ -23,6 +23,21 @@ app.get('/', (req, res) => {
   res.send('Web game');
 })
 
+//======================= MIDDLEWARE =======================
+
+
+
+//======================= ROUTER =======================
+// GAMES
+import gameRouter from "./routers/game.routers.js";
+app.use("/api/games", gameRouter);
+
+// MESSAGES 
+import messageRouter from "./routers/message.routers.js";
+app.use("/api/messages", messageRouter);
+
+
+
 app.listen(PORT, () => {
   console.log(`Server is listening on http://localhost:${PORT}`)
 })

@@ -4,13 +4,21 @@ import { WelcomePage } from './components/pages/WelcomePage';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { MessagesPage } from './components/pages/MessagePage';
 
+import { MainLayout } from './components/layouts/MainLayout';
+
 function App() {
+    // Mock user data for protected routes
+    const mockUser = { name: "Player", avatar: "P" };
+    const handleLogout = () => console.log("Logged out");
+
     return (
         <BrowserRouter>
             <ThemeProvider>
                 <Routes>
                     <Route path="/" element={<WelcomePage />} />
-                    <Route path="/messages" element={<MessagesPage />} />
+                    <Route element={<MainLayout user={mockUser} logout={handleLogout} />}>
+                        <Route path="/messages" element={<MessagesPage />} />
+                    </Route>
                 </Routes>
             </ThemeProvider>
         </BrowserRouter>

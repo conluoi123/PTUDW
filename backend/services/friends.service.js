@@ -39,3 +39,7 @@ export const checkStatus = async (currentUserId, targetId) => {
 export const getPendingRequests = async (userId) => {
   return await friendModel.getPendingRequests(userId)
 }
+
+export const getSuggestions = async (userId) => {
+  return await friendModel.getSuggestions(userId)
+}

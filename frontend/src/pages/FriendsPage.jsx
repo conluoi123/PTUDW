@@ -7,6 +7,20 @@ import { Card, CardContent } from '@mui/material';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
+// configuration
+const API_BASE = 'http://localhost:3000/api'
+
+// helper to create mock data for fields missing in the database
+const enrichUserData = (user) => ({
+  ...user,
+  // create initials for avatar if avatar url is missing
+  avatar: user.name ? user.name.substring(0, 2).toUpperCase() : 'UN',
+  level: Math.floor(Math.random() * 50) + 1, // random level
+  isOnline: Math.random() > 0.5, // random online status
+  mutualFriends: Math.floor(Math.random() * 10),
+  lastSeen: 'Just now'
+})
+
 // Mock data
 const mockFriends = [
     { id: '1', name: 'Alice Johnson', avatar: 'AJ', level: 38, isOnline: true, mutualFriends: 12 },

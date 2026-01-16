@@ -27,8 +27,13 @@ export function AchievementsPage() {
       setAchievementsRepo([]);
     };
   }, []);
-  if (achievementsRepo == null) {
-    return <div>No achievements found.</div>;
+  if (achievementsRepo.length == 0) {
+    return (
+      <div className="text-center p-10">
+        <p>You haven't unlocked any achievements yet.</p>
+        <p>Play a game to get started!</p>
+      </div>
+    );
   }
   if (isLoading) {
     return <div>Loading...</div>;

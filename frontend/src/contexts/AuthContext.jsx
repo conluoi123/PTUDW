@@ -1,8 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import api, {
-  setLogoutHandler,
-} from "@/services/service";
+import api, { setLogoutHandler } from "@/services/service";
 
 const AuthContext = createContext(undefined);
 
@@ -10,7 +7,6 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLogout, setIsLogout] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -34,6 +30,7 @@ function AuthProvider({ children }) {
 
   const login = (userData) => {
     setIsLogout(false);
+    localStorage.setItem("userId", userData.id);
     setUser(userData);
   };
 
@@ -46,7 +43,6 @@ function AuthProvider({ children }) {
       setUser(null);
       setIsLoading(false);
       setIsLogout(true);
-      navigate("/login");
     }
   };
 
@@ -86,4 +82,4 @@ function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export {AuthProvider, AuthContext}
+export { AuthProvider, AuthContext };

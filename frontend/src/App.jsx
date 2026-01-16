@@ -11,7 +11,9 @@ function App() {
     // Mock user data for protected routes
     const mockUser = { name: "Player", avatar: "P" };
     const handleLogout = () => console.log("Logged out");
+    // const { user, logout, isLoading } = useAuth();
 
+    // if (isLoading) return <div>Loading...</div>;
     return (
       <BrowserRouter>
         <ThemeProvider>

@@ -21,7 +21,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { AuthContext } from "@/contexts/AuthContext";
+import { useContext } from "react";
 export const HomePage = () => {
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
@@ -29,6 +30,7 @@ export const HomePage = () => {
 
   const [activeTab, setActiveTab] = useState("Tất cả");
   const CATEGORIES = ["Tất cả", "Trí tuệ", "Chiến thuật", "Đối kháng", "Giải trí"];
+  const { user } = useContext(AuthContext);
 
   // Mock Stats with 3D Images
   const stats = [
@@ -82,7 +84,10 @@ export const HomePage = () => {
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
   );
-
+  if (!user) {
+    console.log(user);
+    return
+  }
   return (
     <div className="space-y-8 animate-fade-in pb-10">
         

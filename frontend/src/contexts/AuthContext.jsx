@@ -55,13 +55,14 @@ function AuthProvider({ children }) {
     try {
       const res = await api.get("/api/user/me");
       const { userId, email, name, avatar } = res.data.data;
-
+      console.log(res.data.data);
       setUser({
         id: userId,
         email,
         name,
         avatar,
       });
+      localStorage.setItem("userId", userId)
     } catch (err) {
       console.log("refresh user failed");
       throw err;

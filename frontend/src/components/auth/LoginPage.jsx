@@ -15,7 +15,8 @@ import Google from "@mui/icons-material/Google";
 import { userApi } from "@/services/userApi.services";
 //npm install @mui/material @emotion/react @emotion/styled
 //npm install @mui/icons-material
-
+import { AuthContext } from "@/contexts/AuthContext";
+import { useContext } from "react";
 export function LoginPage({ onSwitchToRegister, onBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +24,7 @@ export function LoginPage({ onSwitchToRegister, onBack }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
+  const { login } = useContext(AuthContext);
   const validateForm = () => {
     const newErrors = {};
     setErrors("");
@@ -54,12 +56,20 @@ export function LoginPage({ onSwitchToRegister, onBack }) {
         username: email,
         password,
       });
-    
+      if(data)
+      login({
+        id: data.userInfo.id,
+        email: data.userInfo.email,
+        name: data.userInfo.name,
+        avatar: data.userInfo.avatar,
+        phone: data.userInfo.phone,
+        username: data.userInfo.username,
+        role: data.userInfo.role,
+      });
       console.log("Login success:", data);
     } catch (error) {
       console.error("Login failed:", error);
       const status = error?.response?.status;
-      // const message = error?.response?.data?.error;
 
       if (status === 400) {
         setServerError("Missing required fields");

@@ -284,12 +284,13 @@ async function updateProfile(req, res) {
 
 const authMe = async (req, res) => {
   try {
+    console.log(req.user);
     const user = await User.findUserByEmail(req.user.email);
     if (!user) {
       return res.status(404).json("Tài khoản không tồn tại!");
     }
     const data = {
-      userId: user._id,
+      userId: user.id,
       email: user.email,
       name: user.name,
       avatar: user.avatar,

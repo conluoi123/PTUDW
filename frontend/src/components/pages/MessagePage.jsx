@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { MessageService } from '@/services/message.services';
 
 // Hardcoded User ID for testing
-const CURRENT_USER_ID = "b7fb6b0a-0653-43b0-ad32-9b0a43be4ffa";
+const CURRENT_USER_ID = "f22cbfa6-1d6a-4daa-9459-a2f8de74141b";
 // hardcoded test tính năng đã xem 
 // const CURRENT_USER_ID = "f0f35623-f74a-4ccd-9499-229e6428e413";
 

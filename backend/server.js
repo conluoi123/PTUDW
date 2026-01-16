@@ -13,7 +13,11 @@ import achievementRoutes from "./controllers/achievements/achievement.controller
 const app = express();
 const PORT = ENV.PORT || 3000;
 
-app.use(express.json())
+app.use(express.json({
+  strict: false
+}))
+
+
 app.use(cookieParser());
 app.use(
   cors({

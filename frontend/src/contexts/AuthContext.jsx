@@ -55,7 +55,7 @@ function AuthProvider({ children }) {
     try {
       const res = await api.get("/api/user/me");
       const { userId, email, name, avatar } = res.data.data;
-      console.log(res.data.data);
+      console.log(res.data.data); // in log ktr
       setUser({
         id: userId,
         email,

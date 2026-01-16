@@ -34,12 +34,11 @@ class Message {
     }
 
     /*
-      Thực hiện 3 việc cùng 1 lúc: 
-      - Lấy danh sách người đã từng nhắn tin với user_id 
-      - Lấy tin nhắn mới nhât với từng người trong danh sách người đã nhắn tin 
-      - Đếm số tin nhắn chưa đọc từ user_id đến từng người trong danh sách người đã nhắn tin 
-      - unread_count : nếu bạn là người gửi cuối cùng thì nó là 0; còn nếu bạn ko phải thì sẽ là số 
-      tin nhắn chưa đọc
+      Lấy danh sách conversation dựa trên bạn bè:
+      - Lấy tất cả bạn bè từ bảng friends
+      - LEFT JOIN với messages để lấy tin nhắn cuối cùng (nếu có)
+      - Đếm số tin nhắn chưa đọc từ mỗi bạn bè
+      - Sắp xếp: có tin nhắn mới nhất lên đầu, không có tin nhắn thì theo tên
       */
     static async getConversation(user_id) {
         try {
@@ -47,7 +46,8 @@ class Message {
             SELECT 
                 u.id as partner_id, 
                 u.username, 
-                u.name, 
+                u.name,
+                u.avatar,
                 m.content as last_message, 
                 m.sent_at as last_message_at,
                 m.status, 
@@ -57,10 +57,16 @@ class Message {
                     FROM messages m2 
                     WHERE m2.receiver_id = ?
                     AND m2.sender_id = u.id
-                    AND (m2.status != 'read' OR m2.status IS NULL)
+                    AND m2.status != 'read'
                 ) as unread_count
-            FROM users u 
-            INNER JOIN LATERAL (
+            FROM friends f
+            INNER JOIN users u ON (
+                CASE 
+                    WHEN f.user_id_01 = ? THEN u.id = f.user_id_02
+                    WHEN f.user_id_02 = ? THEN u.id = f.user_id_01
+                END
+            )
+            LEFT JOIN LATERAL (
                 SELECT content, sent_at, status, sender_id
                 FROM messages m 
                 WHERE (
@@ -70,13 +76,25 @@ class Message {
                 ORDER BY sent_at DESC
                 LIMIT 1
             ) m ON true
-            ORDER BY m.sent_at DESC
+            WHERE f.user_id_01 = ? OR f.user_id_02 = ?
+            ORDER BY 
+                CASE WHEN m.sent_at IS NULL THEN 1 ELSE 0 END,
+                m.sent_at DESC NULLS LAST,
+                u.name ASC
             `
-            const result = await db.raw(query, [user_id, user_id, user_id]);
+            const result = await db.raw(query, [
+                user_id,  // unread count check
+                user_id,  // friends user_id_01 check
+                user_id,  // friends user_id_02 check
+                user_id,  // message sender check
+                user_id,  // message receiver check
+                user_id,  // friends filter user_id_01
+                user_id   // friends filter user_id_02
+            ]);
             return result.rows;
         } catch (err) {
             console.error(err);
-            throw new Error("Lỗi lấy tin nhắn");
+            throw new Error("Lỗi lấy danh sách conversation");
         }
     }
 

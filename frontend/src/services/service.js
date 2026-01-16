@@ -1,20 +1,21 @@
 import axios from "axios";
 
 // Xử lý nếu không xác thực được lại bằng refresh token thì ra login page
-// let onLogout = () => {};
+let onLogout = () => {};
 
-// export const setLogoutHandler = (logoutContext) => {
-//   onLogout = logoutContext;
-// };
+export const setLogoutHandler = (logoutContext) => {
+  onLogout = logoutContext;
+};
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true,
-    headers: {
-        "ngrok-skip-browser-warning": "true",
-    },
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "ngrok-skip-browser-warning": "true",
+    "Content-Type": "application/json",
+  },
 });
 
 let isRefreshing = false;
@@ -51,13 +52,12 @@ api.interceptors.response.use(
         }
         isRefreshing = true;
         try {
-            // await api.post("/auth/refreshToken");
             await api.post("/api/user/refreshAccessToken");
             processQueue(null);
             return api(originalRequest);
         } catch (refreshError) {
             processQueue(refreshError);
-            //   if (onLogout) onLogout();
+              if (onLogout) onLogout();
             return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;

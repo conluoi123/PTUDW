@@ -10,7 +10,7 @@ const userRouter = (app) => {
   app.use("/api/user/login", callbackRouter);
   const router = Router();
   router.post("/refreshAccessToken", refreshAccessToken);
-  router.get("/me", authMe);
+  router.get("/me", authenticateAccessToken, authMe);
   router.patch("/profile", authenticateAccessToken, updateProfile);
   router.get("/profile", authenticateAccessToken, getProfile);
   router.post("/logout", Logout);

@@ -3,7 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '@mui/material';
 import { GameService } from '../../services/game.services.js';
 import { useEffect, useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 // Fallback images
 const DEFAULT_IMAGES = [
     "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=2670&auto=format&fit=crop",
@@ -12,10 +12,10 @@ const DEFAULT_IMAGES = [
     "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2670&auto=format&fit=crop"
 ];
 
-export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
+export function WelcomePage({onShowRegister}) {
     const { isDarkMode, toggleDarkMode } = useTheme();
     const [games, setGames] = useState([]);
-    
+    const navigate = useNavigate();
     useEffect(() => {
         const fetchGames = async () => {
             const res = await GameService.getAllGames();
@@ -63,7 +63,7 @@ export function WelcomePage({ onShowLogin, onShowRegister, onViewGames }) {
                         <Button
                             variant="text"
                             className="hidden sm:flex font-semibold text-gray-600 dark:text-gray-300 hover:bg-transparent hover:text-indigo-600 dark:hover:text-white px-4"
-                            onClick={onShowLogin}
+                            onClick={() => navigate("/login")}
                         >
                             Log in
                         </Button>

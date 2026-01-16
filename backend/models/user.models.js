@@ -66,13 +66,15 @@ class User {
 
   static updateRefreshToken = async (userId, hashRefToken) => {
     try {
-      return await db("users")
+      const [user] = await db("users")
         .where({ id: userId })
         .update({
           refresh_token: hashRefToken,
           expires_at: new Date(Date.now() + 15 * 24 * 3600 * 1000),
         })
         .returning("*");
+
+      return user;
     } catch (error) {
       throw new Error("Error updating token: " + error.message);
     }

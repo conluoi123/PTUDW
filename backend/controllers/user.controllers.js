@@ -54,7 +54,6 @@ function DirectGoogle(req, res) {
       console.error("Session save error:", Error);
       return res.status(500).json({ error: "Session error" });
     }
-
     const param = new URLSearchParams({
       client_id: ENV.GOOGLE_CLIENT_ID,
       redirect_uri: ENV.BACKEND_URL + ENV.GOOGLE_REDIRECT_URL,
@@ -64,6 +63,7 @@ function DirectGoogle(req, res) {
     });
 
     const ggLoginURL = `${ENV.GOOGLE_LOGIN_URL}?${param.toString()}`;
+    console.log(ggLoginURL)
     return res.redirect(ggLoginURL);
   });
 }
@@ -74,22 +74,22 @@ async function SignInWithGG(req, res) {
     if (!codeUser)
       return res.status(400).json({ error: "Missing code redirect_uri" });
 
-    // const stateReturn = req.query.state;
-    // const savedState = req.session.oauthState;
+    const stateReturn = req.query.state;
+    const savedState = req.session.oauthState;
 
-    // if (!stateReturn || stateReturn !== savedState) {
-    //   if (req.session) {
-    //     await new Promise((resolve) => req.session.destroy(resolve));
-    //     res.clearCookie("connect.sid");
-    //   }
-    //   return res
-    //     .status(403)
-    //     .json({ error: "State is not suitable, CSRF attack detected." });
-    // }
-    // if (req.session) {
-    //   await new Promise((resolve) => req.session.destroy(resolve));
-    //   res.clearCookie("connect.sid");
-    // }
+    if (!stateReturn || stateReturn !== savedState) {
+      if (req.session) {
+        await new Promise((resolve) => req.session.destroy(resolve));
+        res.clearCookie("connect.sid");
+      }
+      return res
+        .status(403)
+        .json({ error: "State is not suitable, CSRF attack detected." });
+    }
+    if (req.session) {
+      await new Promise((resolve) => req.session.destroy(resolve));
+      res.clearCookie("connect.sid");
+    }
     const reqGgToken = await axios.post("https://oauth2.googleapis.com/token", {
       code: codeUser,
       client_id: ENV.GOOGLE_CLIENT_ID,
@@ -162,6 +162,7 @@ async function Login(req, res) {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
+      console.log(password)
       return res.status(400).json({ error: "Missing required fields" });
     }
     let user = await User.findUserByUsername(username);
@@ -283,12 +284,13 @@ async function updateProfile(req, res) {
 
 const authMe = async (req, res) => {
   try {
+    console.log(req.user);
     const user = await User.findUserByEmail(req.user.email);
     if (!user) {
       return res.status(404).json("Tài khoản không tồn tại!");
     }
     const data = {
-      userId: user._id,
+      userId: user.id,
       email: user.email,
       name: user.name,
       avatar: user.avatar,
@@ -319,7 +321,7 @@ async function refreshAccessToken(req, res) {
     const newRefreshToken = crypto.randomBytes(64).toString("hex");
     const newHashRefreshToken = crypto
       .createHash("sha256")
-      .update(refToken)
+      .update(newRefreshToken)
       .digest("hex");
     await User.updateRefreshToken(user.id, newHashRefreshToken);
     res.cookie("refreshToken", newRefreshToken, {

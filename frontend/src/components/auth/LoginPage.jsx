@@ -17,7 +17,8 @@ import { userApi } from "@/services/userApi.services";
 //npm install @mui/icons-material
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
-export function LoginPage({ onSwitchToRegister, onBack }) {
+import { useNavigate } from "react-router-dom";
+export function LoginPage({ onBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +26,7 @@ export function LoginPage({ onSwitchToRegister, onBack }) {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const { login } = useContext(AuthContext);
+  const navigate = useNavigate()
   const validateForm = () => {
     const newErrors = {};
     setErrors("");
@@ -67,6 +69,7 @@ export function LoginPage({ onSwitchToRegister, onBack }) {
         role: data.userInfo.role,
       });
       console.log("Login success:", data);
+      navigate("/home")
     } catch (error) {
       console.error("Login failed:", error);
       const status = error?.response?.status;
@@ -243,7 +246,7 @@ export function LoginPage({ onSwitchToRegister, onBack }) {
             <p className="text-gray-400 text-sm">
               Don't have an account?{" "}
               <button
-                onClick={onSwitchToRegister}
+                onClick={() => navigate("/register")}
                 className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
               >
                 Create Account

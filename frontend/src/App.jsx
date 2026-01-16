@@ -7,6 +7,7 @@ import { HomePage } from './components/pages/HomePage';
 import { MainLayout } from './components/layouts/MainLayout';
 import { AchievementsPage } from './components/pages/AchievementsPage';
 import { LoginPage } from './components/auth/LoginPage';
+import { RegisterPage } from './components/auth/RegisterPage';
 function App() {
     // Mock user data for protected routes
     const mockUser = { name: "Player", avatar: "P" };
@@ -19,7 +20,8 @@ function App() {
         <ThemeProvider>
           <Routes>
             <Route path="/" element={<WelcomePage />} />
-              <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route
               element={<MainLayout user={mockUser} logout={handleLogout} />}
             >

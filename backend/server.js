@@ -39,9 +39,9 @@ userRouter(app);
 adminRouter(app);
 rankingRouter(app);
 ratingRouter(app);
-app.get('/', (req, res) => {
-  res.send('Web game');
-})
+// app.get('/', (req, res) => {
+//   res.send('Web game');
+// })
 achievementRoutes(app);
 
 

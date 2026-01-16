@@ -30,7 +30,14 @@ export const userApi = {
       throw error;
     }
   },
-
+  logout: async () => {
+    try {
+      await api.post("/api/user/logout");
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
   outsideLogin: () => {
     if (!API_BASE_URL) {
       console.error("Missing url");

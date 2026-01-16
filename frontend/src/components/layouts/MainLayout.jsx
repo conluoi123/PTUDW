@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Sidebar } from '../Sidebar';
 import { Header } from '../Header';
+import { userApi } from '@/services/userApi.services';
 
 export function MainLayout({ user, logout }) {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -24,7 +25,9 @@ export function MainLayout({ user, logout }) {
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
         currentPage={getCurrentPage()}
         user={user}
-        onLogout={() => {
+        onLogout={async () => {
+          await userApi.logout();
+          localStorage.removeItem("userId")
           logout();
           navigate('/');
         }}

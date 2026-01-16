@@ -14,6 +14,23 @@ export const userApi = {
     }
   },
 
+  register: async ({ name, username, password, role, email, phone }) => {
+    try {
+      const res = await api.post("/api/user/register", {
+        name,
+        username,
+        password,
+        role,
+        email,
+        phone,
+      });
+      return res.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
   outsideLogin: () => {
     if (!API_BASE_URL) {
       console.error("Missing url");

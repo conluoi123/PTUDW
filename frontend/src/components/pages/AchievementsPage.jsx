@@ -1,12 +1,9 @@
 import React from "react";
-import {
-  Gamepad2,
-} from "lucide-react";
+import { Gamepad2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect } from "react";
 import { useState } from "react";
 import { fetchAchievements } from "@/services/achievements.services";
-
 
 // TODO : Phải đổi backend có userId để có thể lấy achievements của user đó
 export function AchievementsPage() {
@@ -14,17 +11,26 @@ export function AchievementsPage() {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     try {
-      const fetchData = async()=>{
+      const fetchData = async () => {
         const data = await fetchAchievements();
-        setAchievementsRepo(data);
-        setIsLoading(false);
-      }
+        if (data) {
+          setAchievementsRepo(data);
+          setIsLoading(false);
+        }
+      };
       fetchData();
     } catch (error) {
       console.error("Error fetching achievements:", error);
     }
+    return () => {
+      setIsLoading(true);
+      setAchievementsRepo([]);
+    };
   }, []);
-  if(isLoading){
+  if (achievementsRepo == null) {
+    return <div>No achievements found.</div>;
+  }
+  if (isLoading) {
     return <div>Loading...</div>;
   }
   return (
@@ -36,7 +42,7 @@ export function AchievementsPage() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
           {achievementsRepo.map((achievement) => (
-            <AchievementCard key={achievement.id} achievement={achievement}  />
+            <AchievementCard key={achievement.id} achievement={achievement} />
           ))}
         </div>
       </div>
@@ -44,10 +50,9 @@ export function AchievementsPage() {
   );
 }
 
-
 function AchievementCard({ achievement }) {
   return (
-    <Card id={achievement.game_id} className = "m-4">
+    <Card id={achievement.game_id} className="m-4">
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           {/* Icon Section */}

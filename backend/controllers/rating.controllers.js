@@ -23,11 +23,11 @@ const addRatings = async (req, res) => {
     const { point, comment } = req.body;
     if (!gameId) {
       return res.status(400).json({ error: "Missing require field" });
-      }
-      const isRating = await checkExistRatings(gameId, req.userId);
-      if (isRating) {
-          return res.status(403).json({error: "You are already rating"})
-      }
+    }
+    const isRating = await checkExistRatings(gameId, req.userId);
+    if (isRating) {
+      return res.status(403).json({ error: "You are already rating" })
+    }
     const ratings = await Rating.addRate(gameId, req.userId, point, comment);
     return res
       .status(200)
@@ -63,11 +63,23 @@ const deleteRating = async (req, res) => {
     await Rating.deleteRate(ratingId);
     return res
       .status(200)
-      .json({ message: "delete rating successfully"});
+      .json({ message: "delete rating successfully" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
 
-export { getAllRatings, addRatings, updateRating, deleteRating };
+const getListRatings = async (req, res) => {
+  try {
+    const ratings = await Rating.getAllRatings();
+    return res
+      .status(200)
+      .json({ message: "get list rating successfully", ratings });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export { getAllRatings, addRatings, updateRating, deleteRating, getListRatings };

@@ -54,7 +54,6 @@ function DirectGoogle(req, res) {
       console.error("Session save error:", Error);
       return res.status(500).json({ error: "Session error" });
     }
-
     const param = new URLSearchParams({
       client_id: ENV.GOOGLE_CLIENT_ID,
       redirect_uri: ENV.BACKEND_URL + ENV.GOOGLE_REDIRECT_URL,
@@ -64,6 +63,7 @@ function DirectGoogle(req, res) {
     });
 
     const ggLoginURL = `${ENV.GOOGLE_LOGIN_URL}?${param.toString()}`;
+    console.log(ggLoginURL)
     return res.redirect(ggLoginURL);
   });
 }

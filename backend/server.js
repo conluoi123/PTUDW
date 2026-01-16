@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors";
 import ENV from "./models/env.configs.js";
 import cookieParser from "cookie-parser";
-
+import session from "express-session";
 import { userRouter } from "./routers/user.routers.js";
 import ratingRouter from "./routers/ratings.routers.js";
 
@@ -21,7 +21,19 @@ app.use(
     credentials: true,
   })
 );
-
+app.use(
+  session({
+    name: "connect.sid",
+    secret: ENV.SESSION_SECRET || "secret_key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      maxAge: 1000 * 60 * 10,
+    },
+  })
+);
 
 userRouter(app);
 adminRouter(app);

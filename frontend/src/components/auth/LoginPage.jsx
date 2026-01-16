@@ -16,16 +16,17 @@ import { userApi } from "@/services/userApi.services";
 //npm install @mui/material @emotion/react @emotion/styled
 //npm install @mui/icons-material
 
-export function LoginPage({ onLogin, onSwitchToRegister, onBack }) {
+export function LoginPage({ onSwitchToRegister, onBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const [serverError, setServerError] = useState("");
   const validateForm = () => {
     const newErrors = {};
-
+    setErrors("");
+    setServerError("");
     if (!email) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
@@ -47,20 +48,40 @@ export function LoginPage({ onLogin, onSwitchToRegister, onBack }) {
 
     if (!validateForm()) return;
 
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
+      const data = await userApi.login({
+        username: email,
+        password,
+      });
+    
+      console.log("Login success:", data);
+    } catch (error) {
+      console.error("Login failed:", error);
+      const status = error?.response?.status;
+      // const message = error?.response?.data?.error;
 
-    setTimeout(() => {
-      onLogin(email, password);
+      if (status === 400) {
+        setServerError("Missing required fields");
+      } else if (status === 401) {
+        setServerError("Password is incorrect");
+      } else if (status === 404) {
+        setServerError("User not found");
+      } else {
+        setServerError("Internal server error. Please try again.");
+      }
+    } finally {
       setIsLoading(false);
-    }, 1000);
-    };
-    const handleLoginOutside = async () => {
-        try {
-          userApi.outsideLogin();
-        } catch (error) {
-          console.error("Google login error:", error);
-        }
     }
+  };
+
+  const handleLoginOutside = async () => {
+    try {
+      userApi.outsideLogin();
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] relative overflow-hidden flex items-center justify-center p-4">
@@ -84,7 +105,10 @@ export function LoginPage({ onLogin, onSwitchToRegister, onBack }) {
           </div>
 
           <div className="grid grid-cols-1 gap-3 mb-6">
-            <button onClick={handleLoginOutside} className="group relative overflow-hidden bg-gradient-to-br from-gray-700/60 to-gray-800/60 hover:from-gray-600/70 hover:to-gray-700/70 border border-gray-600/50 hover:border-gray-500 rounded-xl p-3 transition-all hover:scale-105 active:scale-95">
+            <button
+              onClick={handleLoginOutside}
+              className="group relative overflow-hidden bg-gradient-to-br from-gray-700/60 to-gray-800/60 hover:from-gray-600/70 hover:to-gray-700/70 border border-gray-600/50 hover:border-gray-500 rounded-xl p-3 transition-all hover:scale-105 active:scale-95"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-cyan-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               <div className="relative flex items-center justify-center gap-2 text-sm font-medium text-gray-300">
                 <Google className="w-4 h-4" />
@@ -103,6 +127,11 @@ export function LoginPage({ onLogin, onSwitchToRegister, onBack }) {
               </span>
             </div>
           </div>
+          {serverError && (
+            <div className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400 animate-in slide-in-from-top">
+              {serverError}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

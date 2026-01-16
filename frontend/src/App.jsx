@@ -19,7 +19,7 @@ function App() {
         <ThemeProvider>
           <Routes>
             <Route path="/" element={<WelcomePage />} />
-            <Route path="/login" element={<LoginPage />} />
+              <Route path="/login" element={<LoginPage />} />
             <Route
               element={<MainLayout user={mockUser} logout={handleLogout} />}
             >

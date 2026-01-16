@@ -162,6 +162,7 @@ async function Login(req, res) {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
+      console.log(password)
       return res.status(400).json({ error: "Missing required fields" });
     }
     let user = await User.findUserByUsername(username);
@@ -319,7 +320,7 @@ async function refreshAccessToken(req, res) {
     const newRefreshToken = crypto.randomBytes(64).toString("hex");
     const newHashRefreshToken = crypto
       .createHash("sha256")
-      .update(refToken)
+      .update(newRefreshToken)
       .digest("hex");
     await User.updateRefreshToken(user.id, newHashRefreshToken);
     res.cookie("refreshToken", newRefreshToken, {

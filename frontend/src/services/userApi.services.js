@@ -1,5 +1,19 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+import api from "./service";
 export const userApi = {
+  login: async ({ username, password }) => {
+    try {
+      const res = await api.post("/api/user/login", {
+        username,
+        password,
+      });
+      return res.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
   outsideLogin: () => {
     if (!API_BASE_URL) {
       console.error("Missing url");

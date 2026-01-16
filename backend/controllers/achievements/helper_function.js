@@ -25,15 +25,15 @@ export async function insert_user_achieve_transaction(userId, achievements) {
   }
 }
 export async function insert_user_achieve(userId, achievements_id) {
-    try {
-        await db("user_achievements").insert({
-            achievement_id: achievements_id,
-            user_id: userId,
-            unlocked_at: new Date(),
-        }).onConflict(['achievement_id', 'user_id']).ignore();
-    } catch (error) {
-        console.error("Insert failed, changes rolled back:", error);
-    }
+  try {
+    await db("user_achievements").insert({
+      achievement_id: achievements_id,
+      user_id: userId,
+      unlocked_at: new Date(),
+    }).onConflict(['achievement_id', 'user_id']).ignore();
+  } catch (error) {
+    console.error("Insert failed, changes rolled back:", error);
+  }
 }
 async function load_achievements_me(req, res, next) {
   try {

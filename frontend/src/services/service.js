@@ -10,11 +10,12 @@ export const setLogoutHandler = (logoutContext) => {
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
-    baseURL: API_BASE_URL,
-    withCredentials: true,
-    headers: {
-        "ngrok-skip-browser-warning": "true",
-    },
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "ngrok-skip-browser-warning": "true",
+    "Content-Type": "application/json",
+  },
 });
 
 let isRefreshing = false;

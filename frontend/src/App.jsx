@@ -8,6 +8,7 @@ import { AchievementsPage } from './components/pages/AchievementsPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { AuthProvider } from './contexts/AuthContext';
+import { RankingPage } from './components/pages/RankingPage';
 function App() {
     return (
       <BrowserRouter>
@@ -21,6 +22,7 @@ function App() {
                 <Route path="/messages" element={<MessagesPage />} />
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
+                <Route path="/ranking" element={<RankingPage />} />
               </Route>
             </Routes>
           </AuthProvider>

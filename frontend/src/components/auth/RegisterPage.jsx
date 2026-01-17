@@ -18,6 +18,7 @@ import Google from "@mui/icons-material/Google";
 import { userApi } from "@/services/userApi.services";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { LoadingOverlay } from "../ui/LoadingOverlay";
 
 export function RegisterPage({ onSwitchToLogin, onBack }) {
   const [name, setName] = useState("");
@@ -137,6 +138,11 @@ export function RegisterPage({ onSwitchToLogin, onBack }) {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] relative overflow-hidden flex items-center justify-center p-4">
+      {isLoading && 
+        <LoadingOverlay 
+          message="Loading..."
+        />
+      }
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-purple-500 via-pink-600 to-orange-700 opacity-10 blur-3xl animate-pulse"></div>

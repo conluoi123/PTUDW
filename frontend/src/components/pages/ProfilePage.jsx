@@ -35,6 +35,7 @@ import { Avatar, AvatarFallback } from "../ui/avatar";
 import { AuthContext } from "../../contexts/AuthContext";
 import { profileApi } from "@/services/profile.services";
 import { fetchAchievements } from "@/services/achievements.services";
+import { LoadingOverlay } from "../ui/LoadingOverlay";
 export function ProfilePage() {
   const [achievements, setAchievements] = useState([]);
   const [loadingAchievements, setLoadingAchievements] = useState(true);
@@ -172,6 +173,11 @@ console.log(user);
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
+      {loadingAchievements && 
+        <LoadingOverlay 
+          message="Loading profile..."
+        />
+      }
       <div>
         <h1 className="mb-2">User Dashboard</h1>
         <p className="text-muted-foreground">
@@ -403,7 +409,7 @@ console.log(user);
         </div>
 
         {/* Form */}
-        <div className="px-6 pb-6 space-y-16">
+        <div className="px-6 pb-6 space-y-16 flex flex-col gap-4">
           <TextField
             className="block"
             label="Name"

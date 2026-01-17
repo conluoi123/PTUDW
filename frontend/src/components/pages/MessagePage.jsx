@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
-import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { MessageService } from '@/services/message.services';
 import { AuthContext } from '@/contexts/AuthContext';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
@@ -34,8 +34,9 @@ const ConversationItem = memo(({
         <div className="flex items-center gap-4">
             <div className="relative flex-shrink-0">
                 <Avatar className="w-12 h-12 ring-2 ring-gray-100 dark:ring-white/10">
+                    <AvatarImage src={conversation.avatar} alt={conversation.userName} />
                     <AvatarFallback className={`${isActive ? 'bg-indigo-500 text-white' : 'bg-gray-100 dark:bg-white/10 dark:text-gray-300'} font-bold`}>
-                        {conversation.avatar}
+                        {conversation.userName?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                 </Avatar>
                 {conversation.isOnline && (
@@ -117,8 +118,9 @@ const ChatHeader = memo(({
 
             <div className="relative">
                 <Avatar className="w-10 h-10 ring-2 ring-indigo-500/20">
+                    <AvatarImage src={conversation.avatar} alt={conversation.userName} />
                     <AvatarFallback className="bg-indigo-500 text-white font-bold text-sm">
-                        {conversation.avatar}
+                        {conversation.userName?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                 </Avatar>
                 {conversation.isOnline && (
@@ -183,7 +185,7 @@ export function MessagesPage() {
                     id: conv.partner_id, // Use partner_id as conversation id
                     userId: conv.partner_id,
                     userName: conv.name || conv.username,
-                    avatar: (conv.name || conv.username || '?').charAt(0).toUpperCase(),
+                    avatar: conv.avatar || '', // ✅ Use actual avatar URL from backend
                     isOnline: false, // Online status not yet implemented in backend
                     lastMessage: conv.last_message || 'No messages yet',
                     lastMessageTime: conv.last_message_at 
@@ -191,8 +193,8 @@ export function MessagesPage() {
                         : '',
                     unreadCount: parseInt(conv.unread_count) || 0,
                     messages: [] // Will fetch on select
-                }));
-                
+                }));    
+                console.log("Formatted conversations:", formattedConversations); // Debug log
                 setConversations(formattedConversations);
             } catch (error) {
                 console.error("Error loading conversations:", error);
@@ -207,7 +209,9 @@ export function MessagesPage() {
         const interval = setInterval(fetchConversations, 10000);
         return () => clearInterval(interval);
     }, [user?.id]); // Add user.id to dependency
-
+    // conversations.map((conv)=> {
+    //     console.log(conv.avatar);
+    // }) // debug
     useEffect(() => {
         scrollToBottom();
     }, [selectedConversation?.messages]);

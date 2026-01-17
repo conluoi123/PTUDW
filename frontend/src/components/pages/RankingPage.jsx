@@ -2,7 +2,7 @@ import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Medal, Award, Target, D
 import { useState, useContext, useEffect } from 'react';
 import { Card, CardContent } from '@mui/material';
 import { Badge } from '@mui/material';
-import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Progress } from '../ui/progress';
 import { rankingService } from '@/services/ranking.services';
@@ -102,7 +102,7 @@ export function RankingPage() {
         return apiData.map((player) => ({
             rank: player.ranking,
             username: player.name || player.username,
-            avatar: player.username?.substring(0, 2).toUpperCase() || 'U',
+            avatar: player.avatar || 'U',
             score: player.total_score || player.max_score,
             games: player.total_games,
             winRate: 0, // Không có từ API, để 0 hoặc tính toán
@@ -208,7 +208,7 @@ export function RankingPage() {
     const globalLeaderboard = isLoading ? [] : (globalRanking.length > 0 ? mapRankingData(globalRanking, user?.id) : []);
     const friendsLeaderboard = isLoading ? [] : (friendsRanking.length > 0 ? mapRankingData(friendsRanking, user?.id) : []);
     const personalStats = isLoading ? null : (personalStatsData?.overall ? mapPersonalStats(personalStatsData) : getMockPersonalStats());
-
+    console.log("global leader board ", globalLeaderboard)
     return (
         <div className="space-y-6 animate-fadeIn">
             {/* Header */}
@@ -250,6 +250,7 @@ export function RankingPage() {
                         {/* 2nd Place */}
                         <div className="flex flex-col items-center pt-12">
                             <Avatar className="w-20 h-20 mb-3 shadow-lg">
+                                <AvatarImage src={globalLeaderboard[1].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
                                     {globalLeaderboard[1].avatar}
                                 </AvatarFallback>
@@ -272,6 +273,7 @@ export function RankingPage() {
                         <div className="flex flex-col items-center">
                             <Crown className="w-10 h-10 text-yellow-500 mb-2 animate-pulse" />
                             <Avatar className="w-24 h-24 mb-3 shadow-2xl ring-4 ring-yellow-500/30">
+                                <AvatarImage src={globalLeaderboard[0].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
                                     {globalLeaderboard[0].avatar}
                                 </AvatarFallback>
@@ -293,6 +295,7 @@ export function RankingPage() {
                         {/* 3rd Place */}
                         <div className="flex flex-col items-center pt-16">
                             <Avatar className="w-20 h-20 mb-3 shadow-lg">
+                                <AvatarImage src={globalLeaderboard[2].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
                                     {globalLeaderboard[2].avatar}
                                 </AvatarFallback>
@@ -354,6 +357,7 @@ export function RankingPage() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="w-12 h-12">
+                                                        <AvatarImage src={player.avatar} />
                                                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                                             {player.avatar}
                                                         </AvatarFallback>
@@ -407,6 +411,7 @@ export function RankingPage() {
                         {/* 2nd Place */}
                         <div className="flex flex-col items-center pt-12">
                             <Avatar className="w-20 h-20 mb-3 shadow-lg">
+                                <AvatarImage src={friendsLeaderboard[1].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
                                     {friendsLeaderboard[1].avatar}
                                 </AvatarFallback>
@@ -429,6 +434,7 @@ export function RankingPage() {
                         <div className="flex flex-col items-center">
                             <Crown className="w-10 h-10 text-yellow-500 mb-2 animate-pulse" />
                             <Avatar className="w-24 h-24 mb-3 shadow-2xl ring-4 ring-yellow-500/30">
+                                <AvatarImage src={friendsLeaderboard[0].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
                                     {friendsLeaderboard[0].avatar}
                                 </AvatarFallback>
@@ -450,6 +456,7 @@ export function RankingPage() {
                         {/* 3rd Place */}
                         <div className="flex flex-col items-center pt-16">
                             <Avatar className="w-20 h-20 mb-3 shadow-lg">
+                                <AvatarImage src={friendsLeaderboard[2].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
                                     {friendsLeaderboard[2].avatar}
                                 </AvatarFallback>
@@ -508,6 +515,7 @@ export function RankingPage() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="w-12 h-12">
+                                                        <AvatarImage src={player.avatar} />
                                                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                                             {player.avatar}
                                                         </AvatarFallback>
@@ -637,6 +645,7 @@ export function RankingPage() {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="w-12 h-12">
+                                                            <AvatarImage src={player.avatar} />
                                                             <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                                                 {player.avatar}
                                                             </AvatarFallback>

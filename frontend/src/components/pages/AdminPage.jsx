@@ -357,6 +357,9 @@ export function AdminPage() {
                                         <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Status
                                         </th>
+                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Action
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -401,22 +404,8 @@ export function AdminPage() {
                                                     {user.status}
                                                 </span>
                                             </td>
-                                            {/* <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => handleUserAction(user.id, 'activate')}
-                                                        className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
-                                                        title="Activate"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleUserAction(user.id, 'ban')}
-                                                        className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                                                        title="Ban"
-                                                    >
-                                                        <EyeOff className="w-4 h-4" />
-                                                    </button>
                                                     <button
                                                         onClick={() => handleUserAction(user.id, 'delete')}
                                                         className="p-1 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
@@ -425,7 +414,7 @@ export function AdminPage() {
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
-                                            </td> */}
+                                            </td>
                                         </tr>
                                     ))
                                     )}

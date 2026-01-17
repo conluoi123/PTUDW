@@ -116,7 +116,7 @@ export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOp
             </nav>
 
             {/* Bottom Section */}
-            <div className={`
+            {/* <div className={`
                 absolute bottom-4 left-3 right-3
                 transition-all duration-300
                 ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}
@@ -127,7 +127,7 @@ export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOp
                         Complete daily challenges to earn 2x XP this weekend!
                     </p>
                 </div>
-            </div>
+            </div> */}
         </aside>
     );
 });

@@ -1,4 +1,4 @@
-import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Medal, Award, Target, Dices, Circle, Candy, Worm } from 'lucide-react';
+import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Medal, Award, Target, Dices, Circle, Candy, Worm, Filter } from 'lucide-react';
 import { useState, useContext, useEffect } from 'react';
 import { Card, CardContent } from '@mui/material';
 import { Badge } from '@mui/material';
@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Progress } from '../ui/progress';
 import { rankingService } from '@/services/ranking.services';
 import { AuthContext } from '@/contexts/AuthContext';
+import { GameService } from '@/services/game.services.js';
 
 export function RankingPage() {
     const [activeTab, setActiveTab] = useState('global');
@@ -15,7 +16,31 @@ export function RankingPage() {
     const [friendsRanking, setFriendsRanking] = useState([]);
     const [personalStatsData, setPersonalStatsData] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    
+    // By Game tab states
+    const [games, setGames] = useState([]);
+    const [selectedGameId, setSelectedGameId] = useState(null);
+    const [gameViewMode, setGameViewMode] = useState('global'); // 'global' or 'friends'
+    const [gameRanking, setGameRanking] = useState([]);
 
+
+    // Fetch games list
+    useEffect(() => {
+        const fetchGames = async () => {
+            try {
+                console.log("fetchGames")
+                const gamesList = await GameService.getAllGames();
+                console.log("gamesList", gamesList)
+                setGames(gamesList.data || []);
+                if (gamesList && gamesList.length > 0) {
+                    setSelectedGameId(gamesList[0].id);
+                }
+            } catch (error) {
+                console.error("Error fetching games:", error);
+            }
+        };
+        fetchGames();
+    }, []);
 
     useEffect(() => {
         const fetchRankings = async () => {
@@ -48,9 +73,29 @@ export function RankingPage() {
         fetchRankings();
     }, [user]);
 
-    console.log("personnal", personalStatsData);
-    console.log("globalRanking", globalRanking);
-    console.log("friendsRanking", friendsRanking)
+    // Fetch game-specific rankings
+    useEffect(() => {
+        const fetchGameRanking = async () => {
+            if (!selectedGameId) return;
+            
+            try {
+                if (gameViewMode === 'global') {
+                    const ranking = await rankingService.getGlobalByGame(selectedGameId);
+                    setGameRanking(ranking || []);
+                } else if (gameViewMode === 'friends') {
+                    const ranking = await rankingService.getFriendsByGame(selectedGameId);
+                    setGameRanking(ranking || []);
+                }
+            } catch (error) {
+                console.error("Error fetching game ranking:", error);
+            }
+        };
+        fetchGameRanking();
+    }, [selectedGameId, gameViewMode]);
+
+    // console.log("personnal", personalStatsData);
+    // console.log("globalRanking", globalRanking);
+    // console.log("friendsRanking", friendsRanking)
 
     // Helper: Map API data to UI format
     const mapRankingData = (apiData, currentUserId) => {
@@ -182,6 +227,10 @@ export function RankingPage() {
                     <TabsTrigger value="friends">
                         <Award className="w-4 h-4 mr-2" />
                         Friends
+                    </TabsTrigger>
+                    <TabsTrigger value="bygame">
+                        <Filter className="w-4 h-4 mr-2" />
+                        By Game
                     </TabsTrigger>
                     <TabsTrigger value="personal">
                         <Crown className="w-4 h-4 mr-2" />
@@ -489,6 +538,136 @@ export function RankingPage() {
                     </Card>
                 </TabsContent>
 
+                <TabsContent value="bygame" className="space-y-6">
+                    {/* Game Filter Controls */}
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                                {/* Game Selector */}
+                                <div className="flex-1 w-full md:w-auto">
+                                    <label className="block text-sm font-medium mb-2">Select Game</label>
+                                    <select
+                                        value={selectedGameId || ''}
+                                        onChange={(e) => setSelectedGameId(Number(e.target.value))}
+                                        className="w-full md:w-64 px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                    >
+                                        {games.map((game) => (
+                                            <option key={game.id} value={game.id}>
+                                                {game.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* View Mode Toggle */}
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">View Mode</label>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setGameViewMode('global')}
+                                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                                gameViewMode === 'global'
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                            }`}
+                                        >
+                                            <Trophy className="w-4 h-4 inline mr-2" />
+                                            Global
+                                        </button>
+                                        <button
+                                            onClick={() => setGameViewMode('friends')}
+                                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                                gameViewMode === 'friends'
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                                            }`}
+                                        >
+                                            <Award className="w-4 h-4 inline mr-2" />
+                                            Friends
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Game Leaderboard Table */}
+                    <Card>
+                        <CardContent className="p-6">
+                            <h3 className="mb-4 font-semibold flex items-center gap-2">
+                                {gameViewMode === 'global' ? <Trophy className="w-5 h-5" /> : <Award className="w-5 h-5" />}
+                                {gameViewMode === 'global' ? 'Global' : 'Friends'} Ranking - {games.find(g => g.id === selectedGameId)?.name}
+                            </h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-accent border-b">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
+                                                Rank
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
+                                                Player
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
+                                                Score
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
+                                                Games
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {mapRankingData(gameRanking, user?.id).map((player) => (
+                                            <tr
+                                                key={player.rank}
+                                                className={`transition-colors duration-200 ${
+                                                    player.isCurrentUser
+                                                        ? 'bg-primary/10 border-l-4 border-primary'
+                                                        : 'hover:bg-accent/50'
+                                                }`}
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getRankBadge(player.rank)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="w-12 h-12">
+                                                            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                                                                {player.avatar}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold">
+                                                                {player.username}
+                                                                {player.isCurrentUser && (
+                                                                    <Badge variant="secondary" className="ml-2">You</Badge>
+                                                                )}
+                                                            </p>
+                                                            <p className="text-xs text-muted-foreground">Level {player.level}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <p className="text-lg font-semibold">{player.score.toLocaleString()}</p>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+                                                    {player.games}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {gameRanking.length === 0 && (
+                                    <div className="text-center py-12">
+                                        <Trophy className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                                        <p className="text-muted-foreground">No ranking data available for this game</p>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
                 <TabsContent value="personal" className="space-y-6">
                     {!personalStats || !personalStats.overall ? (
                         <div className="text-center py-12">
@@ -504,7 +683,7 @@ export function RankingPage() {
                                 <Trophy className="w-5 h-5 text-primary" />
                                 Overall Performance
                             </h3>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                                 <Card className="bg-accent/50">
                                     <CardContent className="p-4">
                                         <p className="text-xs text-muted-foreground mb-1">Global Rank</p>
@@ -531,7 +710,7 @@ export function RankingPage() {
                                 </Card>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mt-4">
                                 <Card>
                                     <CardContent className="p-4">
                                         <p className="text-xs text-muted-foreground mb-1">Total Games</p>
@@ -542,18 +721,6 @@ export function RankingPage() {
                                     <CardContent className="p-4">
                                         <p className="text-xs text-muted-foreground mb-1">Wins</p>
                                         <p className="text-2xl font-bold text-green-500">{personalStats?.overall?.totalWins || 0}</p>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent className="p-4">
-                                        <p className="text-xs text-muted-foreground mb-1">Losses</p>
-                                        <p className="text-2xl font-bold text-destructive">{personalStats?.overall?.totalLosses || 0}</p>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent className="p-4">
-                                        <p className="text-xs text-muted-foreground mb-1">Current Streak</p>
-                                        <p className="text-2xl font-bold text-orange-500">{personalStats?.overall?.currentStreak || 0} 🔥</p>
                                     </CardContent>
                                 </Card>
                             </div>

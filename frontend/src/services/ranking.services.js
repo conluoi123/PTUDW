@@ -5,7 +5,6 @@ export const rankingService = {
     getGlobalOverall: async () => {
         try {
             const response = await api.get("/api/rankings/global/overall");
-            console.log(response.data.ranking);
             return response.data.ranking;
 
         } catch (error) {
@@ -28,7 +27,6 @@ export const rankingService = {
     getFriendsOverall: async () => {
         try {
             const response = await api.get("/api/rankings/friends/overall");
-            console.log("✅ Friends ranking response:", response.data);
             return response.data.ranking;
         } catch (error) {
             //debug 
@@ -55,7 +53,6 @@ export const rankingService = {
     getPersonalStats: async () => {
         try {
             const response = await api.get("/api/rankings/personal/stats");
-            console.log("Personal ranking: ", response.data.data)
             return response.data.stats;
         } catch (error) {
             console.error("Error fetching personal stats:", error);

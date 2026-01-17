@@ -11,6 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { RankingPage } from './components/pages/RankingPage';
 import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
+import { GamePage } from './components/pages/GamePage';
 import { AdminRoute } from './components/auth/AdminRoute';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
                   } 
                 />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/game" element={<GamePage />} />
               </Route>
             </Routes>
           </AuthProvider>

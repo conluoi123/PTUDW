@@ -1,4 +1,4 @@
-import { ENV } from "../models/env.configs.js";
+import ENV from "../models/env.configs.js";
 import crypto from "crypto";
 import { saveUrl } from "../services/profile.services.js";
 function signatureCloudinary(req, res) {

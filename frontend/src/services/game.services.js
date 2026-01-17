@@ -4,9 +4,7 @@ export const GameService = {
   getAllGames: async () => {
     try {
       const response = await api.get(BASE_URL);
-      if (!response.ok) {
-        throw new Error("Failed to fetch list games");
-      }
+      console.log("response trả về:", response.data)
       return response.data;
     } catch (err) {
       console.log(err);

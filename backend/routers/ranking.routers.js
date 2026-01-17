@@ -1,12 +1,29 @@
 import Router from "express"
-import { getRankingGlobal, getRanking, getRankingFriendList } from "../controllers/ranking.controllers.js";
+import {
+    getRankingGlobal,
+    getRanking,
+    getRankingFriendList,
+    getRankingGlobalOverall,
+    getRankingFriendsOverall,
+    getPersonalStatsOverall
+} from "../controllers/ranking.controllers.js";
+import { authenticateAccessToken } from "../middlewares/jwt.middlewares.js";
 
 const rankingRouter = (app) => {
     const router = Router();
+
+    // Public routes (không cần auth)
+    router.get("/global/overall", getRankingGlobalOverall);
     router.get("/global/:gameId", getRankingGlobal);
-    router.get("/user/:gameId", getRanking);
-    router.get("/friends/:gameId", getRankingFriendList);
+
+    // Protected routes (cần auth để biết userId)
+    router.get("/friends/overall", authenticateAccessToken, getRankingFriendsOverall);
+    router.get("/friends/:gameId", authenticateAccessToken, getRankingFriendList);
+    router.get("/personal/stats", authenticateAccessToken, getPersonalStatsOverall);
+    router.get("/user/:gameId", authenticateAccessToken, getRanking);
+
     app.use("/api/rankings", router)
 }
 
 export default rankingRouter
+

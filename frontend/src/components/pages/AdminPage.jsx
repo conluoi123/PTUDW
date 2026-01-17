@@ -17,7 +17,9 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import adminService from '@/services/admin.services';
 import { GameService } from '@/services/game.services';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import { CreateGameDialog } from '@/components/admin/CreateGameDialog';
 
 
 
@@ -34,6 +36,7 @@ export function AdminPage() {
     const [dashboardStats, setDashboardStats] = useState(null);
     const [dailyActiveUsers, setDailyActiveUsers] = useState([]);
     const [gamePopularity, setGamePopularity] = useState([]);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     // Fetch data on mount
     useEffect(() => {
@@ -428,6 +431,89 @@ export function AdminPage() {
             {/* Games Analytics Tab */}
             {activeTab === 'games' && (
                 <div className="space-y-6">
+                    {/* Header with Add Button */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Games Management</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage all games in the system</p>
+                        </div>
+                        <Button
+                            onClick={() => setIsCreateDialogOpen(true)}
+                            className="bg-primary hover:bg-primary/90"
+                        >
+                            <Gamepad2 className="w-4 h-4 mr-2" />
+                            Add New Game
+                        </Button>
+                    </div>
+
+                    {/* Games List */}
+                    <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg overflow-hidden">
+                        <div className="p-4 border-b border-border">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Games ({gameConfigs.length})</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-muted">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            ID
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Image
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Description
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                    {gameConfigs.map((game) => (
+                                        <tr key={game.id} className="hover:bg-muted/50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
+                                                #{game.id}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-3">
+                                                    <Gamepad2 className="w-5 h-5 text-primary" />
+                                                    <span className="font-medium text-gray-900 dark:text-white">{game.name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {game.config?.image ? (
+                                                    <img 
+                                                        src={game.config.image} 
+                                                        alt={game.name}
+                                                        className="w-16 h-10 object-cover rounded border border-border"
+                                                    />
+                                                ) : (
+                                                    <div className="w-16 h-10 bg-muted rounded flex items-center justify-center">
+                                                        <span className="text-xs text-muted-foreground">No image</span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 max-w-xs">
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                                                    {game.description || 'No description available'}
+                                                </p>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                    Active
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     {/* Game Popularity Chart */}
                     <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-6">
                         <h3 className="text-gray-900 dark:text-white mb-4">Game Popularity (Total Plays)</h3>
@@ -447,59 +533,6 @@ export function AdminPage() {
                                 <Bar dataKey="plays" fill="#3B82F6" />
                             </BarChart>
                         </ResponsiveContainer>
-                    </div>
-
-                    {/* Game Stats Table */}
-                    <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-accent dark:bg-accent border-b border-border dark:border-border">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Game
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Total Plays
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Avg. Session
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Completion Rate
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {gameConfigs.map((game, index) => (
-                                        <tr key={game.id} className="hover:bg-accent/50 dark:hover:bg-accent/50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                {game.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                                {gamePopularity[index]?.plays.toLocaleString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                                {15 + index * 2}m
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                                {85 - index * 3}%
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 text-xs rounded-full ${game.enabled
-                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground'
-                                                    }`}>
-                                                    {game.enabled ? 'Active' : 'Disabled'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
             )}
@@ -595,6 +628,21 @@ export function AdminPage() {
                     ))}
                 </div>
             )}
+
+            {/* Create Game Dialog */}
+            <CreateGameDialog 
+                isOpen={isCreateDialogOpen}
+                onClose={() => setIsCreateDialogOpen(false)}
+                onGameCreated={async () => {
+                    // Refresh games list
+                    try {
+                        const response = await GameService.getAllGames();
+                        setGameConfigs(response.data || []);
+                    } catch (error) {
+                        console.error('Failed to refresh games:', error);
+                    }
+                }}
+            />
         </div>
     );
 }

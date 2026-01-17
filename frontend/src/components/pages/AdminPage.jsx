@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import adminService from '@/services/admin.services';
 import { GameService } from '@/services/game.services';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 
@@ -181,48 +182,26 @@ export function AdminPage() {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-1 inline-flex gap-1">
-                <button
-                    onClick={() => setActiveTab('overview')}
-                    className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${activeTab === 'overview'
-                        ? 'bg-primary dark:bg-primary text-white'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                >
-                    <BarChart3 className="w-4 h-4" />
-                    Overview
-                </button>
-                <button
-                    onClick={() => setActiveTab('users')}
-                    className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${activeTab === 'users'
-                        ? 'bg-primary dark:bg-primary text-white'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                >
-                    <Users className="w-4 h-4" />
-                    Users
-                </button>
-                <button
-                    onClick={() => setActiveTab('games')}
-                    className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${activeTab === 'games'
-                        ? 'bg-primary dark:bg-primary text-white'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                >
-                    <Gamepad2 className="w-4 h-4" />
-                    Games Analytics
-                </button>
-                <button
-                    onClick={() => setActiveTab('config')}
-                    className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${activeTab === 'config'
-                        ? 'bg-primary dark:bg-primary text-white'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                >
-                    <Settings className="w-4 h-4" />
-                    Configuration
-                </button>
-            </div>
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)}>
+                <TabsList>
+                    <TabsTrigger value="overview">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Overview
+                    </TabsTrigger>
+                    <TabsTrigger value="users">
+                        <Users className="w-4 h-4 mr-2" />
+                        Users
+                    </TabsTrigger>
+                    <TabsTrigger value="games">
+                        <Gamepad2 className="w-4 h-4 mr-2" />
+                        Games Analytics
+                    </TabsTrigger>
+                    <TabsTrigger value="config">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configuration
+                    </TabsTrigger>
+                </TabsList>
+            </Tabs>
 
             {/* Overview Tab */}
             {activeTab === 'overview' && (

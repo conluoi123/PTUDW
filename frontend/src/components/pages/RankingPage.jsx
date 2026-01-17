@@ -35,7 +35,7 @@ export function RankingPage() {
                         setPersonalStatsData(stats || {});
 
                     } catch (err) {
-                        console.error("Lỗi lấy dữ liệu bạn bè ", err);
+                        console.error("Lỗi lấy dữ liệu bạn bè + cá nhân", err);
                     }
                 }
             } catch (err) {
@@ -48,10 +48,9 @@ export function RankingPage() {
         fetchRankings();
     }, [user]);
 
-    console.log(personalStatsData);
+    console.log("personnal", personalStatsData);
     console.log("globalRanking", globalRanking);
-    console.log("friendsRanking", friendsRanking);
-
+    console.log("friendsRanking", friendsRanking)
 
     // Helper: Map API data to UI format
     const mapRankingData = (apiData, currentUserId) => {

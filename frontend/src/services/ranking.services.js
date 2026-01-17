@@ -28,10 +28,15 @@ export const rankingService = {
     getFriendsOverall: async () => {
         try {
             const response = await api.get("/api/rankings/friends/overall");
-            console.log("Giá trị trả về", response.data.ranking);
+            console.log("✅ Friends ranking response:", response.data);
             return response.data.ranking;
         } catch (error) {
-            console.error("Error fetching friends overall ranking:", error);
+            //debug 
+            console.error("❌ Error fetching friends overall ranking:");
+            console.error("Status:", error.response?.status);
+            console.error("Status Text:", error.response?.statusText);
+            console.error("Error Data:", error.response?.data);
+            console.error("Full Error:", error);
             throw error;
         }
     },
@@ -50,6 +55,7 @@ export const rankingService = {
     getPersonalStats: async () => {
         try {
             const response = await api.get("/api/rankings/personal/stats");
+            console.log("Personal ranking: ", response.data.data)
             return response.data.stats;
         } catch (error) {
             console.error("Error fetching personal stats:", error);

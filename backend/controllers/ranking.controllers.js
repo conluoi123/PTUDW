@@ -80,13 +80,15 @@ async function getRankingFriendList(req, res) {
 // Friends ranking overall (all games)
 async function getRankingFriendsOverall(req, res) {
   try {
-    const ranking = await Ranking.rankingFriendsOverall(req.userId);
+    console.log("thông tin user", req.user)
+    const ranking = await Ranking.rankingFriendsOverall(req.user.id);
+
     return res
       .status(200)
       .json({ message: "Get friends ranking successfully", ranking });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Lỗi ở chỗ này nè" });
   }
 }
 

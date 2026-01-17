@@ -86,8 +86,8 @@ class User {
     phone,
     role,
     streak,
-    rank = 0,
-    total_game = 0,
+    // rank = 0,
+    // total_game = 0,
   ) => {
     try {
       return db("users")
@@ -98,8 +98,8 @@ class User {
           phone,
           role,
           streak,
-          rank,
-          total_game,
+          // rank,
+          // total_game,
         })
         .returning("*");
     } catch (error) {

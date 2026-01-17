@@ -5,10 +5,12 @@ import {
   getAllUsers,
   getUserInfo,
   updateUser,
+  getDashboardOverview,
 } from "../controllers/admin.controllers.js";
 import { authenticateAccessToken } from "../middlewares/jwt.middlewares.js";
 const adminRouter = (app) => {
   const router = Router();
+  router.get("/dashboard/overview", authenticateAccessToken, getDashboardOverview);
   router.get("/users", authenticateAccessToken, getAllUsers);
   router.put("/:userId", authenticateAccessToken, updateUser);
   router.post("/user", authenticateAccessToken, addUser);

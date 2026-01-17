@@ -90,22 +90,54 @@ async function updateUser(req, res) {
 }
 
 async function getAllUsers(req, res) {
-    try {
-        const listUser = await User.getAllUsers();
-        if (listUser.length === 0) {
-          return res
-            .status(200)
-            .json({ message: "No users found in the system" });
-        } 
-        return res.status(200).json({
-          message: "Users retrieved successfully",
-          listUser
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-          error: "Internal server error",
-        });
+  try {
+    const listUser = await User.getAllUsers();
+    if (listUser.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "No users found in the system" });
     }
+    return res.status(200).json({
+      message: "Users retrieved successfully",
+      listUser
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Lỗi lấy all user",
+    });
+  }
 }
-export { deleteUser, getUserInfo, addUser, updateUser, getAllUsers };
+
+async function getDashboardOverview(req, res) {
+  try {
+    const Admin = (await import("../models/admin.models.js")).default;
+
+    // Fetch all data in parallel using model methods
+    const [stats, dailyActiveUsers, gamePopularity] = await Promise.all([
+      Admin.getDashboardStats(),
+      Admin.getDailyActiveUsers(),
+      Admin.getGamePopularity()
+    ]);
+
+    const overview = {
+      stats,
+      dailyActiveUsers,
+      gamePopularity
+    };
+
+    return res.status(200).json({
+      message: "Dashboard overview retrieved successfully",
+      data: overview
+    });
+
+  } catch (error) {
+    console.error("Error in getDashboardOverview:", error);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message
+    });
+  }
+}
+
+export { deleteUser, getUserInfo, addUser, updateUser, getAllUsers, getDashboardOverview };

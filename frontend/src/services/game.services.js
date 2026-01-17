@@ -4,7 +4,6 @@ export const GameService = {
   getAllGames: async () => {
     try {
       const response = await api.get(BASE_URL);
-      console.log("response trả về:", response.data)
       return response.data;
     } catch (err) {
       console.log(err);

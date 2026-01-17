@@ -73,6 +73,18 @@ const adminService = {
             throw error;
         }
     },
+
+    // Dashboard Overview
+    getDashboardOverview: async () => {
+        try {
+            const response = await api.get("/api/admin/dashboard/overview");
+            console.log("Admin fetch được là: ", response.data.data);
+            return response.data.data;
+        } catch (error) {
+            console.error("Error fetching dashboard overview:", error);
+            throw error;
+        }
+    },
 };
 
 export default adminService;

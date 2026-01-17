@@ -17,14 +17,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import adminService from '@/services/admin.services';
 import { GameService } from '@/services/game.services';
 
-// Mock data
-const mockUsers = [
-    { id: 1, username: 'CodeMaster99', email: 'code@example.com', level: 99, totalGames: 342, winRate: 94, status: 'active', joinDate: '2024-01-15' },
-    { id: 2, username: 'AlgoQueen', email: 'algo@example.com', level: 95, totalGames: 298, winRate: 92, status: 'active', joinDate: '2024-01-20' },
-    { id: 3, username: 'DevNinja', email: 'dev@example.com', level: 92, totalGames: 315, winRate: 89, status: 'active', joinDate: '2024-02-01' },
-    { id: 4, username: 'SpamBot123', email: 'spam@example.com', level: 12, totalGames: 45, winRate: 23, status: 'banned', joinDate: '2024-06-10' },
-    { id: 5, username: 'InactiveUser', email: 'inactive@example.com', level: 35, totalGames: 120, winRate: 65, status: 'inactive', joinDate: '2024-03-15' },
-];
+
 
 export function AdminPage() {
     const [activeTab, setActiveTab] = useState('overview');
@@ -34,15 +27,21 @@ export function AdminPage() {
     const [users, setUsers] = useState([]);
     const [gameConfigs, setGameConfigs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    
+    // Dashboard overview data
+    const [dashboardStats, setDashboardStats] = useState(null);
+    const [dailyActiveUsers, setDailyActiveUsers] = useState([]);
+    const [gamePopularity, setGamePopularity] = useState([]);
 
     // Fetch data on mount
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const [usersData, gamesData] = await Promise.all([
+                const [usersData, gamesData, dashboardData] = await Promise.all([
                     adminService.getAllUsers(),
-                    GameService.getAllGames()
+                    GameService.getAllGames(),
+                    adminService.getDashboardOverview()
                 ]);
                 
                 // Map users data to match UI format
@@ -72,6 +71,13 @@ export function AdminPage() {
                     }));
                     setGameConfigs(mappedGames);
                 }
+
+                // Set dashboard data
+                if (dashboardData) {
+                    setDashboardStats(dashboardData.stats);
+                    setDailyActiveUsers(dashboardData.dailyActiveUsers || []);
+                    setGamePopularity(dashboardData.gamePopularity || []);
+                }
             } catch (error) {
                 console.error("Error fetching admin data:", error);
             } finally {
@@ -82,30 +88,7 @@ export function AdminPage() {
         fetchData();
     }, []);
 
-    // Mock data for charts (keep for now)
-    const dailyActiveUsers = [
-        { date: 'Mon', users: 1200 },
-        { date: 'Tue', users: 1350 },
-        { date: 'Wed', users: 1180 },
-        { date: 'Thu', users: 1450 },
-        { date: 'Fri', users: 1680 },
-        { date: 'Sat', users: 2100 },
-        { date: 'Sun', users: 1950 },
-    ];
-
-    const gamePopularity = [
-        { name: 'Caro 5x5', plays: 4500 },
-        { name: 'Caro 4x4', plays: 3200 },
-        { name: 'Tic Tac Toe', plays: 2800 },
-        { name: 'Candy Crush', plays: 3500 },
-        { name: 'Snake', plays: 2100 },
-    ];
-
-    const userDistribution = [
-        { name: 'Active', value: 68, color: '#10B981' },
-        { name: 'Inactive', value: 22, color: '#6B7280' },
-        { name: 'Banned', value: 10, color: '#EF4444' },
-    ];
+    // Mock data removed - now using real data from API
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -251,15 +234,15 @@ export function AdminPage() {
                                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
                                 <Users className="w-5 h-5 text-blue-500" />
                             </div>
-                            <p className="text-3xl text-gray-900 dark:text-white">2,547</p>
-                            <p className="text-sm text-green-600 mt-1">+12% from last month</p>
+                            <p className="text-3xl text-gray-900 dark:text-white">{dashboardStats?.totalUsers || 0}</p>
+                            <p className="text-sm text-gray-500 mt-1">Total registered users</p>
                         </div>
                         <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-6">
                             <div className="flex items-center justify-between mb-2">
                                 <p className="text-sm text-gray-600 dark:text-gray-400">Active Games</p>
                                 <Gamepad2 className="w-5 h-5 text-green-500" />
                             </div>
-                            <p className="text-3xl text-gray-900 dark:text-white">5</p>
+                            <p className="text-3xl text-gray-900 dark:text-white">{dashboardStats?.activeGames || 0}</p>
                             <p className="text-sm text-gray-500 mt-1">All systems operational</p>
                         </div>
                         <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-6">
@@ -267,16 +250,16 @@ export function AdminPage() {
                                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Plays</p>
                                 <BarChart3 className="w-5 h-5 text-purple-500" />
                             </div>
-                            <p className="text-3xl text-gray-900 dark:text-white">16,100</p>
-                            <p className="text-sm text-green-600 mt-1">+8% from last week</p>
+                            <p className="text-3xl text-gray-900 dark:text-white">{dashboardStats?.totalPlays?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500 mt-1">Game sessions played</p>
                         </div>
                         <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-6">
                             <div className="flex items-center justify-between mb-2">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">Avg. Session</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Total Messages</p>
                                 <Settings className="w-5 h-5 text-orange-500" />
                             </div>
-                            <p className="text-3xl text-gray-900 dark:text-white">24m</p>
-                            <p className="text-sm text-green-600 mt-1">+3m from average</p>
+                            <p className="text-3xl text-gray-900 dark:text-white">{dashboardStats?.totalMessages?.toLocaleString() || 0}</p>
+                            <p className="text-sm text-gray-500 mt-1">Messages sent</p>
                         </div>
                     </div>
 
@@ -303,25 +286,15 @@ export function AdminPage() {
                             </ResponsiveContainer>
                         </div>
 
-                        {/* User Status Distribution */}
+
+                        {/* Game Popularity */}
                         <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-6">
-                            <h3 className="text-gray-900 dark:text-white mb-4">User Status Distribution</h3>
+                            <h3 className="text-gray-900 dark:text-white mb-4">Game Popularity</h3>
                             <ResponsiveContainer width="100%" height={300}>
-                                <PieChart>
-                                    <Pie
-                                        data={userDistribution}
-                                        cx="50%"
-                                        cy="50%"
-                                        labelLine={false}
-                                        label={({ name, value }) => `${name}: ${value}%`}
-                                        outerRadius={100}
-                                        fill="#8884d8"
-                                        dataKey="value"
-                                    >
-                                        {userDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
+                                <BarChart data={gamePopularity}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                    <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={100} />
+                                    <YAxis stroke="#9CA3AF" />
                                     <Tooltip
                                         contentStyle={{
                                             backgroundColor: '#1F2937',
@@ -330,7 +303,8 @@ export function AdminPage() {
                                             color: '#fff'
                                         }}
                                     />
-                                </PieChart>
+                                    <Bar dataKey="plays" fill="#3B82F6" />
+                                </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
@@ -396,9 +370,6 @@ export function AdminPage() {
                                         <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Status
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Actions
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -443,7 +414,7 @@ export function AdminPage() {
                                                     {user.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            {/* <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => handleUserAction(user.id, 'activate')}
@@ -467,7 +438,7 @@ export function AdminPage() {
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
-                                            </td>
+                                            </td> */}
                                         </tr>
                                     ))
                                     )}

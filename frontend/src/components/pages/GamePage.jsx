@@ -1,5 +1,5 @@
-import { Play, Grid3x3, Grid2x2, X, Candy, Worm, Brain, Palette } from 'lucide-react';
-import { memo, useMemo, useState, useEffect } from 'react';
+import { Play } from 'lucide-react';
+import { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { LoadingOverlay } from '../ui/LoadingOverlay';
@@ -17,12 +17,12 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
                 const response = await GameService.getAllGames();
                 const gamesData = response?.data || [];
                 
-                // Map backend data to UI format
+                // Map backend data to UI format  
                 const mappedGames = gamesData.map(game => ({
                     id: game.id,
                     name: game.name,
                     description: game.description || 'Play this exciting game!',
-                    ...getGameIconConfig(game.name) // Get icon and colors based on game name
+                    image: game.config?.image || game.thumbnail || game.image // Use image from API
                 }));
                 
                 setGames(mappedGames);
@@ -35,78 +35,6 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
         
         fetchGames();
     }, []);
-
-    // Helper function to map game names to icons and colors
-    const getGameIconConfig = (gameName) => {
-        const name = gameName?.toLowerCase() || '';
-        
-        if (name.includes('caro') && name.includes('5')) {
-            return {
-                icon: Grid3x3,
-                bgColor: 'bg-blue-500/10',
-                iconColor: 'text-blue-500',
-                borderColor: 'border-blue-500/20',
-                hoverBorder: 'hover:border-blue-500/50'
-            };
-        } else if (name.includes('caro') && name.includes('4')) {
-            return {
-                icon: Grid2x2,
-                bgColor: 'bg-purple-500/10',
-                iconColor: 'text-purple-500',
-                borderColor: 'border-purple-500/20',
-                hoverBorder: 'hover:border-purple-500/50'
-            };
-        } else if (name.includes('tic') || name.includes('tac') || name.includes('toe')) {
-            return {
-                icon: X,
-                bgColor: 'bg-green-500/10',
-                iconColor: 'text-green-500',
-                borderColor: 'border-green-500/20',
-                hoverBorder: 'hover:border-green-500/50'
-            };
-        } else if (name.includes('candy') || name.includes('crush') || name.includes('ghép')) {
-            return {
-                icon: Candy,
-                bgColor: 'bg-pink-500/10',
-                iconColor: 'text-pink-500',
-                borderColor: 'border-pink-500/20',
-                hoverBorder: 'hover:border-pink-500/50'
-            };
-        } else if (name.includes('snake') || name.includes('rắn')) {
-            return {
-                icon: Worm,
-                bgColor: 'bg-emerald-500/10',
-                iconColor: 'text-emerald-500',
-                borderColor: 'border-emerald-500/20',
-                hoverBorder: 'hover:border-emerald-500/50'
-            };
-        } else if (name.includes('memory') || name.includes('trí nhớ')) {
-            return {
-                icon: Brain,
-                bgColor: 'bg-orange-500/10',
-                iconColor: 'text-orange-500',
-                borderColor: 'border-orange-500/20',
-                hoverBorder: 'hover:border-orange-500/50'
-            };
-        } else if (name.includes('draw') || name.includes('vẽ')) {
-            return {
-                icon: Palette,
-                bgColor: 'bg-indigo-500/10',
-                iconColor: 'text-indigo-500',
-                borderColor: 'border-indigo-500/20',
-                hoverBorder: 'hover:border-indigo-500/50'
-            };
-        }
-        
-        // Default fallback
-        return {
-            icon: Play,
-            bgColor: 'bg-gray-500/10',
-            iconColor: 'text-gray-500',
-            borderColor: 'border-gray-500/20',
-            hoverBorder: 'hover:border-gray-500/50'
-        };
-    };
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -133,40 +61,57 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
                         <p className="text-muted-foreground text-lg">No games available</p>
                     </div>
                 ) : (
-                    games.map((game) => {
-                        const IconComponent = game.icon;
-                        return (
-                            <Card
-                                key={game.id}
-                                className={`group border-2 ${game.borderColor} ${game.hoverBorder} overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-100`}
-                            >
-                                {/* Game Icon */}
-                                <div className={`h-36 sm:h-40 ${game.bgColor} flex items-center justify-center relative`}>
-                                    <div className="relative transform group-hover:scale-110 transition-transform duration-300">
-                                        <IconComponent className={`w-16 h-16 sm:w-20 sm:h-20 ${game.iconColor}`} strokeWidth={1.5} />
-                                    </div>
+                    games.map((game) => (
+                        <Card
+                            key={game.id}
+                            className="group overflow-hidden border-0 bg-transparent cursor-pointer"
+                        >
+                            {/* Game Image Card */}
+                            <div className="relative h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+                                {/* Background Image */}
+                                <div className="absolute inset-0">
+                                    <img 
+                                        src={game.image} 
+                                        alt={game.name} 
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-80 group-hover:opacity-70 transition-opacity" />
                                 </div>
-
-                                {/* Game Info */}
-                                <CardContent className="p-5 sm:p-6">
-                                    <h3 className="text-lg sm:text-xl font-bold mb-2">{game.name}</h3>
-                                    <p className="text-sm text-muted-foreground mb-4 min-h-[40px] line-clamp-2">
-                                        {game.description}
-                                    </p>
-
-                                    {/* Play Button */}
-                                    <Button
-                                        onClick={() => onPlayGame?.(game.id)}
-                                        className="w-full py-2.5 sm:py-3 font-semibold shadow-md hover:shadow-lg transition-all"
-                                        size="lg"
-                                    >
-                                        <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="currentColor" />
-                                        Play Now
-                                    </Button>
+                                
+                                {/* Content */}
+                                <CardContent className="relative h-full p-6 flex flex-col justify-end z-10">
+                                    <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                                        {/* Badge */}
+                                        <div className="flex items-center gap-2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="px-2 py-1 rounded-md bg-primary/90 text-primary-foreground text-xs font-bold uppercase">
+                                                Play Now
+                                            </span>
+                                        </div>
+                                        
+                                        {/* Title */}
+                                        <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
+                                            {game.name}
+                                        </h3>
+                                        
+                                        {/* Description */}
+                                        <p className="text-gray-200 text-sm line-clamp-2 mb-4 drop-shadow-md opacity-90">
+                                            {game.description}
+                                        </p>
+                                        
+                                        {/* Play Button */}
+                                        <Button
+                                            onClick={() => onPlayGame?.(game.id)}
+                                            className="w-full py-3 font-semibold shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300"
+                                            size="lg"
+                                        >
+                                            <Play className="w-5 h-5 mr-2" fill="currentColor" />
+                                            Start Game
+                                        </Button>
+                                    </div>
                                 </CardContent>
-                            </Card>
-                        );
-                    })
+                            </div>
+                        </Card>
+                    ))
                 )}
             </div>
         </div>

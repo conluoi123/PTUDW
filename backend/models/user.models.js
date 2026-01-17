@@ -39,7 +39,7 @@ class User {
     role,
     email,
     phone,
-    hashRefToken
+    hashRefToken,
   ) => {
     try {
       const avatarDb = avatar || defaultAvatar;
@@ -79,7 +79,16 @@ class User {
       throw new Error("Error updating token: " + error.message);
     }
   };
-  static updateProfile = async (id, name, avatar, phone, role) => {
+  static updateProfile = async (
+    id,
+    name,
+    avatar,
+    phone,
+    role,
+    streak,
+    rank = 0,
+    total_game = 0,
+  ) => {
     try {
       return db("users")
         .where({ id })
@@ -88,6 +97,9 @@ class User {
           avatar,
           phone,
           role,
+          streak,
+          rank,
+          total_game,
         })
         .returning("*");
     } catch (error) {
@@ -110,7 +122,7 @@ class User {
     role,
     email,
     phone,
-    avatar
+    avatar,
   ) => {
     try {
       return db("users")
@@ -148,10 +160,22 @@ class User {
         "role",
         "avatar",
         "phone",
-        "created_at"
+        "created_at",
       );
     } catch (error) {
       throw new Error("Error fetching users: " + error.message);
+    }
+  };
+  static getTotalGamesPlayed = async (userId) => {
+    try {
+      const result = await db("game_sessions")
+        .where({ user_id: userId })
+        .count("id as total");
+
+      return parseInt(result[0].total);
+    } catch (error) {
+      console.error("Lỗi khi đếm số game:", error);
+      return 0;
     }
   };
 }

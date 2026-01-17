@@ -12,7 +12,7 @@ class Ranking {
           "u.avatar",
           "t.max_score",
           "t.total_games",
-          db.raw("RANK() OVER (ORDER BY t.max_score DESC) as ranking")
+          db.raw("RANK() OVER (ORDER BY t.max_score DESC) as ranking"),
         )
         .from(function () {
           this.select("user_id")
@@ -43,7 +43,7 @@ class Ranking {
           "u.avatar",
           "t.total_score",
           "t.total_games",
-          db.raw("RANK() OVER (ORDER BY t.total_score DESC) as ranking")
+          db.raw("RANK() OVER (ORDER BY t.total_score DESC) as ranking"),
         )
         .from(function () {
           this.select("user_id")
@@ -60,6 +60,34 @@ class Ranking {
       return ranking;
     } catch (error) {
       throw new Error("Error get overall ranking: " + error.message);
+    }
+  };
+
+  static getMyGlobalRanking = async (userId) => {
+    try {
+      const result = await db
+        .select("*")
+        .from(function () {
+          this.select(
+            "u.id as user_id",
+            "u.name",
+            "u.username",
+            "u.avatar",
+            db.raw("SUM(gs.score) as total_score"),
+            db.raw("COUNT(gs.id) as total_games"),
+            db.raw("RANK() OVER (ORDER BY SUM(gs.score) DESC) as ranking"),
+          )
+            .from("game_sessions as gs")
+            .join("users as u", "gs.user_id", "u.id")
+            .groupBy("u.id")
+            .as("ranked");
+        })
+        .where("user_id", userId)
+        .first();
+
+      return result;
+    } catch (error) {
+      throw new Error("Error get my ranking: " + error.message);
     }
   };
 
@@ -87,9 +115,13 @@ class Ranking {
       const overall = await db("game_sessions")
         .select(
           db.raw("COUNT(*) as total_games"),
-          db.raw("SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) as total_wins"),
-          db.raw("SUM(CASE WHEN result = 'lose' THEN 1 ELSE 0 END) as total_losses"),
-          db.raw("SUM(score) as total_score")
+          db.raw(
+            "SUM(CASE WHEN result = 'win' THEN 1 ELSE 0 END) as total_wins",
+          ),
+          db.raw(
+            "SUM(CASE WHEN result = 'lose' THEN 1 ELSE 0 END) as total_losses",
+          ),
+          db.raw("SUM(score) as total_score"),
         )
         .where("user_id", userId)
         .first();
@@ -102,7 +134,7 @@ class Ranking {
           "g.name as game_name",
           db.raw("COUNT(*) as played"),
           db.raw("SUM(CASE WHEN gs.result = 'win' THEN 1 ELSE 0 END) as won"),
-          db.raw("MAX(gs.score) as high_score")
+          db.raw("MAX(gs.score) as high_score"),
         )
         .where("gs.user_id", userId)
         .groupBy("g.id", "g.name")
@@ -116,7 +148,12 @@ class Ranking {
             .sum("score as total_score")
             .from("game_sessions")
             .groupBy("user_id")
-            .having(db.raw("SUM(score) > (SELECT SUM(score) FROM game_sessions WHERE user_id = ?)", [userId]))
+            .having(
+              db.raw(
+                "SUM(score) > (SELECT SUM(score) FROM game_sessions WHERE user_id = ?)",
+                [userId],
+              ),
+            )
             .as("t");
         })
         .first();
@@ -126,9 +163,9 @@ class Ranking {
           ...overall,
           rank: parseInt(userRank.rank) || 1,
           bestStreak: 0,
-          currentStreak: 0
+          currentStreak: 0,
         },
-        byGame
+        byGame,
       };
     } catch (error) {
       throw new Error("Error get personal stats: " + error.message);
@@ -142,7 +179,7 @@ class Ranking {
         .where("user_id_01", userId)
         .select("user_id_02 as id")
         .union(
-          db("friends").where("user_id_02", userId).select("user_id_01 as id")
+          db("friends").where("user_id_02", userId).select("user_id_01 as id"),
         );
 
       const ranking = await db
@@ -153,7 +190,7 @@ class Ranking {
           "u.avatar",
           "t.max_score",
           "t.total_games",
-          db.raw("RANK() OVER (ORDER BY t.max_score DESC) as ranking")
+          db.raw("RANK() OVER (ORDER BY t.max_score DESC) as ranking"),
         )
         .from(function () {
           this.select("user_id")
@@ -185,7 +222,7 @@ class Ranking {
         .where("user_id_01", userId)
         .select("user_id_02 as id")
         .union(
-          db("friends").where("user_id_02", userId).select("user_id_01 as id")
+          db("friends").where("user_id_02", userId).select("user_id_01 as id"),
         );
 
       const ranking = await db
@@ -196,7 +233,7 @@ class Ranking {
           "u.avatar",
           "t.total_score",
           "t.total_games",
-          db.raw("RANK() OVER (ORDER BY t.total_score DESC) as ranking")
+          db.raw("RANK() OVER (ORDER BY t.total_score DESC) as ranking"),
         )
         .from(function () {
           this.select("user_id")

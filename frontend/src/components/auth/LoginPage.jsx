@@ -18,6 +18,7 @@ import { userApi } from "@/services/userApi.services";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "@/services/service";
 export function LoginPage({ onBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,7 +59,9 @@ export function LoginPage({ onBack }) {
         username: email,
         password,
       });
-      if(data)
+      const total_game = await api.get("/api/user/totalGame");
+      const rank = await api.get("/api/user/rank");
+      if (data)
       login({
         id: data.userInfo.id,
         email: data.userInfo.email,
@@ -67,7 +70,12 @@ export function LoginPage({ onBack }) {
         phone: data.userInfo.phone,
         username: data.userInfo.username,
         role: data.userInfo.role,
+        streak: data.userInfo.streak,
+        created_at: data.userInfo.created_at,
+        rank: rank?.data.rank.ranking || "none",
+        total_game: total_game?.data.totalGame || 0,
       });
+      
       console.log("Login success:", data);
       navigate("/home")
     } catch (error) {

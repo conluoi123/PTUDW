@@ -54,15 +54,33 @@ function AuthProvider({ children }) {
   const refreshUser = async () => {
     try {
       const res = await api.get("/api/user/me");
-      const { userId, email, name, avatar } = res.data.data;
-      console.log(res.data.data); // in log ktr
+      const {
+        userId,
+        email,
+        name,
+        avatar,
+        phone,
+        role,
+        streak,
+        created_at,
+      } = res.data.data;
+      console.log(res.data.data);
+      const total_game = await api.get("/api/user/totalGame");
+      const rank = await api.get("/api/user/rank");
       setUser({
         id: userId,
         email,
         name,
         avatar,
+        phone,
+        role,
+        streak,
+        created_at,
+        rank: rank?.data.rank.ranking|| "none",
+        total_game: total_game?.data.totalGame || 0,
       });
-      localStorage.setItem("userId", userId)
+      console.log(user)
+      localStorage.setItem("userId", userId);
     } catch (err) {
       console.log("refresh user failed");
       throw err;

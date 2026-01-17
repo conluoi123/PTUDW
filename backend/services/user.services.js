@@ -37,6 +37,8 @@ function userInfoModel(user) {
     phone: user.phone,
     username: user.username,
     role: user.role,
+    streak: user.streak,
+    created_at: user.created_at,
   };
 }
 
@@ -48,6 +50,8 @@ function userProfileModel(user) {
     phone: user.phone,
     username: user.username,
     role: user.role,
+    streak: user.streak,
+    created_at: user.created_at,
   };
 }
 
@@ -65,6 +69,26 @@ const checkExistUser = async (username, email) => {
     throw new Error("Failed to check existing user");
   }
 };
+
+const updateStreak = (lastDateStr, currentStreak) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (!lastDateStr) {
+    return 1; 
+  }
+  const lastDate = new Date(lastDateStr);
+  lastDate.setHours(0, 0, 0, 0);
+  const diffDays =
+    (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
+  if (diffDays === 1) {
+    return currentStreak + 1; 
+  }
+  if (diffDays === 0) {
+    return currentStreak; 
+  }
+  return 1; 
+};
+
 
 export {
   verifyGoogleToken,

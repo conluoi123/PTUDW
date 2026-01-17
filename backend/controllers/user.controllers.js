@@ -11,6 +11,7 @@ import {
 } from "../services/user.services.js";
 import axios from "axios";
 import User from "../models/user.models.js";
+import Ranking from "../models/ranking.models.js";
 
 const defaultAvatar =
   "https://res.cloudinary.com/dz9xfcbey/image/upload/f_auto,q_auto,w_400,h_400,c_fill,g_center/avatars/cb9trd7wuoebrlbdhjqj";
@@ -176,6 +177,7 @@ async function Login(req, res) {
     if (user.password !== hash) {
       return res.status(401).json({ error: "Password is wrong" });
     }
+
     const refToken = crypto.randomBytes(64).toString("hex");
     const hashRefToken = crypto
       .createHash("sha256")
@@ -265,13 +267,13 @@ async function getProfile(req, res) {
 
 async function updateProfile(req, res) {
   try {
-    const { name, avatar, phone, role } = req.body;
+    const { name, avatar, phone, role, streak } = req.body;
     const emailDb = req.user.email;
     const user = await User.findUserByEmail(emailDb);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    const update = await User.updateProfile(req.user.id, name, avatar, phone, role);
+    const update = await User.updateProfile(req.user.id, name, avatar, phone, role, streak);
     const profile = userProfileModel(update);
     return res.status(200).json({ message: "Update profile successfully", profile })
   } catch (error) {
@@ -294,6 +296,12 @@ const authMe = async (req, res) => {
       email: user.email,
       name: user.name,
       avatar: user.avatar,
+      phone: user.phone,
+      role: user.role,
+      streak: user.streak,
+      created_at: user.created_at,
+      total_game: user.total_game,
+      rank: user.rank,
     };
     return res.status(200).json({ data });
   } catch (error) {
@@ -371,4 +379,49 @@ const findUserByEmail = async (req, res) => {
   }
 };
 
-export { SignInWithGG, DirectGoogle, Login, Register, Logout, getProfile, updateProfile, authMe, refreshAccessToken, findUserByEmail };
+const getTotalGame = async (req, res) => {
+  try {
+    const user = await User.findUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const totalGame = await User.getTotalGamesPlayed(user.id);
+    return res.status(200).json({
+      totalGame
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getRanking = async (req, res) => {
+  try {
+    const user = await User.findUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const rank = await Ranking.getMyGlobalRanking(user.id);
+    return res.status(200).json({
+      rank
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+
+export {
+  SignInWithGG,
+  DirectGoogle,
+  Login,
+  Register,
+  Logout,
+  getProfile,
+  updateProfile,
+  authMe,
+  refreshAccessToken,
+  findUserByEmail,
+  getTotalGame,
+  getRanking,
+};

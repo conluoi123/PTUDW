@@ -45,4 +45,23 @@ export const userApi = {
     }
     window.location.href = `${API_BASE_URL}/api/user/login/google`;
   },
+  authMe: async () => {
+    try {
+      const res = await api.get("/api/user/me");
+      return res.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
+  refreshAccessToken: async () => {
+    try {
+      const res = await api.post("/api/user/refreshAccessToken");
+      return res.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
 };

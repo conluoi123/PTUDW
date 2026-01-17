@@ -18,7 +18,9 @@ export async function up(knex) {
         table.string("role");
         table.string("email").notNullable().unique();
         table.string("phone");
-        table.timestamp("create_at").defaultTo(knex.fn.now());
+        table.timestamp("last_login_at").defaultTo(knex.fn.now());
+        table.timestamp("streak").defaultTo(0);
+        table.timestamp("created_at").defaultTo(knex.fn.now());
       })
 
       // 2. Bảng games

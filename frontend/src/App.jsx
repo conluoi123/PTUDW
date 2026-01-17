@@ -10,7 +10,9 @@ import { RegisterPage } from './components/auth/RegisterPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { RankingPage } from './components/pages/RankingPage';
 import { ProfilePage } from './components/pages/ProfilePage';
+
 function App() {
+  
     return (
       <BrowserRouter>
         <ThemeProvider>

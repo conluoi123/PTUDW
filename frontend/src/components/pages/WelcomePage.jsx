@@ -20,7 +20,6 @@ export function WelcomePage({onShowRegister}) {
         const fetchGames = async () => {
             const res = await GameService.getAllGames();
             setGames(res?.data ?? []);
-            console.log("getAllGames res:", res);
         };
         fetchGames();
     }, []);

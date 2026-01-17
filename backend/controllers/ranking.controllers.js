@@ -50,7 +50,7 @@ async function getRanking(req, res) {
 // Personal stats overall (all games)
 async function getPersonalStatsOverall(req, res) {
   try {
-    const stats = await Ranking.getPersonalStatsOverall(req.userId);
+    const stats = await Ranking.getPersonalStatsOverall(req.user.id);
     return res
       .status(200)
       .json({ message: "Get personal stats successfully", stats });
@@ -80,9 +80,7 @@ async function getRankingFriendList(req, res) {
 // Friends ranking overall (all games)
 async function getRankingFriendsOverall(req, res) {
   try {
-    console.log("thông tin user", req.user)
     const ranking = await Ranking.rankingFriendsOverall(req.user.id);
-
     return res
       .status(200)
       .json({ message: "Get friends ranking successfully", ranking });

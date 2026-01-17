@@ -18,9 +18,9 @@ const rankingRouter = (app) => {
 
     // Protected routes (cần auth để biết userId)
     router.get("/friends/overall", authenticateAccessToken, getRankingFriendsOverall);
-    router.get("/friends/:gameId", getRankingFriendList);
-    router.get("/personal/stats", getPersonalStatsOverall);
-    router.get("/user/:gameId", getRanking);
+    router.get("/friends/:gameId", authenticateAccessToken, getRankingFriendList);
+    router.get("/personal/stats", authenticateAccessToken, getPersonalStatsOverall);
+    router.get("/user/:gameId", authenticateAccessToken, getRanking);
 
     app.use("/api/rankings", router)
 }

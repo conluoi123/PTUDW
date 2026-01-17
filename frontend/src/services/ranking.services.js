@@ -5,7 +5,9 @@ export const rankingService = {
     getGlobalOverall: async () => {
         try {
             const response = await api.get("/api/rankings/global/overall");
+            console.log(response.data.ranking);
             return response.data.ranking;
+
         } catch (error) {
             console.error("Error fetching global overall ranking:", error);
             throw error;
@@ -26,6 +28,7 @@ export const rankingService = {
     getFriendsOverall: async () => {
         try {
             const response = await api.get("/api/rankings/friends/overall");
+            console.log("Giá trị trả về", response.data.ranking);
             return response.data.ranking;
         } catch (error) {
             console.error("Error fetching friends overall ranking:", error);

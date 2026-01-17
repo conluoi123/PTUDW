@@ -1,12 +1,14 @@
 import { Home, Gamepad2, User, Trophy, TrendingUp, Shield, Users, MessageCircle, ChevronRight, Palette, LogOut } from 'lucide-react';
 
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState, useContext } from 'react';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
+import { AuthContext } from '@/contexts/AuthContext';
 
 export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOpen, onClose, isLoggedIn, onShowLogin }) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { user } = useContext(AuthContext);
 
     const menuItems = useMemo(() => [
         { id: 'home', label: 'Home', icon: <Home className="w-5 h-5" />, requireAuth: false },
@@ -16,8 +18,19 @@ export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOp
         { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" />, requireAuth: true },
         { id: 'achievements', label: 'Achievements', icon: <Trophy className="w-5 h-5" />, requireAuth: true },
         { id: 'ranking', label: 'Ranking', icon: <TrendingUp className="w-5 h-5" />, requireAuth: true },
-        { id: 'admin', label: 'Admin Portal', icon: <Shield className="w-5 h-5" />, requireAuth: true },
+        { id: 'admin', label: 'Admin Portal', icon: <Shield className="w-5 h-5" />, requireAuth: true, adminOnly: true },
     ], []);
+
+    // Filter menu items dựa trên role
+    const visibleMenuItems = useMemo(() => {
+        return menuItems.filter(item => {
+            // Nếu item là admin-only, chỉ show khi user là admin
+            if (item.adminOnly) {
+                return user?.role === 'admin';
+            }
+            return true;
+        });
+    }, [menuItems, user]);
 
     const handleMenuClick = (page, requireAuth = false) => {
         if (requireAuth && !isLoggedIn) {
@@ -49,7 +62,7 @@ export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOp
       `}
         >
             <nav className="p-3 space-y-2 mt-2">
-                {menuItems.map((item) => (
+                {visibleMenuItems.map((item) => (
                     <div key={item.id} className="relative group">
                         <Button
                             onClick={() => handleMenuClick(item.id, item.requireAuth)}

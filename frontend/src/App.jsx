@@ -9,7 +9,9 @@ import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { RankingPage } from './components/pages/RankingPage';
+import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
+import { AdminRoute } from './components/auth/AdminRoute';
 
 function App() {
   
@@ -26,6 +28,14 @@ function App() {
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/ranking" element={<RankingPage />} />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <AdminRoute>
+                      <AdminPage />
+                    </AdminRoute>
+                  } 
+                />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Routes>

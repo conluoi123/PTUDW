@@ -8,7 +8,7 @@ import { Progress } from '../ui/progress';
 import { rankingService } from '@/services/ranking.services';
 import { AuthContext } from '@/contexts/AuthContext';
 import { GameService } from '@/services/game.services.js';
-
+import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 export function RankingPage() {
     const [activeTab, setActiveTab] = useState('global');
     const { user } = useContext(AuthContext);
@@ -212,6 +212,11 @@ export function RankingPage() {
     return (
         <div className="space-y-6 animate-fadeIn">
             {/* Header */}
+            {isLoading && (
+                <LoadingOverlay 
+                    message="Loading Ranking" 
+                />
+            )}
             <div>
                 <h1 className="mb-2">Leaderboard</h1>
                 <p className="text-muted-foreground">Track rankings across the platform</p>

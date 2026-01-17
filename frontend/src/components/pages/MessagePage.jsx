@@ -7,6 +7,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { MessageService } from '@/services/message.services';
 import { AuthContext } from '@/contexts/AuthContext';
+import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 
 
 
@@ -326,6 +327,11 @@ export function MessagesPage() {
     return (
         <div className="h-[calc(100vh-8rem)] rounded-3xl overflow-hidden shadow-2xl shadow-black/5 bg-white dark:bg-[#16181d] border border-gray-200 dark:border-white/5 flex flex-col lg:flex-row animate-in fade-in duration-500">
             {/* Conversations Sidebar */}
+            {isLoading && (
+                <LoadingOverlay 
+                    message="Loading Conversations" 
+                />
+            )}
             <div className={`${selectedConversation ? 'hidden lg:flex' : 'flex'
                 } flex-col w-full lg:w-80 border-r border-gray-200 dark:border-white/5 bg-white/50 dark:bg-[#16181d]/50 backdrop-blur-sm min-h-0 overflow-hidden`}>
                 

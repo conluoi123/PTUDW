@@ -67,7 +67,7 @@ async function getRankingFriendList(req, res) {
     if (!gameId) {
       return res.status(400).json({ error: "Missing gameId" });
     }
-    const ranking = await Ranking.rankingListFriends(gameId, req.userId);
+    const ranking = await Ranking.rankingListFriends(gameId, req.user.id);
     return res
       .status(200)
       .json({ message: "Get ranking successfully", ranking });

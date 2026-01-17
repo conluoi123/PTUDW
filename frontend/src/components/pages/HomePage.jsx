@@ -23,6 +23,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
+import { ratingService } from "@/services/rating.services";
 export const HomePage = () => {
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
@@ -31,31 +32,20 @@ export const HomePage = () => {
   const [activeTab, setActiveTab] = useState("Tất cả");
   const CATEGORIES = ["Tất cả", "Trí tuệ", "Chiến thuật", "Đối kháng", "Giải trí"];
   const { user } = useContext(AuthContext);
+  const [ratings, setRatings] = useState([]);
 
-  // Mock Stats with 3D Images
-  const stats = [
-    { 
-      label: 'Hạng', 
-      value: 'Bạch Kim', 
-      image: 'https://img.pikbest.com/origin/10/42/58/14WpIkbEsTDMk.png!w700wp',
-      bg: 'bg-yellow-500/10' 
-    },
-    { 
-      label: 'Điểm', 
-      value: '2,850', 
-      image: 'https://png.pngtree.com/png-clipart/20250602/original/pngtree-pixel-art-level-up-emblem-game-asset-vector-png-image_21113452.png',
-      bg: 'bg-blue-500/10' 
-    },
-    { 
-      label: 'Thắng', 
-      value: '142', 
-      image: 'https://cdn-icons-png.flaticon.com/512/5525/5525493.png',
-      bg: 'bg-emerald-500/10' 
-    },
-  ];
-  
-  // ... (giữ nguyên logic fetch data và helpers)
-
+  useEffect(() => {
+    const fetchRatings = async () => {
+      try {
+        const ratingsData = await ratingService.getListRating();
+        setRatings(ratingsData || []);
+      } catch (error) {
+        console.error("Failed to load ratings", error);
+      }
+    }
+    fetchRatings();
+  }, []);
+  console.log(ratings);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -101,7 +91,26 @@ export const HomePage = () => {
 
         {/* TOP STATS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             {stats.map((s, i) => (
+             {[
+                { 
+                  label: 'Tổng game', 
+                  value: games.length, 
+                  image: 'https://png.pngtree.com/png-clipart/20250602/original/pngtree-pixel-art-level-up-emblem-game-asset-vector-png-image_21113452.png',
+                  bg: 'bg-blue-500/10' 
+                },
+                { 
+                  label: 'Đánh giá', 
+                  value: ratings.length, 
+                  image: 'https://cdn-icons-png.flaticon.com/512/5525/5525493.png',
+                  bg: 'bg-emerald-500/10' 
+                },
+                { 
+                  label: 'Người chơi', 
+                  value: user?.name || 'Guest', 
+                  image: 'https://img.pikbest.com/origin/10/42/58/14WpIkbEsTDMk.png!w700wp',
+                  bg: 'bg-yellow-500/10' 
+                },
+             ].map((s, i) => (
                 <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default">
                   <CardContent className="flex items-center gap-4 p-5">
                      <div className={`p-3 rounded-2xl bg-primary/5 ring-1 ring-primary/10`}>
@@ -201,7 +210,7 @@ export const HomePage = () => {
               </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {games.map((game) => (
                 <div 
                   key={game.id} 
@@ -237,38 +246,66 @@ export const HomePage = () => {
                 Đánh giá gần đây
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                    { user: "Minh Gamer", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", game: "Caro hàng 5", rating: 5, comment: "Game siêu cuốn, AI đánh khó hơn mình nghĩ! Tuyệt vời.", time: "2 giờ trước" },
-                    { user: "Lan Chi", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka", game: "Tic Tac Toe", rating: 4, comment: "Giao diện đẹp, mượt mà. Mong có thêm chế độ rank.", time: "5 giờ trước" },
-                    { user: "Tuan Anh", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John", game: "Cờ Vua", rating: 5, comment: "Chế độ Multiplayer chơi với bạn bè rất vui. 10 điểm!", time: "1 ngày trước" }
-                ].map((review, idx) => (
-                    <div key={idx} className="bg-card border border-border/50 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden">
-                                    <img src={review.avatar} alt={review.user} className="w-full h-full" />
+            <div className="grid grid-cols-1 gap-6">
+                {ratings && ratings.length > 0 ? (
+                    ratings.map((rating) => {
+                        // Helper to get relative time
+                        const getRelativeTime = (dateString) => {
+                            if (!dateString) return 'Vừa xong';
+                            const now = new Date();
+                            const past = new Date(dateString);
+                            const diffMs = now - past;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffHours = Math.floor(diffMs / 3600000);
+                            const diffDays = Math.floor(diffMs / 86400000);
+                            
+                            if (diffMins < 60) return `${diffMins} phút trước`;
+                            if (diffHours < 24) return `${diffHours} giờ trước`;
+                            return `${diffDays} ngày trước`;
+                        };
+
+                        // Generate avatar
+                        const avatarUrl = rating.user_avatar || 
+                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${rating.user_username || rating.user_name}`;
+
+                        return (
+                            <div key={rating.id} className="bg-card border border-border/50 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden">
+                                            <img src={avatarUrl} alt={rating.user_name} className="w-full h-full" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-sm text-foreground">{rating.user_name || rating.user_username}</p>
+                                            <p className="text-xs text-muted-foreground">{getRelativeTime(rating.created_at)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 bg-yellow-500/10 px-2 py-1 rounded-lg">
+                                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                        <span className="text-xs font-bold text-yellow-600 dark:text-yellow-400">
+                                            {rating.point.toFixed(1)}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-bold text-sm text-foreground">{review.user}</p>
-                                    <p className="text-xs text-muted-foreground">{review.time}</p>
+                                
+                                <div className="mb-2">
+                                    <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                        {rating.game_name}
+                                    </span>
                                 </div>
+                                
+                                <p className="text-sm text-muted-foreground italic">
+                                    "{rating.comment || 'Không có bình luận'}"
+                                </p>
                             </div>
-                            <div className="flex items-center gap-1 bg-yellow-500/10 px-2 py-1 rounded-lg">
-                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                <span className="text-xs font-bold text-yellow-600 dark:text-yellow-400">{review.rating}.0</span>
-                            </div>
-                        </div>
-                        
-                        <div className="mb-2">
-                            <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                                {review.game}
-                            </span>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground italic">"{review.comment}"</p>
+                        );
+                    })
+                ) : (
+                    <div className="col-span-full text-center py-12 text-muted-foreground">
+                        <MessageSquareQuote className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>Chưa có đánh giá nào</p>
                     </div>
-                ))}
+                )}
             </div>
         </section>
     </div>

@@ -25,26 +25,23 @@ export async function insert_user_achieve_transaction(userId, achievements) {
   }
 }
 export async function insert_user_achieve(userId, achievements_id) {
-    try {
-        await db("user_achievements").insert({
-            achievement_id: achievements_id,
-            user_id: userId,
-            unlocked_at: new Date(),
-        }).onConflict(['achievement_id', 'user_id']).ignore();
-    } catch (error) {
-        console.error("Insert failed, changes rolled back:", error);
-    }
+  try {
+    await db("user_achievements").insert({
+      achievement_id: achievements_id,
+      user_id: userId,
+      unlocked_at: new Date(),
+    }).onConflict(['achievement_id', 'user_id']).ignore();
+  } catch (error) {
+    console.error("Insert failed, changes rolled back:", error);
+  }
 }
 async function load_achievements_me(req, res, next) {
   try {
-    const id_user = req.userId;
+    const id_user =  req.userId ;
     const user_achivement = await db("achievements as a")
       .join("user_achievements as ua", "a.id", "ua.achievement_id")
       .where("ua.user_id", id_user)
       .select("a.*");
-    if (user_achivement.length === 0) {
-      return res.status(404).json({ message: "User achievements not found" });
-    }
     req.achievements = user_achivement;
     next();
   } catch (error) {
@@ -58,9 +55,6 @@ async function load_achievements_id(req, res, next) {
     const achievement = await db("achievements")
       .where("id", id_achievement)
       .select("*");
-    if (achievement.length === 0) {
-      return res.status(404).json({ message: "Achievement not found" });
-    }
     req.achievements = achievement;
     next();
   } catch (error) {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, memo, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, memo, useRef, useEffect, useContext } from 'react';
 import { MessageCircle, Send, Search, MoreVertical, Phone, Video, Image, Smile, ArrowLeft, Check, CheckCheck } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -6,11 +6,8 @@ import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { MessageService } from '@/services/message.services';
+import { AuthContext } from '@/contexts/AuthContext';
 
-// Hardcoded User ID for testing
-const CURRENT_USER_ID = "b7fb6b0a-0653-43b0-ad32-9b0a43be4ffa";
-// hardcoded test tính năng đã xem 
-// const CURRENT_USER_ID = "f0f35623-f74a-4ccd-9499-229e6428e413";
 
 
 const OnlineIndicator = memo(({ isOnline }) => (
@@ -163,16 +160,22 @@ export function MessagesPage() {
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef(null);
-
+    const { user } = useContext(AuthContext);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     // Fetch conversations list
     useEffect(() => {
+        // Guard: Don't fetch if user is not loaded yet
+        if (!user?.id) {
+            setIsLoading(false);
+            return;
+        }
+
         const fetchConversations = async () => {
             try {
-                const data = await MessageService.getConversations(CURRENT_USER_ID);
+                const data = await MessageService.getConversations(user.id);
                 
                 // Map backend data to UI format
                 const formattedConversations = data.map(conv => ({
@@ -181,8 +184,10 @@ export function MessagesPage() {
                     userName: conv.name || conv.username,
                     avatar: (conv.name || conv.username || '?').charAt(0).toUpperCase(),
                     isOnline: false, // Online status not yet implemented in backend
-                    lastMessage: conv.last_message,
-                    lastMessageTime: new Date(conv.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    lastMessage: conv.last_message || 'No messages yet',
+                    lastMessageTime: conv.last_message_at 
+                        ? new Date(conv.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '',
                     unreadCount: parseInt(conv.unread_count) || 0,
                     messages: [] // Will fetch on select
                 }));
@@ -200,7 +205,7 @@ export function MessagesPage() {
         // Vì ko realtime nên setInterval 10s sẽ useEffect một lần
         const interval = setInterval(fetchConversations, 10000);
         return () => clearInterval(interval);
-    }, []);
+    }, [user?.id]); // Add user.id to dependency
 
     useEffect(() => {
         scrollToBottom();
@@ -225,7 +230,7 @@ export function MessagesPage() {
         const tempId = `temp-${Date.now()}`;
         const newMsgOptimistic = {
             id: tempId,
-            sender_id: CURRENT_USER_ID, // Use backend field name format
+            sender_id: user?.id, // Use backend field name format
             senderId: 'me', // Keep UI format for rendering logic consistency if needed, or unify
             content: messageContent,
             sent_at: new Date().toISOString(),
@@ -255,7 +260,7 @@ export function MessagesPage() {
         }));
 
         try {
-            await MessageService.sendMessage(CURRENT_USER_ID, selectedConversation.userId, messageContent);
+            await MessageService.sendMessage(user.id, selectedConversation.userId, messageContent);
             // Re-fetch conversation to keep in sync or handle response typically
             // For now, optimistic update is fine.
         } catch (error) {
@@ -263,7 +268,7 @@ export function MessagesPage() {
             // Could revert optimistic update here
         }
 
-    }, [newMessage, selectedConversation]);
+    }, [newMessage, selectedConversation, user]);
 
     const handleKeyPress = useCallback((e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -283,14 +288,14 @@ export function MessagesPage() {
 
         // Mark as read in Backend
         try {
-            await MessageService.markAsRead(conversation.userId, CURRENT_USER_ID);
+            await MessageService.markAsRead(conversation.userId, user.id);
         } catch (err) {
             console.error("Error marking read:", err);
         }
 
         // Fetch Message History
         try {
-            const history = await MessageService.getHistory(CURRENT_USER_ID, conversation.userId, 50);
+            const history = await MessageService.getHistory(user.id, conversation.userId, 50);
             
             // update trạng thái đã xem
             setSelectedConversation(prev => {
@@ -299,7 +304,7 @@ export function MessagesPage() {
                         ...prev,
                         messages: history.map(msg => ({
                             id: msg.id,
-                            senderId: msg.sender_id === CURRENT_USER_ID ? 'me' : msg.sender_id,
+                            senderId: msg.sender_id === user.id ? 'me' : msg.sender_id,
                             content: msg.content,
                             timestamp: new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             isRead: msg.status === 'read'
@@ -312,7 +317,7 @@ export function MessagesPage() {
             console.error("Error fetching history:", error);
         }
 
-    }, []);
+    }, [user]);
 
     const handleBackToList = useCallback(() => {
         setSelectedConversation(null);

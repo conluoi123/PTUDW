@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AuthContext } from '../../contexts/AuthContext';
 import { Sidebar } from '../Sidebar';
 import { Header } from '../Header';
 import { userApi } from '@/services/userApi.services';
 
-export function MainLayout({ user, logout }) {
+export function MainLayout() {
+  const { user, logout } = useContext(AuthContext);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();

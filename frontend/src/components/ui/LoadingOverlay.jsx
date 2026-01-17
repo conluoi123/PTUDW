@@ -1,4 +1,4 @@
-export function LoadingOverlay({ message = "Loading...", description = "Please wait while we fetch your data" }) {
+export function LoadingOverlay({ message = "Loading...", description = "" }) {
     return (
         <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-md z-50 flex items-center justify-center animate-in fade-in duration-300">
             <div className="relative">

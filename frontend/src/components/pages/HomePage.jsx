@@ -24,6 +24,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 import { ratingService } from "@/services/rating.services";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 export const HomePage = () => {
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
@@ -35,24 +36,18 @@ export const HomePage = () => {
   const [ratings, setRatings] = useState([]);
 
   useEffect(() => {
-    const fetchRatings = async () => {
-      try {
-        const ratingsData = await ratingService.getListRating();
-        setRatings(ratingsData || []);
-      } catch (error) {
-        console.error("Failed to load ratings", error);
-      }
-    }
-    fetchRatings();
-  }, []);
-  console.log(ratings);
-  useEffect(() => {
     const fetchData = async () => {
       try {
-        const gamesRes = await api.get('/api/games');
+        setLoading(true);
+        const [gamesRes, ratingsData] = await Promise.all([
+          api.get('/api/games'),
+          ratingService.getListRating()
+        ]);
+        
         setGames(gamesRes.data.data || []);
+        setRatings(ratingsData || []);
       } catch (error) {
-        console.error("Failed to load games", error);
+        console.error("Failed to load data", error);
       } finally {
         setLoading(false);
       }
@@ -69,18 +64,20 @@ export const HomePage = () => {
     return "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2670&auto=format&fit=crop";
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center p-20 text-slate-400">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  );
+
   if (!user) {
     console.log(user);
     return
   }
   return (
     <div className="space-y-8 animate-fade-in pb-10">
-        
+        {/* Loading Overlay */}
+        {loading && (
+            <LoadingOverlay 
+                message="Loading Games" 
+                description="Fetching available games and ratings..."
+            />
+        )}
         {/* GREETING HEADER */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-2">
             <div>

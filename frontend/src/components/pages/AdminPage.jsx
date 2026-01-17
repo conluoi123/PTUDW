@@ -174,7 +174,6 @@ export function AdminPage() {
             {isLoading && (
                 <LoadingOverlay 
                     message="Loading Admin Dashboard" 
-                    description="Fetching data from server..." 
                 />
             )}
 

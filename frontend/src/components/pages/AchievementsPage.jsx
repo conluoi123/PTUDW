@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useEffect } from "react";
 import { useState } from "react";
 import { fetchAchievements } from "@/services/achievements.services";
-
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 // TODO : Phải đổi backend có userId để có thể lấy achievements của user đó
 export function AchievementsPage() {
   const [achievementsRepo, setAchievementsRepo] = useState([]);
@@ -35,11 +35,14 @@ export function AchievementsPage() {
       </div>
     );
   }
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  
   return (
     <div className="space-y-6 animate-fadeIn">
+      {isLoading && (
+        <LoadingOverlay 
+            message="Loading Achievements" 
+        />
+    )}
       <div>
         <h1 className="mb-2 text-2xl font-bold">Achievements</h1>
         <p className="text-muted-foreground">

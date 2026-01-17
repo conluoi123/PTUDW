@@ -54,13 +54,17 @@ function AuthProvider({ children }) {
   const refreshUser = async () => {
     try {
       const res = await api.get("/api/user/me");
-      const { userId, email, name, avatar } = res.data.data;
+      console.log("response trả về là:" , res);
+      console.log("Quyền của người dùng: ", res.data.data.role)
+      const { userId, email, name, avatar, role } = res.data.data;
       console.log(res.data.data); // in log ktr
       setUser({
         id: userId,
         email,
         name,
         avatar,
+        role, // Thêm role vào user object
+        
       });
       localStorage.setItem("userId", userId)
     } catch (err) {

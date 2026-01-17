@@ -12,8 +12,10 @@ import {
     EyeOff,
     Save
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import adminService from '@/services/admin.services';
+import { GameService } from '@/services/game.services';
 
 // Mock data
 const mockUsers = [
@@ -29,8 +31,58 @@ export function AdminPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortField, setSortField] = useState('id');
     const [sortDirection, setSortDirection] = useState('asc');
+    const [users, setUsers] = useState([]);
+    const [gameConfigs, setGameConfigs] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Mock data for charts
+    // Fetch data on mount
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                const [usersData, gamesData] = await Promise.all([
+                    adminService.getAllUsers(),
+                    GameService.getAllGames()
+                ]);
+                
+                // Map users data to match UI format
+                const mappedUsers = usersData.map(user => ({
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    level: user.level || 1,
+                    totalGames: user.total_games || 0,
+                    winRate: user.win_rate || 0,
+                    status: user.role === 'admin' ? 'active' : (user.status || 'active'),
+                    joinDate: user.create_at ? new Date(user.create_at).toISOString().split('T')[0] : 'N/A'
+                }));
+                
+                setUsers(mappedUsers);
+                
+                // Map games data
+                if (gamesData?.data) {
+                    const mappedGames = gamesData.data.map(game => ({
+                        id: game.id,
+                        name: game.name,
+                        enabled: game.status === 'active',
+                        boardSize: game.config?.boardSize || 'N/A',
+                        maxPlayers: game.config?.maxPlayers || 2,
+                        timeLimit: game.config?.timeLimit || 0,
+                        difficulty: game.config?.difficulty || 'medium'
+                    }));
+                    setGameConfigs(mappedGames);
+                }
+            } catch (error) {
+                console.error("Error fetching admin data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        fetchData();
+    }, []);
+
+    // Mock data for charts (keep for now)
     const dailyActiveUsers = [
         { date: 'Mon', users: 1200 },
         { date: 'Tue', users: 1350 },
@@ -55,16 +107,6 @@ export function AdminPage() {
         { name: 'Banned', value: 10, color: '#EF4444' },
     ];
 
-    const [users, setUsers] = useState(mockUsers);
-
-    const [gameConfigs, setGameConfigs] = useState([
-        { id: 'caro5', name: 'Caro (5 in a row)', enabled: true, boardSize: '15x15', maxPlayers: 2, timeLimit: 300, difficulty: 'medium' },
-        { id: 'caro4', name: 'Caro (4 in a row)', enabled: true, boardSize: '10x10', maxPlayers: 2, timeLimit: 180, difficulty: 'easy' },
-        { id: 'tictactoe', name: 'Tic Tac Toe', enabled: true, boardSize: '3x3', maxPlayers: 2, timeLimit: 60, difficulty: 'easy' },
-        { id: 'candycrush', name: 'Candy Crush', enabled: true, boardSize: '8x8', maxPlayers: 1, timeLimit: 300, difficulty: 'medium' },
-        { id: 'snake', name: 'Snake Game', enabled: true, boardSize: '20x20', maxPlayers: 1, timeLimit: 0, difficulty: 'hard' },
-    ]);
-
     const handleSort = (field) => {
         if (sortField === field) {
             setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -74,10 +116,20 @@ export function AdminPage() {
         }
     };
 
-    const handleToggleGame = (gameId) => {
-        setGameConfigs(prev => prev.map(game =>
-            game.id === gameId ? { ...game, enabled: !game.enabled } : game
-        ));
+    const handleToggleGame = async (gameId) => {
+        try {
+            const game = gameConfigs.find(g => g.id === gameId);
+            const newStatus = game.enabled ? 'inactive' : 'active';
+            
+            await adminService.updateGame(gameId, { status: newStatus });
+            
+            setGameConfigs(prev => prev.map(g =>
+                g.id === gameId ? { ...g, enabled: !g.enabled } : g
+            ));
+        } catch (error) {
+            console.error("Error toggling game:", error);
+            alert("Failed to toggle game status");
+        }
     };
 
     const handleUpdateGameConfig = (gameId, field, value) => {
@@ -86,17 +138,28 @@ export function AdminPage() {
         ));
     };
 
-    const handleUserAction = (userId, action) => {
-        if (action === 'delete') {
-            setUsers(prev => prev.filter(user => user.id !== userId));
-        } else if (action === 'ban') {
-            setUsers(prev => prev.map(user =>
-                user.id === userId ? { ...user, status: 'banned' } : user
-            ));
-        } else if (action === 'activate') {
-            setUsers(prev => prev.map(user =>
-                user.id === userId ? { ...user, status: 'active' } : user
-            ));
+    const handleUserAction = async (userId, action) => {
+        try {
+            if (action === 'delete') {
+                await adminService.deleteUser(userId);
+                setUsers(prev => prev.filter(user => user.id !== userId));
+                alert("User deleted successfully");
+            } else if (action === 'ban') {
+                await adminService.updateUser(userId, { status: 'banned' });
+                setUsers(prev => prev.map(user =>
+                    user.id === userId ? { ...user, status: 'banned' } : user
+                ));
+                alert("User banned successfully");
+            } else if (action === 'activate') {
+                await adminService.updateUser(userId, { status: 'active' });
+                setUsers(prev => prev.map(user =>
+                    user.id === userId ? { ...user, status: 'active' } : user
+                ));
+                alert("User activated successfully");
+            }
+        } catch (error) {
+            console.error(`Error performing ${action}:`, error);
+            alert(`Failed to ${action} user`);
         }
     };
 
@@ -339,7 +402,20 @@ export function AdminPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {filteredUsers.map((user) => (
+                                    {isLoading ? (
+                                        <tr>
+                                            <td colSpan="8" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                                Loading users...
+                                            </td>
+                                        </tr>
+                                    ) : filteredUsers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="8" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                                No users found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                    filteredUsers.map((user) => (
                                         <tr key={user.id} className="hover:bg-accent/50 dark:hover:bg-accent/50">
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                 {user.id}
@@ -393,7 +469,8 @@ export function AdminPage() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>

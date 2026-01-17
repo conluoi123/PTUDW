@@ -10,6 +10,7 @@ import adminRouter from "./routers/admin.routers.js";
 import friendRouter from "./routers/friends.router.js"
 import rankingRouter from "./routers/ranking.routers.js";
 import achievementRoutes from "./controllers/achievements/achievement.controller.js";
+import { profileRouter } from "./routers/profile.routers.js";
 const app = express();
 const PORT = ENV.PORT || 3000;
 
@@ -47,7 +48,7 @@ ratingRouter(app);
 //   res.send('Web game');
 // })
 achievementRoutes(app);
-
+profileRouter(app);
 
 //======================= MIDDLEWARE =======================
 

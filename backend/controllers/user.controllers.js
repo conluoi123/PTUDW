@@ -294,6 +294,7 @@ const authMe = async (req, res) => {
       email: user.email,
       name: user.name,
       avatar: user.avatar,
+      role: user.role
     };
     return res.status(200).json({ data });
   } catch (error) {

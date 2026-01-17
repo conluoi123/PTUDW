@@ -1,5 +1,5 @@
 import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Medal, Award, Target, Dices, Circle, Candy, Worm } from 'lucide-react';
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Card, CardContent } from '@mui/material';
 import { Badge } from '@mui/material';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -10,8 +10,45 @@ import {AuthContext} from '@/context/auth.context';
 
 export function RankingPage() {
     const [activeTab, setActiveTab] = useState('global');
+    const {user} = useContext(AuthContext);
+    const [globalRanking, setGlobalRanking] = useState([]); 
+    const [friendsRanking, setFriendsRanking] = useState([]);
+    const [personalStats, setPersonalStats] = useState({});
+   const [isLoading, setIsLoading] = useState(true);
 
-   
+
+    useEffect(()=> {
+        const fetchRankings = async() => {
+            try {
+                setIsLoading(true); 
+                const global = await rankingService.getGlobalRanking(); 
+                setGlobalRanking(global || []);
+
+
+                // lấy ranking bạn bè và cá nhân 
+                if(user) {
+                    try {
+                        // bạn bè
+                        const friends = await rankingService.getFriendsRanking(user.id); 
+                        setFriendsRanking(friends || []); 
+                        // cá nhân 
+                        const stats = await rankingService.getPersonalStats(user.id); 
+                        setPersonalStats(stats || []); 
+
+                    } catch(err) {
+                        console.error("Lỗi lấy dữ liệu bạn bè ", err); 
+                    }
+                }
+            } catch (err) {
+                console.error("Lỗi lấy dữ liệu ở FE ", err); 
+                
+            } finally {
+                setIsLoading(false); 
+            }
+        }
+        fetchRankings();
+    }, [user]);
+
     const getTrendIcon = (trend) => {
         switch (trend) {
             case 'up':

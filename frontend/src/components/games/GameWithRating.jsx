@@ -3,7 +3,6 @@ import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActi
 import { Star, User, Calendar, MessageSquare, Send, Edit2, Trash2 } from 'lucide-react';
 import { ratingService } from '../../services/rating.services';
 import { AuthContext } from '@/contexts/AuthContext';
-
 export const GameWithRating = ({ gameName, gameId, children }) => {
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);

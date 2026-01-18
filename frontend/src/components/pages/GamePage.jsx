@@ -14,20 +14,18 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
     const [selectedFilter, setSelectedFilter] = useState('all');
     const navigate = useNavigate();
 
-    const handlePlayGame = (game) => {
-        // Check for "Bảng vẽ tự do" by name or explicit ID if known
+    const handlePlayGame = (game) => {        
         if (game.name === 'Bảng vẽ tự do' || game.id === 'drawing-board') {
-            // console.log("game id", game.id)
             navigate('/games/drawing-board', { state: { gameId: game.id, gameName: game.name } });
+        } else if (game.name === 'Cờ trí nhớ' || game.id === 'memory-card') {
+            navigate('/games/memory-card', { state: { gameId: game.id, gameName: game.name } });
         } else if (onPlayGame) {
              onPlayGame(game.id);
         } else {
-             // Fallback default routing
-             navigate(`/games/${game.id}`);
+             alert(`${game.name} is coming soon! Stay tuned.`);
         }
     };
 
-    // Fetch games from API
     useEffect(() => {
         const fetchGames = async () => {
             try {

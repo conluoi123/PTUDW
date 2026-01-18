@@ -13,7 +13,7 @@ import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { GamesPage } from './components/pages/GamePage';
 import { AdminRoute } from './components/auth/AdminRoute';
-
+import { CaroGame } from './components/games/CaroGame';
 function App() {
   
     return (
@@ -38,7 +38,7 @@ function App() {
                   } 
                 />
                 <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/games" element={<GamesPage />} />
+                <Route path="/games" element={<CaroGame />} />
               </Route>
             </Routes>
           </AuthProvider>

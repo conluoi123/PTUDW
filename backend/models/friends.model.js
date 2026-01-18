@@ -77,6 +77,6 @@ export const getSuggestions = async (userId) => {
     .select('id', 'username', 'name')
 }
 
-export const getUserByEmail = async (email) => {
-  return await db('users').where('email', email).first();
+export const getUserById = async (id) => {
+  return await db('users').where('id', id).first();
 }

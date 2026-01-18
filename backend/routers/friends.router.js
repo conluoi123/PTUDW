@@ -1,6 +1,5 @@
 import express from 'express'
 import * as friendController from '../controllers/friends.controller.js'
-import * as userController from '../controllers/user.controllers.js'
 const router = express.Router()
 
 router.post('/request', friendController.sendRequest)
@@ -10,6 +9,6 @@ router.get('/search/:id', friendController.searchFriendStatus)
 router.get('/list', friendController.getListFriends)
 router.get('/requests', friendController.getPendingRequests)
 router.get('/suggestions', friendController.getSuggestions)
-router.get('/find', userController.findUserByEmail)
+router.get('/find', friendController.findUserById)
 
 export default router;

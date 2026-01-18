@@ -84,14 +84,14 @@ export const getSuggestions = async (req, res) => {
   }
 }
 
-export const findUserByEmail = async (req, res) => {
+export const findUserById = async (req, res) => {
   try {
-    const { email } = req.query
-    if (!email) {
+    const { id } = req.query
+    if (!id) {
       return res.status(400).json({ message: 'Email is required' })
     }
 
-    const user = await userService.findUserByEmail(email)
+    const user = await friendService.findUserById(id)
     res.status(200).json({ data: user })
   } catch (error) {
     res.status(404).json({ message: error.message })

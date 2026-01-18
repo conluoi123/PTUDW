@@ -13,6 +13,7 @@ import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { GamesPage } from './components/pages/GamePage';
 import { AdminRoute } from './components/auth/AdminRoute';
+import { FriendsPage } from './components/pages/FriendsPage';
 
 function App() {
   
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/ranking" element={<RankingPage />} />
+                <Route path="/friends" element={<FriendsPage />} />
                 <Route 
                   path="/admin" 
                   element={

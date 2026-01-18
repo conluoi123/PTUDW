@@ -151,17 +151,17 @@ export function FriendsPage() {
     // fetch user_id based on email from localStorage
     useEffect(() => {
         const fetchUserId = async () => {
-        const storedEmail = localStorage.getItem('email')
+        const storedId = localStorage.getItem('userId')
 
-        if (!storedEmail) {
-            console.error('No email found in localStorage')
+        if (!storedId) {
+            console.error('No id found in localStorage')
             setLoading(false)
             return
         }
 
         try {
             // call api to find user by email
-            const res = await fetch(`${API_BASE}/users/find?email=${storedEmail}`)
+            const res = await fetch(`${API_BASE}/friends/find?id=${storedId}`)
             
             if (!res.ok) throw new Error('User not found')
 
@@ -282,13 +282,13 @@ export function FriendsPage() {
         );
     }, [friends, searchQuery]);
 
-    if (loading) {
-        return <div className="p-8 text-center">Loading data...</div>
-    }
-
     const onlineFriends = useMemo(() =>
         friends.filter(f => f.isOnline).length
         , [friends]);
+
+    if (loading) {
+        return <div className="p-8 text-center">Loading data...</div>
+    }
 
     return (
         <div className="space-y-6 animate-fadeIn">

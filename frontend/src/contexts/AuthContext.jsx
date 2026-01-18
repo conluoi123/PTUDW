@@ -76,8 +76,8 @@ function AuthProvider({ children }) {
         role,
         streak,
         created_at,
-        // rank: rank?.data.rank.ranking|| "none",
-        total_game: total_game?.data.totalGame || 0,
+        rank: rank?.data?.rank?.ranking|| "none",
+        total_game: total_game?.data?.totalGame || 0,
       });
       console.log(user)
       localStorage.setItem("userId", userId);

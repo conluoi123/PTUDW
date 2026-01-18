@@ -27,14 +27,14 @@ export function AchievementsPage() {
       setAchievementsRepo([]);
     };
   }, []);
-  if (achievementsRepo.length == 0) {
-    return (
-      <div className="text-center p-10">
-        <p>You haven't unlocked any achievements yet.</p>
-        <p>Play a game to get started!</p>
-      </div>
-    );
-  }
+  // if (achievementsRepo.length == 0) {
+  //   return (
+  //     <div className="text-center p-10">
+  //       <p>You haven't unlocked any achievements yet.</p>
+  //       <p>Play a game to get started!</p>
+  //     </div>
+  //   );
+  // }
   
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -60,6 +60,7 @@ export function AchievementsPage() {
 
 function AchievementCard({ achievement }) {
   return (
+
     <Card id={achievement.game_id} className="m-4">
       <CardContent className="p-6">
         <div className="flex items-start gap-4">

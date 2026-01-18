@@ -25,14 +25,11 @@ export const GameService = {
   createGame: async (game) => {
     try {
       const response = await api.post(BASE_URL, game);
-
-      if (!response.ok) {
-        throw new Error("Failed to create game");
-      }
+      console.log("Game created successfully:", response.data);
       return response.data;
     } catch (err) {
-      console.log(err);
-      return null;
+      console.error("Error creating game:", err);
+      throw err; // Re-throw để Dialog catch được
     }
   },
   updateGame: async (game_id, game) => {

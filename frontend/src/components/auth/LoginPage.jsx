@@ -19,6 +19,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/services/service";
+import { LoadingOverlay } from "../ui/LoadingOverlay";
 export function LoginPage({ onBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -106,6 +107,11 @@ export function LoginPage({ onBack }) {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] relative overflow-hidden flex items-center justify-center p-4">
+      {isLoading && 
+        <LoadingOverlay 
+          message="Loading..."
+        />
+      }
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-700 opacity-10 blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-pink-500 via-purple-600 to-cyan-700 opacity-10 blur-3xl animate-pulse delay-1000"></div>

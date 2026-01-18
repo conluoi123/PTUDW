@@ -1,5 +1,6 @@
 import { Play, Search, TrendingUp, Users, Star, Sparkles } from 'lucide-react';
 import { memo, useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -11,8 +12,20 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilter, setSelectedFilter] = useState('all');
+    const navigate = useNavigate();
 
-    // Fetch games from API
+    const handlePlayGame = (game) => {        
+        if (game.name === 'Bảng vẽ tự do' || game.id === 'drawing-board') {
+            navigate('/games/drawing-board', { state: { gameId: game.id, gameName: game.name } });
+        } else if (game.name === 'Cờ trí nhớ' || game.id === 'memory-card') {
+            navigate('/games/memory-card', { state: { gameId: game.id, gameName: game.name } });
+        } else if (onPlayGame) {
+             onPlayGame(game.id);
+        } else {
+             alert(`${game.name} is coming soon! Stay tuned.`);
+        }
+    };
+
     useEffect(() => {
         const fetchGames = async () => {
             try {
@@ -225,7 +238,7 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
                                         
                                         {/* Play Button */}
                                         <Button
-                                            onClick={() => onPlayGame?.(game.id)}
+                                            onClick={() => handlePlayGame(game)}
                                             className="w-full py-3 font-semibold shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300"
                                             size="lg"
                                         >

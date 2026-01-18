@@ -18,6 +18,7 @@ class Rating {
 
       return rating || null;
     } catch (error) {
+      console.error("❌ Error in isRatingForGame:", error);
       throw new Error("Error fetching rating: " + error.message);
     }
   };

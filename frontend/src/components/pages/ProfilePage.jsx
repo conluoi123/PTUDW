@@ -169,7 +169,6 @@ export function ProfilePage() {
 
   const displayUser = user;
   const userInitials = displayUser.name.substring(0, 2).toUpperCase();
-console.log(user);
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}

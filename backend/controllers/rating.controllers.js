@@ -24,17 +24,23 @@ const addRatings = async (req, res) => {
     if (!gameId) {
       return res.status(400).json({ error: "Missing require field" });
     }
-    const isRating = await checkExistRatings(gameId, req.userId);
+    const userId = req.user?.id; // Get from JWT middleware
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const isRating = await checkExistRatings(gameId, userId);
     if (isRating) {
       return res.status(403).json({ error: "You are already rating" })
     }
-    const ratings = await Rating.addRate(gameId, req.userId, point, comment);
+    const ratings = await Rating.addRate(gameId, userId, point, comment);
     return res
       .status(200)
       .json({ message: "add rating successfully", ratings });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Internal server error" });
+
+    return res.status(500).json({ error: "Lỗi ở đây" });
   }
 };
 
@@ -42,7 +48,7 @@ const updateRating = async (req, res) => {
   try {
     const { ratingId } = req.params;
     const { point, comment } = req.body;
-    if (!gameId) {
+    if (!ratingId) {
       return res.status(400).json({ error: "Missing require field" });
     }
     const ratings = await Rating.updateRate(ratingId, point, comment);

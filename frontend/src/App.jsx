@@ -12,8 +12,10 @@ import { RankingPage } from './components/pages/RankingPage';
 import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { GamesPage } from './components/pages/GamePage';
+import { DrawingBoardGame } from './components/games/DrawingBoardGame';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { FriendsPage } from './components/pages/FriendsPage';
+import { MemoryCardGame } from './components/games/MemoryCardGame';
 
 function App() {
   
@@ -41,7 +43,10 @@ function App() {
                 />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/games" element={<GamesPage />} />
-              </Route>
+                <Route path="/games/drawing-board" element={<DrawingBoardGame />} 
+                />
+                <Route path="/games/memory-card" element={<MemoryCardGame />} />
+              </Route>  
             </Routes>
           </AuthProvider>
         </ThemeProvider>

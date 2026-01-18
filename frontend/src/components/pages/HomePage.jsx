@@ -20,6 +20,7 @@ import {
   CarouselNext, 
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent } from "@/components/ui/card";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
@@ -70,7 +71,7 @@ export const HomePage = () => {
   }
   
   return (
-    <div className="space-y-8 animate-fade-in pb-10">
+    <div className="w-full space-y-8 animate-in fade-in duration-500 pb-10 min-w-0">
         {/* Loading Overlay */}
         {loading && (
             <LoadingOverlay 
@@ -78,111 +79,129 @@ export const HomePage = () => {
                 description="Fetching available games and ratings..."
             />
         )}
-        {/* GREETING HEADER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-2">
-            <div>
-                <h1 className="text-3xl md:text-4xl font-black text-foreground">Chào, Gamer! 👋</h1>
-                <p className="text-muted-foreground mt-1 text-lg">Hôm nay bạn muốn chinh phục thử thách nào?</p>
+        
+        {/* Wrap content in a large container to prevent infinite stretching on ultra-wide screens */}
+        <div className="w-full max-w-[1800px] mx-auto space-y-8">
+            {/* GREETING HEADER */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-2">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-black text-foreground">Chào, Gamer! 👋</h1>
+                    <p className="text-muted-foreground mt-1 text-lg">Hôm nay bạn muốn chinh phục thử thách nào?</p>
+                </div>
             </div>
-        </div>
 
-        {/* TOP STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             {[
-                { 
-                  label: 'Tổng game', 
-                  value: games.length, 
-                  image: 'https://png.pngtree.com/png-clipart/20250602/original/pngtree-pixel-art-level-up-emblem-game-asset-vector-png-image_21113452.png',
-                  bg: 'bg-blue-500/10' 
-                },
-                { 
-                  label: 'Đánh giá', 
-                  value: ratings.length, 
-                  image: 'https://cdn-icons-png.flaticon.com/512/5525/5525493.png',
-                  bg: 'bg-emerald-500/10' 
-                },
-                { 
-                  label: 'Người chơi', 
-                  value: user?.name || 'Guest', 
-                  image: 'https://img.pikbest.com/origin/10/42/58/14WpIkbEsTDMk.png!w700wp',
-                  bg: 'bg-yellow-500/10' 
-                },
-             ].map((s, i) => (
-                <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default">
-                  <CardContent className="flex items-center gap-4 p-5">
-                     <div className={`p-3 rounded-2xl bg-primary/5 ring-1 ring-primary/10`}>
-                        <img src={s.image} alt={s.label} className="w-12 h-12 object-contain drop-shadow-sm" />
-                     </div>
-                     <div>
-                        <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">{s.label}</p>
-                        <p className="text-3xl font-black text-foreground">{s.value}</p>
-                     </div>
-                  </CardContent>
-                </Card>
-             ))}
-        </div>
+            {/* TOP STATS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 {[
+                    { 
+                      label: 'Tổng game', 
+                      value: games.length, 
+                      image: 'https://png.pngtree.com/png-clipart/20250602/original/pngtree-pixel-art-level-up-emblem-game-asset-vector-png-image_21113452.png',
+                      bg: 'bg-blue-500/10' 
+                    },
+                    { 
+                      label: 'Đánh giá', 
+                      value: ratings.length, 
+                      image: 'https://cdn-icons-png.flaticon.com/512/5525/5525493.png',
+                      bg: 'bg-emerald-500/10' 
+                    },
+                    { 
+                      label: 'Người chơi', 
+                      value: user?.name || 'Guest', 
+                      image: 'https://img.pikbest.com/origin/10/42/58/14WpIkbEsTDMk.png!w700wp',
+                      bg: 'bg-yellow-500/10' 
+                    },
+                 ].map((s, i) => (
+                    <Card key={i} className="border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-default">
+                      <CardContent className="flex items-center gap-4 p-5">
+                         <div className={`p-3 rounded-2xl bg-primary/5 ring-1 ring-primary/10`}>
+                            <img src={s.image} alt={s.label} className="w-12 h-12 object-contain drop-shadow-sm" />
+                         </div>
+                         <div>
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-1">{s.label}</p>
+                            <p className="text-3xl font-black text-foreground">{s.value}</p>
+                         </div>
+                      </CardContent>
+                    </Card>
+                 ))}
+            </div>
 
-        {/* FEATURED CAROUSEL */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
-                <p className="text-primary">Nổi bật tuần này</p>
-              </h2>
-          </div>
+            {/* FEATURED CAROUSEL - Overflow Protected */}
+            <section className="relative overflow-hidden">
+              <div className="flex items-center justify-between mb-4 px-4 md:px-12">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
+                    <p className="text-primary">Nổi bật tuần này</p>
+                  </h2>
+              </div>
 
-          <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-            <CarouselContent>
-              {games.length > 0 ? games.map((game) => (
-                <CarouselItem key={game.id} className="md:basis-1/2 lg:basis-2/3">
-                  <div 
-                    onClick={() => navigate(`/game/${game.id}`)}
-                    className="p-1"
-                  >
-                    <div className="group relative h-[350px] rounded-3xl overflow-hidden cursor-pointer border border-slate-800 bg-slate-900 shadow-2xl transition-all hover:shadow-indigo-500/20 hover:border-indigo-500/50">
-                       {/* Background Image */}
-                       <div className="absolute inset-0">
-                          <img 
-                            src={getGameImage(game)} 
-                            alt={game.name} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent opacity-90 group-hover:opacity-80 transition-opacity" />
-                       </div>
-                       
-                       <div className="relative h-full p-8 flex flex-col justify-end z-10">
-                          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                             <div className="flex items-center gap-2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity delay-100">
-                                <span className="px-2.5 py-1 rounded-md bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider">
-                                  Featured
-                                </span>
+              {/* Carousel wrapper with padding for buttons */}
+              <div className="w-full overflow-hidden">
+                <div className="px-4 md:px-9">
+                <Carousel 
+                  className="w-full" 
+                  opts={{ align: "start", loop: true }}
+                  plugins={[
+                    Autoplay({
+                      delay: 3000,
+                      stopOnInteraction: true,
+                    }),
+                  ]}
+                >
+                  <CarouselContent>
+                    {games.length > 0 ? games.map((game) => (
+                      <CarouselItem key={game.id} className="basis-full">
+                        <div 
+                          onClick={() => navigate(`/game/${game.id}`)}
+                          className="p-1"
+                        >
+                          <div className="group relative h-[350px] rounded-3xl overflow-hidden cursor-pointer border border-slate-800 bg-slate-900 shadow-2xl transition-all hover:shadow-indigo-500/20 hover:border-indigo-500/50">
+                             {/* Background Image */}
+                             <div className="absolute inset-0">
+                                <img 
+                                  src={getGameImage(game)} 
+                                  alt={game.name} 
+                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent opacity-90 group-hover:opacity-80 transition-opacity" />
                              </div>
-                             <h3 className="text-4xl font-black text-white mb-2 leading-tight drop-shadow-md">{game.name}</h3>
-                             <p className="text-slate-300 line-clamp-2 max-w-lg text-lg mb-6 drop-shadow-sm">{game.tagline || game.description}</p>
                              
-                             <button className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 duration-300">
-                               <Play className="w-5 h-5 fill-current" /> Chơi Ngay
-                             </button>
+                             <div className="relative h-full p-8 flex flex-col justify-end z-10">
+                                <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                   <div className="flex items-center gap-2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity delay-100">
+                                      <span className="px-2.5 py-1 rounded-md bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                                        Featured
+                                      </span>
+                                   </div>
+                                   <h3 className="text-4xl font-black text-white mb-2 leading-tight drop-shadow-md">{game.name}</h3>
+                                   <p className="text-slate-300 line-clamp-2 max-w-lg text-lg mb-6 drop-shadow-sm">{game.tagline || game.description}</p>
+                                   
+                                   <button className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 duration-300">
+                                     <Play className="w-5 h-5 fill-current" /> Chơi Ngay
+                                   </button>
+                                </div>
+                             </div>
                           </div>
-                       </div>
-                    </div>
-                  </div>
-                </CarouselItem>
-              )) : (
-                 <CarouselItem className="basis-full">
-                    <div className="h-64 rounded-3xl border border-dashed border-slate-700 bg-slate-900/50 flex items-center justify-center text-slate-500">
-                        Không có trò chơi nổi bật
-                    </div>
-                 </CarouselItem>
-              )}
-            </CarouselContent>
-            <CarouselPrevious className="hidden md:flex -left-4 bg-slate-900/80 border-slate-700 text-white hover:bg-indigo-600 hover:border-indigo-600" />
-            <CarouselNext className="hidden md:flex -right-4 bg-slate-900/80 border-slate-700 text-white hover:bg-indigo-600 hover:border-indigo-600" />
-          </Carousel>
-        </section>
+                        </div>
+                      </CarouselItem>
+                    )) : (
+                       <CarouselItem className="basis-full">
+                          <div className="h-64 rounded-3xl border border-dashed border-slate-700 bg-slate-900/50 flex items-center justify-center text-slate-500">
+                              Không có trò chơi nổi bật
+                          </div>
+                       </CarouselItem>
+                    )}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden md:flex -left-4 bg-slate-900/80 border-slate-700 text-white hover:bg-indigo-600 hover:border-indigo-600" />
+                  <CarouselNext className="hidden md:flex -right-4 bg-slate-900/80 border-slate-700 text-white hover:bg-indigo-600 hover:border-indigo-600" />
+                </Carousel>
+              </div>
+              </div>
+            </section>
+        </div>
 
         {/* ALL GAMES GRID */}
-        <section>
+        <section className="space-y-6 animate-in fade-in duration-500">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                   <LayoutGrid className="w-5 h-5 text-indigo-500" /> 
@@ -207,31 +226,57 @@ export const HomePage = () => {
               </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {games.map((game) => (
-                <div 
-                  key={game.id} 
-                  onClick={() => navigate(`/game/${game.id}`)}
-                  className="group bg-slate-900 rounded-2xl border border-slate-800 hover:border-indigo-500/50 overflow-hidden cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl"
+          {/* Responsive Grid: 1 col mobile, 2 tablet, 3 desktop (max-w-7xl prevents overflow) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {games.map((game, index) => (
+                <Card
+                  key={game.id}
+                  className="group overflow-hidden border-0 bg-transparent cursor-pointer animate-in fade-in slide-in-from-bottom-4 duration-500"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                   {/* Card Image */}
-                   <div className="aspect-[16/9] bg-slate-950 relative overflow-hidden">
+                  <div className="relative h-72 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+                    {/* Badge */}
+                    <div className="absolute top-3 left-3 z-20">
+                      <span className="px-2 py-1 rounded-md bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold">
+                        LIVE
+                      </span>
+                    </div>
+
+                    {/* Background Image */}
+                    <div className="absolute inset-0">
                       <img 
                         src={getGameImage(game)} 
-                        alt={game.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" 
+                        alt={game.name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-60"></div>
-                   </div>
-                   
-                   <div className="p-4">
-                     <div className="flex justify-between items-start mb-2">
-                       <h4 className="font-bold text-white text-base truncate flex-1 pr-2 group-hover:text-indigo-400 transition-colors">{game.name}</h4>
-                       <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">LIVE</span>
-                     </div>
-                     <p className="text-xs text-slate-500 line-clamp-2">{game.description}</p>
-                   </div>
-                </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-80 group-hover:opacity-70 transition-opacity" />
+                    </div>
+                    
+                    {/* Content */}
+                    <CardContent 
+                      className="relative h-full p-6 flex flex-col justify-end z-10"
+                      onClick={() => navigate(`/game/${game.id}`)}
+                    >
+                      <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                        {/* Title */}
+                        <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
+                          {game.name}
+                        </h3>
+                        
+                        {/* Description */}
+                        <p className="text-gray-200 text-sm line-clamp-2 mb-4 drop-shadow-md opacity-90">
+                          {game.description}
+                        </p>
+                        
+                        {/* Play Button */}
+                        <button className="w-full py-3 px-6 bg-white text-slate-900 font-semibold rounded-xl hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                          <Play className="w-5 h-5" fill="currentColor" />
+                          Play Now
+                        </button>
+                      </div>
+                    </CardContent>
+                  </div>
+                </Card>
               ))}
           </div>
         </section>

@@ -66,7 +66,7 @@ export const getSuggestions = async (userId) => {
   const subquery = db('friendships')
     .select('requester_id')
     .where('addressee_id', userId)
-    .union(function() {
+    .union(function () {
       this.select('addressee_id').from('friendships').where('requester_id', userId)
     });
 

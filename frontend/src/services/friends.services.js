@@ -20,6 +20,7 @@ export const friendService = {
 
     getFriendsList: async (userId) => {
         const res = await fetch(`${API_BASE}/friends/list?userId=${userId}`)
+        console.log("res", res)
         return handleResponse(res)
     },
 

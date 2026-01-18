@@ -6,7 +6,6 @@ export const MessageService = {
     getConversations: async (userId) => {
         try {
             const response = await api.get(`${BASE_URL}/conversation/${userId}`);
-            console.log("Dữ liệu nhận được:", response.data);
             return response.data;
         } catch (err) {
             console.error(err);

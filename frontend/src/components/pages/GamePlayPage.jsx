@@ -1,17 +1,14 @@
 import { GameBoard } from '../ui/GameBoard';
 import { ArrowLeft, Settings, Volume2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
-export function GamePlayPage() {
-    const navigate = useNavigate();
-
+export function GamePlayPage({ onBack }) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black py-8 px-4">
             {/* Header */}
             <div className="max-w-4xl mx-auto mb-8">
                 <div className="flex items-center justify-between mb-6">
                     <button
-                        onClick={() => navigate('/games')}
+                        onClick={onBack}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-300 hover:text-white transition-colors border border-gray-700"
                     >
                         <ArrowLeft className="w-4 h-4" />

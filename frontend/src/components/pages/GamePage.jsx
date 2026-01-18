@@ -17,7 +17,8 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
     const handlePlayGame = (game) => {
         // Check for "Bảng vẽ tự do" by name or explicit ID if known
         if (game.name === 'Bảng vẽ tự do' || game.id === 'drawing-board') {
-            navigate('/games/drawing-board');
+            // console.log("game id", game.id)
+            navigate('/games/drawing-board', { state: { gameId: game.id, gameName: game.name } });
         } else if (onPlayGame) {
              onPlayGame(game.id);
         } else {
@@ -31,9 +32,6 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
         const fetchGames = async () => {
             try {
                 setIsLoading(true);
-                // Local static games
-                const localGames = [];
-
                 const response = await GameService.getAllGames();
                 const gamesData = response?.data || [];
                 const mappedGames = gamesData.map((game, index) => ({
@@ -47,11 +45,9 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
                     isTrending: index === 0 
                 }));
                 
-                setGames([...localGames, ...mappedGames]);
+                setGames(mappedGames);
             } catch (error) {
                 console.error("Failed to load games:", error);
-                // Still show local games if API fails
-                 setGames([]);
             } finally {
                 setIsLoading(false);
             }

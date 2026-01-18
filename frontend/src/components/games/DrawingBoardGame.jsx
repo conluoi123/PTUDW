@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, Eraser, Download, Trash2, Undo, Redo, 
   Palette, Circle, Square, Minus, MousePointer2 
 } from 'lucide-react';
 import { Button, Box, Typography, Paper, Card, CardContent, Slider, Tooltip } from '@mui/material';
 import { GameWithRating } from './GameWithRating';
+import { QuickSaveButtons } from './QuickSaveButtons';
+import { GameService } from '@/services/game.services';
 
 
 const COLORS = [
@@ -16,7 +18,12 @@ const COLORS = [
 const BRUSH_SIZES = [2, 5, 10, 15, 20, 30];
 
 export function DrawingBoardGame() {
+
   const navigate = useNavigate();
+  const location = useLocation();
+  const [gameId, setGameId] = useState(location.state?.gameId); 
+  // const { gameId, gameName } = location.state || {}; // Get ID passed from GamePage
+  
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
@@ -26,6 +33,23 @@ export function DrawingBoardGame() {
   const [historyStep, setHistoryStep] = useState(-1);
   const [startPos, setStartPos] = useState(null);
 
+  useEffect(() => {
+    const fetchGameId = async () => {
+        if (!gameId) {
+            try {
+                const response = await GameService.getAllGames();
+                const games = response?.data || [];
+                const drawingGame = games.find(g => g.name === 'Bảng vẽ tự do' || g.name === 'Drawing Board');
+                if (drawingGame) {
+                    setGameId(drawingGame.id || drawingGame._id);
+                }
+            } catch (error) {
+                console.error("Failed to fetch game ID:", error);
+            }
+        }
+    };
+    fetchGameId();
+  }, [gameId]);
   // Initialize canvas
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -230,7 +254,7 @@ export function DrawingBoardGame() {
   };
 
   return (
-    <GameWithRating gameName="Drawing Board">
+    <GameWithRating gameName="Drawing Board" gameId={gameId}>
       <Box className="h-full flex flex-col">
         {/* Header */}
         <Box className="flex items-center justify-between mb-4">
@@ -264,6 +288,11 @@ export function DrawingBoardGame() {
             <Button onClick={clearCanvas} variant="outlined" color="error" size="small" startIcon={<Trash2 className="w-4 h-4"/>}>
                 Clear
             </Button>
+            <QuickSaveButtons 
+                gameName="drawing-board" 
+                gameState={gameState} 
+                onLoad={handleLoad} 
+            />
           </Box>
         </Box>
 

@@ -21,6 +21,8 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
             navigate('/games/memory-card', { state: { gameId: game.id, gameName: game.name } });
         } else if (game.name === 'Caro hàng 5' || game.id === 'caro-5') {
             navigate('/games/caro-5', { state: { gameId: game.id, gameName: game.name } });
+        } else if (game.name === 'Caro hàng 4' || game.id === 'caro-4') {
+            navigate('/games/caro-4', { state: { gameId: game.id, gameName: game.name } });
         } else if (onPlayGame) {
              onPlayGame(game.id);
         } else {

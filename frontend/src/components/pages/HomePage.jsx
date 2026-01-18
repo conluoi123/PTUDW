@@ -10,7 +10,9 @@ import {
   Gamepad2,
   Swords,
   MessageSquareQuote,
-  Star
+  Star,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import api from '@/services/service';
 import { 
@@ -35,17 +37,22 @@ export const HomePage = () => {
   const CATEGORIES = ["Tất cả", "Trí tuệ", "Chiến thuật", "Đối kháng", "Giải trí"];
   const { user } = useContext(AuthContext);
   const [ratings, setRatings] = useState([]);
+  const [ratingsPage, setRatingsPage] = useState(1);
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [gamesRes, ratingsData] = await Promise.all([
+        const [gamesRes, ratingsResponse] = await Promise.all([
           api.get('/api/games'),
-          ratingService.getListRating()
+          ratingService.getListRating(ratingsPage)
         ]);
         
         setGames(gamesRes.data.data || []);
-        setRatings(ratingsData || []);
+        setRatings(ratingsResponse?.ratings || []);
+        // Sync page if backend returned different page (fallback logic)
+        if (ratingsResponse?.page && ratingsResponse.page !== ratingsPage) {
+          setRatingsPage(ratingsResponse.page);
+        }
       } catch (error) {
         console.error("Failed to load data", error);
       } finally {
@@ -53,7 +60,7 @@ export const HomePage = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [ratingsPage]);
 
   const getGameImage = (game) => {
     if (game.config && game.config.image) return game.config.image;
@@ -349,6 +356,33 @@ export const HomePage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Pagination for ratings */}
+            {ratings.length > 0 && (
+                <div className="border-t border-border pt-6 mt-6">
+                    <div className="flex items-center justify-center gap-2">
+                    <button
+                        onClick={() => setRatingsPage(Math.max(1, ratingsPage - 1))}
+                        disabled={ratingsPage === 1}
+                        className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                    </button>
+                    <span className="px-4 py-2 text-sm font-medium">
+                        Page {ratingsPage}
+                    </span>
+                    <button
+                        onClick={() => setRatingsPage(ratingsPage + 1)}
+                        disabled={ratings.length < 3}
+                        className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+                    </div>
+                </div>
+            )}
         </section>
     </div>
   );

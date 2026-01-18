@@ -40,8 +40,9 @@ class Message {
       - Đếm số tin nhắn chưa đọc từ mỗi bạn bè
       - Sắp xếp: có tin nhắn mới nhất lên đầu, không có tin nhắn thì theo tên
       */
-    static async getConversation(user_id) {
+    static async getConversation(user_id, page = 1, limit = 3) {
         try {
+            const offset = (page - 1) * limit;
             const query = `
             SELECT 
                 u.id as partner_id, 
@@ -81,6 +82,7 @@ class Message {
                 CASE WHEN m.sent_at IS NULL THEN 1 ELSE 0 END,
                 m.sent_at DESC NULLS LAST,
                 u.name ASC
+            LIMIT ? OFFSET ?
             `
             const result = await db.raw(query, [
                 user_id,  // unread count check
@@ -89,7 +91,9 @@ class Message {
                 user_id,  // message sender check
                 user_id,  // message receiver check
                 user_id,  // friends filter user_id_01
-                user_id   // friends filter user_id_02
+                user_id,  // friends filter user_id_02
+                limit,    // limit
+                offset    // offset
             ]);
             return result.rows;
         } catch (err) {

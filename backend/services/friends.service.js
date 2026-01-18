@@ -27,8 +27,8 @@ export const removeFriend = async (currentUserId, targetId) => {
   return await friendModel.deleteFriendship(currentUserId, targetId)
 }
 
-export const getListFriends = async (userId) => {
-  return await friendModel.getFriendsList(userId)
+export const getListFriends = async (userId, page = 1, limit = 3) => {
+  return await friendModel.getFriendsList(userId, page, limit)
 }
 
 export const checkStatus = async (currentUserId, targetId) => {
@@ -40,8 +40,12 @@ export const getPendingRequests = async (userId) => {
   return await friendModel.getPendingRequests(userId)
 }
 
-export const getSuggestions = async (userId) => {
-  return await friendModel.getSuggestions(userId)
+export const getSuggestions = async (userId, page = 1, limit = 3) => {
+  return await friendModel.getSuggestions(userId, page, limit)
+}
+
+export const getSuggestionsCount = async (userId) => {
+    return await friendModel.getSuggestionsCount(userId);
 }
 
 export const findUserById = async (id) => {

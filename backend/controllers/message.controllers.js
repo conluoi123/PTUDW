@@ -18,8 +18,10 @@ const createMessage = async (req, res) => {
 const getConversation = async (req, res) => {
     try {
         const { user_id } = req.params;
-        const messages = await Message.getConversation(user_id);
-        res.status(200).json(messages);
+        const page = req.body?.page || req.query?.page || 1;
+        const limit = 3;
+        const messages = await Message.getConversation(user_id, parseInt(page), limit);
+        res.status(200).json({ data: messages, page: parseInt(page), limit });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Lỗi lấy tin nhắn" });

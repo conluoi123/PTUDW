@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, memo, useRef, useEffect, useContext } from 'react';
-import { MessageCircle, Send, Search, MoreVertical, Phone, Video, Image, Smile, ArrowLeft, Check, CheckCheck } from 'lucide-react';
+import { MessageCircle, Send, Search, MoreVertical, Phone, Video, Image, Smile, ArrowLeft, Check, CheckCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
@@ -164,6 +164,7 @@ export function MessagesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef(null);
     const { user } = useContext(AuthContext);
+    const [conversationsPage, setConversationsPage] = useState(1);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -178,7 +179,8 @@ export function MessagesPage() {
 
         const fetchConversations = async () => {
             try {
-                const data = await MessageService.getConversations(user.id);
+                const response = await MessageService.getConversations(user.id, conversationsPage);
+                const data = response.data || [];
                 
                 // Map backend data to UI format
                 const formattedConversations = data.map(conv => ({
@@ -208,7 +210,7 @@ export function MessagesPage() {
         // Vì ko realtime nên setInterval 10s sẽ useEffect một lần
         const interval = setInterval(fetchConversations, 10000);
         return () => clearInterval(interval);
-    }, [user?.id]); // Add user.id to dependency
+    }, [user?.id, conversationsPage]); // Add user.id and conversationsPage to dependency
     // conversations.map((conv)=> {
     //     console.log(conv.avatar);
     // }) // debug
@@ -391,6 +393,33 @@ export function MessagesPage() {
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Try searching for a different user
                             </p>
+                        </div>
+                    )}
+
+                    {/* Pagination for conversations */}
+                    {!isLoading && conversations.length > 0 && !searchQuery && (
+                        <div className="p-4 border-t border-gray-200 dark:border-white/5 pt-4 mt-0">
+                            <div className="flex items-center justify-center gap-2">
+                                <button
+                                    onClick={() => setConversationsPage(Math.max(1, conversationsPage - 1))}
+                                    disabled={conversationsPage === 1}
+                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-sm"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    Previous
+                                </button>
+                                <span className="px-4 py-2 text-sm font-medium">
+                                    Page {conversationsPage}
+                                </span>
+                                <button
+                                    onClick={() => setConversationsPage(conversationsPage + 1)}
+                                    disabled={conversations.length < 3}
+                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-sm"
+                                >
+                                    Next
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     )}
                 </ScrollArea>

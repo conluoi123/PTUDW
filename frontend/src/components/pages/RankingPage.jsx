@@ -28,9 +28,7 @@ export function RankingPage() {
     useEffect(() => {
         const fetchGames = async () => {
             try {
-                console.log("fetchGames")
                 const gamesList = await GameService.getAllGames();
-                console.log("gamesList", gamesList)
                 setGames(gamesList.data || []);
                 if (gamesList && gamesList.length > 0) {
                     setSelectedGameId(gamesList[0].id);
@@ -208,7 +206,7 @@ export function RankingPage() {
     const globalLeaderboard = isLoading ? [] : (globalRanking.length > 0 ? mapRankingData(globalRanking, user?.id) : []);
     const friendsLeaderboard = isLoading ? [] : (friendsRanking.length > 0 ? mapRankingData(friendsRanking, user?.id) : []);
     const personalStats = isLoading ? null : (personalStatsData?.overall ? mapPersonalStats(personalStatsData) : getMockPersonalStats());
-    console.log("global leader board ", globalLeaderboard)
+    // console.log("global leader board ", globalLeaderboard)
     return (
         <div className="space-y-6 animate-fadeIn">
             {/* Header */}

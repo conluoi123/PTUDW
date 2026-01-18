@@ -13,6 +13,9 @@ import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { GamesPage } from './components/pages/GamePage';
 import { AdminRoute } from './components/auth/AdminRoute';
+import { FriendsPage } from './components/pages/FriendsPage';
+import { DrawingBoardGame } from './components/games/DrawingBoardGame';
+import { GamePlayPage } from './components/pages/GamePlayPage';
 
 function App() {
   
@@ -29,6 +32,7 @@ function App() {
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/achievements" element={<AchievementsPage />} />
                 <Route path="/ranking" element={<RankingPage />} />
+                <Route path="/friends" element={<FriendsPage />} />
                 <Route 
                   path="/admin" 
                   element={
@@ -39,6 +43,8 @@ function App() {
                 />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/games" element={<GamesPage />} />
+                <Route path="/games/drawing-board" element={<DrawingBoardGame />} />
+
               </Route>
             </Routes>
           </AuthProvider>

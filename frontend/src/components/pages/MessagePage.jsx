@@ -194,7 +194,7 @@ export function MessagesPage() {
                     unreadCount: parseInt(conv.unread_count) || 0,
                     messages: [] // Will fetch on select
                 }));    
-                console.log("Formatted conversations:", formattedConversations); // Debug log
+                // console.log("Formatted conversations:", formattedConversations); // Debug log
                 setConversations(formattedConversations);
             } catch (error) {
                 console.error("Error loading conversations:", error);

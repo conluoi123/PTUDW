@@ -64,7 +64,6 @@ function AuthProvider({ children }) {
         streak,
         created_at,
       } = res.data.data;
-      console.log(res.data.data);
       const total_game = await api.get("/api/user/totalGame");
       const rank = await api.get("/api/user/rank");
       setUser({
@@ -76,10 +75,9 @@ function AuthProvider({ children }) {
         role,
         streak,
         created_at,
-        // rank: rank?.data.rank.ranking|| "none",
-        total_game: total_game?.data.totalGame || 0,
+        rank: rank?.data?.rank?.ranking|| "none",
+        total_game: total_game?.data?.totalGame || 0,
       });
-      console.log(user)
       localStorage.setItem("userId", userId);
     } catch (err) {
       console.log("refresh user failed");

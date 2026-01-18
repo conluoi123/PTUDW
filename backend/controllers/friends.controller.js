@@ -6,7 +6,7 @@ export const sendRequest = async (req, res) => {
     const result = await friendService.sendRequest(currentUserId, targetUserId)
 
     res.status(201).json({ message: 'Friend request sent', data: result })
-  } 
+  }
   catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -19,7 +19,7 @@ export const acceptRequest = async (req, res) => {
     const result = await friendService.acceptRequest(requesterId, currentUserId)
 
     res.status(200).json({ message: 'Friend request accepted', data: result })
-  } 
+  }
   catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -29,10 +29,10 @@ export const removeFriend = async (req, res) => {
   try {
     const targetId = req.params.id
     const { currentUserId } = req.body
-    
+
     await friendService.removeFriend(currentUserId, targetId)
     res.status(200).json({ message: 'Friend removed' })
-  } 
+  }
   catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -41,12 +41,14 @@ export const removeFriend = async (req, res) => {
 export const getListFriends = async (req, res) => {
   try {
     const currentUserId = req.query.userId || req.body.currentUserId
+    console.log("Getting friends list for user:", currentUserId)
     if (!currentUserId) return res.status(400).json({ message: 'Missing userId' })
 
     const list = await friendService.getListFriends(currentUserId)
     res.status(200).json({ data: list })
-  } 
+  }
   catch (error) {
+    console.error("Error in getListFriends:", error)
     res.status(500).json({ error: error.message })
   }
 }
@@ -58,7 +60,7 @@ export const searchFriendStatus = async (req, res) => {
 
     const status = await friendService.checkStatus(currentUserId, targetId)
     res.status(200).json({ data: status })
-  } 
+  }
   catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -84,14 +86,14 @@ export const getSuggestions = async (req, res) => {
   }
 }
 
-export const findUserByEmail = async (req, res) => {
+export const findUserById = async (req, res) => {
   try {
-    const { email } = req.query
-    if (!email) {
+    const { id } = req.query
+    if (!id) {
       return res.status(400).json({ message: 'Email is required' })
     }
 
-    const user = await userService.findUserByEmail(email)
+    const user = await friendService.findUserById(id)
     res.status(200).json({ data: user })
   } catch (error) {
     res.status(404).json({ message: error.message })

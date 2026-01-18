@@ -1,5 +1,6 @@
 import { Play, Search, TrendingUp, Users, Star, Sparkles } from 'lucide-react';
 import { memo, useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -11,12 +12,28 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilter, setSelectedFilter] = useState('all');
+    const navigate = useNavigate();
+
+    const handlePlayGame = (game) => {
+        // Check for "Bảng vẽ tự do" by name or explicit ID if known
+        if (game.name === 'Bảng vẽ tự do' || game.id === 'drawing-board') {
+            navigate('/games/drawing-board');
+        } else if (onPlayGame) {
+             onPlayGame(game.id);
+        } else {
+             // Fallback default routing
+             navigate(`/games/${game.id}`);
+        }
+    };
 
     // Fetch games from API
     useEffect(() => {
         const fetchGames = async () => {
             try {
                 setIsLoading(true);
+                // Local static games
+                const localGames = [];
+
                 const response = await GameService.getAllGames();
                 const gamesData = response?.data || [];
                 const mappedGames = gamesData.map((game, index) => ({
@@ -30,9 +47,11 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
                     isTrending: index === 0 
                 }));
                 
-                setGames(mappedGames);
+                setGames([...localGames, ...mappedGames]);
             } catch (error) {
                 console.error("Failed to load games:", error);
+                // Still show local games if API fails
+                 setGames([]);
             } finally {
                 setIsLoading(false);
             }
@@ -225,7 +244,7 @@ export const GamesPage = memo(function GamesPage({ onPlayGame }) {
                                         
                                         {/* Play Button */}
                                         <Button
-                                            onClick={() => onPlayGame?.(game.id)}
+                                            onClick={() => handlePlayGame(game)}
                                             className="w-full py-3 font-semibold shadow-lg hover:shadow-xl transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300"
                                             size="lg"
                                         >

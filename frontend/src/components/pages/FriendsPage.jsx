@@ -5,6 +5,7 @@ import { Button, Input, Badge, Card, CardContent } from '@mui/material';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { friendService } from '../../services/friends.services';
+import { Pagination } from '@/components/ui/pagination';
 
 const enrichUserData = (user) => ({
     ...user,
@@ -344,29 +345,13 @@ export function FriendsPage() {
 
                     {/* Pagination for friends */}
                     {filteredFriends.length > 0 && !searchQuery && (
-                        <div className="border-t border-border pt-4 mt-4">
-                            <div className="flex items-center justify-center gap-2">
-                                <button
-                                    onClick={() => setFriendsPage(Math.max(1, friendsPage - 1))}
-                                    disabled={friendsPage === 1}
-                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                    Previous
-                                </button>
-                                <span className="px-4 py-2 text-sm font-medium">
-                                    Page {friendsPage}
-                                </span>
-                                <button
-                                    onClick={() => setFriendsPage(friendsPage + 1)}
-                                    disabled={friends.length < 3}
-                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                                >
-                                    Next
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
+                        <Pagination 
+                            currentPage={friendsPage} 
+                            onPageChange={setFriendsPage} 
+                            hasNext={friends.length >= 3}
+                            hasPrevious={friendsPage > 1}
+                            className="border-t border-border pt-4 mt-4"
+                        />
                     )}
                 </TabsContent>
 
@@ -420,29 +405,13 @@ export function FriendsPage() {
 
                     {/* Pagination for suggestions */}
                     {suggestions.length > 0 && (
-                        <div className="border-t border-border pt-4 mt-4">
-                            <div className="flex items-center justify-center gap-2">
-                                <button
-                                    onClick={() => setSuggestionsPage(Math.max(1, suggestionsPage - 1))}
-                                    disabled={suggestionsPage === 1}
-                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                    Previous
-                                </button>
-                                <span className="px-4 py-2 text-sm font-medium">
-                                    Page {suggestionsPage}
-                                </span>
-                                <button
-                                    onClick={() => setSuggestionsPage(suggestionsPage + 1)}
-                                    disabled={suggestions.length < 3}
-                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                                >
-                                    Next
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
+                        <Pagination 
+                            currentPage={suggestionsPage} 
+                            onPageChange={setSuggestionsPage} 
+                            hasNext={suggestions.length >= 3}
+                            hasPrevious={suggestionsPage > 1}
+                            className="border-t border-border pt-4 mt-4"
+                        />
                     )}
                 </TabsContent>
             </Tabs>

@@ -132,15 +132,17 @@ async function updateUser(req, res) {
 
 async function getAllUsers(req, res) {
   try {
-    const listUser = await User.getAllUsers();
-    if (listUser.length === 0) {
-      return res
-        .status(200)
-        .json({ message: "No users found in the system" });
-    }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const { data: listUser, total } = await User.getAllUsers(page, limit);
+    
     return res.status(200).json({
       message: "Users retrieved successfully",
-      listUser
+      listUser,
+      total,
+      page,
+      limit
     });
   } catch (error) {
     console.error(error);

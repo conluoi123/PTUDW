@@ -1,13 +1,13 @@
 const BASE_URL = "/api/games";
 import api from "./service";
 export const GameService = {
-  getAllGames: async () => {
+  getAllGames: async (page = 1, limit = 10) => {
     try {
-      const response = await api.get(BASE_URL);
-      return response.data;
+      const response = await api.get(`${BASE_URL}?page=${page}&limit=${limit}`);
+      return response.data; // Now returns { data, total, page, limit }
     } catch (err) {
       console.log(err);
-      return [];
+      return { data: [], total: 0 };
     }
   },
   getGameById: async (game_id) => {

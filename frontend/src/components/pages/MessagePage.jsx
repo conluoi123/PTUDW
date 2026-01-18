@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { MessageService } from '@/services/message.services';
 import { AuthContext } from '@/contexts/AuthContext';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import { Pagination } from '@/components/ui/pagination';
 
 
 
@@ -370,7 +371,7 @@ export function MessagesPage() {
                 </div>
 
                 {/* Conversation List */}
-                <ScrollArea className="flex-1 bg-white/30 dark:bg-transparent h-[calc(100vh-200px)]" type='always'>
+                <ScrollArea className="flex-1 bg-white/30 dark:bg-transparent" type='always'>
                     <div className="divide-y divide-gray-100 dark:divide-white/5">
                         {isLoading ? (
                              <div className="p-8 text-center text-gray-500 text-sm">Loading conversations...</div>
@@ -396,33 +397,18 @@ export function MessagesPage() {
                         </div>
                     )}
 
-                    {/* Pagination for conversations */}
-                    {!isLoading && conversations.length > 0 && !searchQuery && (
-                        <div className="p-4 border-t border-gray-200 dark:border-white/5 pt-4 mt-0">
-                            <div className="flex items-center justify-center gap-2">
-                                <button
-                                    onClick={() => setConversationsPage(Math.max(1, conversationsPage - 1))}
-                                    disabled={conversationsPage === 1}
-                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-sm"
-                                >
-                                    <ChevronLeft className="w-4 h-4" />
-                                    Previous
-                                </button>
-                                <span className="px-4 py-2 text-sm font-medium">
-                                    Page {conversationsPage}
-                                </span>
-                                <button
-                                    onClick={() => setConversationsPage(conversationsPage + 1)}
-                                    disabled={conversations.length < 3}
-                                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-sm"
-                                >
-                                    Next
-                                    <ChevronRight className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
                 </ScrollArea>
+
+                {/* Pagination for conversations */}
+                {!isLoading && (conversations.length > 0 || conversationsPage > 1) && !searchQuery && (
+                    <Pagination
+                        currentPage={conversationsPage}
+                        onPageChange={setConversationsPage}
+                        hasNext={conversations.length >= 3}
+                        hasPrevious={conversationsPage > 1}
+                        className="p-4 border-t border-gray-200 dark:border-white/5 bg-white/50 dark:bg-[#16181d]/50 backdrop-blur-sm"
+                    />
+                )}
             </div>
 
             {/* Chat Area */}

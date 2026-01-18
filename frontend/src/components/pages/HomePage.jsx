@@ -27,7 +27,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 import { ratingService } from "@/services/rating.services";
+import { loadingService } from "@/services/loading.services"; // Is this needed?
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
+import { Pagination } from "@/components/ui/pagination";
 export const HomePage = () => {
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
@@ -357,31 +359,17 @@ export const HomePage = () => {
                 )}
             </div>
 
+
+
             {/* Pagination for ratings */}
             {ratings.length > 0 && (
-                <div className="border-t border-border pt-6 mt-6">
-                    <div className="flex items-center justify-center gap-2">
-                    <button
-                        onClick={() => setRatingsPage(Math.max(1, ratingsPage - 1))}
-                        disabled={ratingsPage === 1}
-                        className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                        Previous
-                    </button>
-                    <span className="px-4 py-2 text-sm font-medium">
-                        Page {ratingsPage}
-                    </span>
-                    <button
-                        onClick={() => setRatingsPage(ratingsPage + 1)}
-                        disabled={ratings.length < 3}
-                        className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                    >
-                        Next
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={ratingsPage}
+                    onPageChange={setRatingsPage}
+                    hasNext={ratings.length >= 3}
+                    hasPrevious={ratingsPage > 1}
+                    className="border-t border-border pt-6 mt-6"
+                />
             )}
         </section>
     </div>

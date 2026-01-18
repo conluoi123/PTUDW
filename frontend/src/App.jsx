@@ -16,7 +16,8 @@ import { DrawingBoardGame } from './components/games/DrawingBoardGame';
 import { AdminRoute } from './components/auth/AdminRoute';
 import { FriendsPage } from './components/pages/FriendsPage';
 import { MemoryCardGame } from './components/games/MemoryCardGame';
-
+import { Caro5 } from './components/games/Caro5';
+ 
 function App() {
   
     return (
@@ -43,9 +44,9 @@ function App() {
                 />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/games" element={<GamesPage />} />
-                <Route path="/games/drawing-board" element={<DrawingBoardGame />} 
-                />
+                <Route path="/games/drawing-board" element={<DrawingBoardGame />} />
                 <Route path="/games/memory-card" element={<MemoryCardGame />} />
+                <Route path="/games/caro-5" element={<Caro5 />} />
               </Route>  
             </Routes>
           </AuthProvider>

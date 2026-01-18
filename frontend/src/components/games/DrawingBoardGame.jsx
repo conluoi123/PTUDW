@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, Eraser, Download, Trash2, Undo, Redo, 
-  Palette, Circle, Square, Minus, MousePointer2 
+  Palette, Circle, Square, Minus, MousePointer2, HelpCircle 
 } from 'lucide-react';
 import { Button, Box, Typography, Paper, Card, CardContent, Slider, Tooltip } from '@mui/material';
 import { GameWithRating } from './GameWithRating';
 import { QuickSaveButtons } from './QuickSaveButtons';
 import { GameService } from '@/services/game.services';
+import { GameHelpDialog } from './GameHelpDialog';
 
 
 const COLORS = [
@@ -32,6 +33,7 @@ export function DrawingBoardGame() {
   const [history, setHistory] = useState([]);
   const [historyStep, setHistoryStep] = useState(-1);
   const [startPos, setStartPos] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     const fetchGameId = async () => {
@@ -288,6 +290,14 @@ export function DrawingBoardGame() {
             <Button onClick={clearCanvas} variant="outlined" color="error" size="small" startIcon={<Trash2 className="w-4 h-4"/>}>
                 Clear
             </Button>
+            <Button 
+                onClick={() => setHelpOpen(true)} 
+                variant="outlined" 
+                size="small" 
+                startIcon={<HelpCircle className="w-4 h-4"/>}
+            >
+                Help
+            </Button>
             <QuickSaveButtons 
                 gameName="drawing-board" 
                 gameState={gameState} 
@@ -382,6 +392,28 @@ export function DrawingBoardGame() {
           </Paper>
         </Box>
       </Box>
+
+      {/* Help Dialog */}
+      <GameHelpDialog
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        title="Drawing Board Guide"
+        instructions={[
+          "Select a tool from the toolbar: Pen, Eraser, Line, Circle, or Rectangle",
+          "Choose your favorite color from the color palette",
+          "Adjust brush size using the slider for precise or bold strokes",
+          "Click and drag on the canvas to create your masterpiece",
+          "Use Undo/Redo buttons to fix mistakes",
+          "Save your work anytime with the Save button",
+          "Clear the entire canvas with the Clear button"
+        ]}
+        tips={[
+          "Use smaller brush sizes for detailed work",
+          "Try different shapes to create unique patterns",
+          "Save your progress frequently to avoid losing your work",
+          "Experiment with color combinations for stunning effects"
+        ]}
+      />
     </GameWithRating>
   );
 }

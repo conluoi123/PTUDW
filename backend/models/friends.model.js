@@ -73,7 +73,6 @@ export const getSuggestions = async (userId) => {
   return await db('users')
     .whereNotIn('id', subquery)
     .andWhere('id', '!=', userId)
-    .limit(10)
     .select('id', 'username', 'name')
 }
 

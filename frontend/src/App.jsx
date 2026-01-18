@@ -8,6 +8,7 @@ import { AchievementsPage } from './components/pages/AchievementsPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { AuthProvider } from './contexts/AuthContext';
+import { MusicProvider } from './contexts/MusicContext';
 import { RankingPage } from './components/pages/RankingPage';
 import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
@@ -24,7 +25,8 @@ function App() {
     return (
       <BrowserRouter>
         <ThemeProvider>
-          <AuthProvider>
+          <MusicProvider>
+            <AuthProvider>
             <Routes>
               <Route path="/" element={<WelcomePage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -52,6 +54,7 @@ function App() {
               </Route>  
             </Routes>
           </AuthProvider>
+        </MusicProvider>
         </ThemeProvider>
       </BrowserRouter>
     );

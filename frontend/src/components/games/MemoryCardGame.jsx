@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { ArrowLeft, RotateCcw, Trophy, Clock, Star, Play, Pause } from "lucide-react";
+import { ArrowLeft, RotateCcw, Trophy, Clock, Star, Play, Pause, HelpCircle } from "lucide-react";
 import { Button, Box, Typography, Paper, Chip, Card, CardContent } from "@mui/material";
 import { QuickSaveButtons } from './QuickSaveButtons';
 import { GameWithRating } from "./GameWithRating";
+import { GameHelpDialog } from './GameHelpDialog';
 
 // Card symbols - using images
 const CARD_SYMBOLS = [
@@ -14,8 +15,8 @@ const CARD_SYMBOLS = [
   "https://cdn-icons-png.flaticon.com/512/2400/2400603.png", // Palette
   "https://cdn-icons-png.freepik.com/512/3365/3365473.png", // Mask
   "https://png.pngtree.com/element_our/png/20181227/movie-icon-which-is-designed-for-all-application-purpose-new-png_287896.jpg", // Movie
-  "https://cdn-icons-png.flaticon.com/512/2917/2917777.png", // Guitar
-  "https://cdn-icons-png.flaticon.com/512/3176/3176320.png", // Trumpet
+  "https://cdn-icons-png.flaticon.com/512/138/138247.png", // Guitar
+  "https://cdn-icons-png.flaticon.com/512/138/138247.png", // Trumpet
   "https://cdn-icons-png.flaticon.com/512/3176/3176375.png", // Violin
   "https://cdn-icons-png.flaticon.com/512/3176/3176390.png", // Piano
   "https://cdn-icons-png.flaticon.com/512/2917/2917061.png", // Microphone
@@ -40,6 +41,7 @@ export function MemoryCardGame() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [gameStatus, setGameStatus] = useState("menu"); // menu, playing, won, lost, paused
   const [score, setScore] = useState(0);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Initialize game
   const startGame = (level) => {
@@ -186,6 +188,14 @@ export function MemoryCardGame() {
                         onLoad={handleLoad}
                     />
                 )}
+                <Button 
+                    onClick={() => setHelpOpen(true)} 
+                    variant="outlined" 
+                    size="small" 
+                    startIcon={<HelpCircle className="w-4 h-4"/>}
+                >
+                    Help
+                </Button>
                 <Button
                     onClick={handleReset}
                     variant="outlined"
@@ -343,6 +353,27 @@ export function MemoryCardGame() {
             )}
         </Box>
       </Box>
+
+      {/* Help Dialog */}
+      <GameHelpDialog
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        title="Memory Card Challenge"
+        instructions={[
+          "Choose your difficulty level: Easy (6 pairs), Medium (8 pairs), or Hard (12 pairs)",
+          "Click on any card to flip it and reveal the hidden image",
+          "Click on a second card to find its matching pair",
+          "If the cards match, they stay flipped. If not, they flip back after 1 second",
+          "Match all pairs before time runs out to win!",
+          "Your score is calculated based on moves and remaining time"
+        ]}
+        tips={[
+          "Try to remember the positions of cards you've already seen",
+          "Start from one corner and work systematically across the board",
+          "The faster you complete, the higher your score bonus",
+          "Use the Pause button if you need a break"
+        ]}
+      />
     </GameWithRating>
   );
 }

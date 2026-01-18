@@ -1,279 +1,231 @@
 import { useState, useMemo, useCallback, memo, useEffect } from 'react';
-import { UserPlus, UserCheck, UserMinus, Search, Users, Clock, X } from 'lucide-react';
-import { Button } from '@mui/material';
-import { Input } from '@mui/material';
-import { Badge } from '@mui/material';
-import { Card, CardContent } from '@mui/material';
+import { UserPlus, UserCheck, UserMinus, Search, Users, X } from 'lucide-react';
+import { Button, Input, Badge, Card, CardContent } from '@mui/material';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { friendService } from '../../services/friends.services';
 
-// configuration
-const API_BASE = 'http://localhost:3000/api'
-
-// helper to create mock data for fields missing in the database
 const enrichUserData = (user) => ({
-  ...user,
-  // create initials for avatar if avatar url is missing
-  avatar: user.name ? user.name.substring(0, 2).toUpperCase() : 'UN',
-  level: Math.floor(Math.random() * 50) + 1, // random level
-  isOnline: Math.random() > 0.5, // random online status
-  mutualFriends: Math.floor(Math.random() * 10),
-  lastSeen: 'Just now'
-})
+    ...user,
+    avatar: user.name ? user.name.substring(0, 2).toUpperCase() : 'UN',
+    level: Math.floor(Math.random() * 50) + 1,
+    isOnline: Math.random() > 0.5,
+    mutualFriends: Math.floor(Math.random() * 10),
+    lastSeen: 'Just now'
+});
 
 const OnlineStatusIndicator = memo(({ isOnline }) => (
     <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-background ${isOnline ? 'bg-green-500' : 'bg-muted-foreground'}`} />
 ));
 
 const FriendCard = memo(({ friend, onRemove, showActions = false }) => (
-  <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-    <CardContent className="p-4">
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <Avatar className="w-14 h-14">
-            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-              {friend.avatar}
-            </AvatarFallback>
-          </Avatar>
-          <OnlineStatusIndicator isOnline={friend.isOnline} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold truncate">
-            {friend.name || friend.username}
-          </h3>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="secondary" className="text-xs">
-              Level {friend.level}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {friend.mutualFriends} mutual
-            </span>
-          </div>
-        </div>
-        {showActions && onRemove && (
-          <Button
-            variant="text"
-            size="small"
-            color="error"
-            onClick={() => onRemove(friend.id)}
-          >
-            <UserMinus className="w-4 h-4" />
-          </Button>
-        )}
-      </div>
-    </CardContent>
-  </Card>
-))
+    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+        <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+                <div className="relative">
+                    <Avatar className="w-14 h-14">
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                            {friend.avatar}
+                        </AvatarFallback>
+                    </Avatar>
+                    <OnlineStatusIndicator isOnline={friend.isOnline} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold truncate">
+                        {friend.name || friend.username}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">
+                            Level {friend.level}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                            {friend.mutualFriends} mutual
+                        </span>
+                    </div>
+                </div>
+                {showActions && onRemove && (
+                    <Button
+                        variant="text"
+                        size="small"
+                        color="error"
+                        onClick={() => onRemove(friend.id)}
+                    >
+                        <UserMinus className="w-4 h-4" />
+                    </Button>
+                )}
+            </div>
+        </CardContent>
+    </Card>
+));
 
 const FriendRequestCard = memo(({ request, onAccept, onReject }) => (
-  <Card className="hover:shadow-lg transition-all duration-200">
-    <CardContent className="p-4">
-      <div className="flex items-start gap-4">
-        <Avatar className="w-14 h-14 flex-shrink-0">
-          <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-            {request.avatar}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold">{request.name || request.username}</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Sent: {new Date(request.requestedAt).toLocaleDateString()}
-          </p>
-          <div className="flex gap-2 mt-3">
-            <Button
-              size="small"
-              variant="contained"
-              color="primary"
-              onClick={() => onAccept(request.id)}
-              className="flex-1"
-            >
-              <UserCheck className="w-4 h-4 mr-1" /> Accept
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              onClick={() => onReject(request.id)}
-              className="flex-1"
-            >
-              <X className="w-4 h-4 mr-1" /> Reject
-            </Button>
-          </div>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-))
+    <Card className="hover:shadow-lg transition-all duration-200">
+        <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+                <Avatar className="w-14 h-14 flex-shrink-0">
+                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                        {request.avatar}
+                    </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold">{request.name || request.username}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Sent: {new Date(request.requestedAt).toLocaleDateString()}
+                    </p>
+                    <div className="flex gap-2 mt-3">
+                        <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            onClick={() => onAccept(request.id)}
+                            className="flex-1"
+                        >
+                            <UserCheck className="w-4 h-4 mr-1" /> Accept
+                        </Button>
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => onReject(request.id)}
+                            className="flex-1"
+                        >
+                            <X className="w-4 h-4 mr-1" /> Reject
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+));
 
 const SuggestionCard = memo(({ suggestion, onSendRequest }) => (
-  <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-    <CardContent className="p-4">
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <Avatar className="w-14 h-14">
-            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-              {suggestion.avatar}
-            </AvatarFallback>
-          </Avatar>
-          <OnlineStatusIndicator isOnline={suggestion.isOnline} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold truncate">
-            {suggestion.name || suggestion.username}
-          </h3>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="secondary" className="text-xs">
-              Level {suggestion.level}
-            </Badge>
-          </div>
-        </div>
-        <Button size="small" onClick={() => onSendRequest(suggestion.id)}>
-          <UserPlus className="w-4 h-4" />
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
-))
+    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+        <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+                <div className="relative">
+                    <Avatar className="w-14 h-14">
+                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                            {suggestion.avatar}
+                        </AvatarFallback>
+                    </Avatar>
+                    <OnlineStatusIndicator isOnline={suggestion.isOnline} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold truncate">
+                        {suggestion.name || suggestion.username}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className="text-xs">
+                            Level {suggestion.level}
+                        </Badge>
+                    </div>
+                </div>
+                <Button size="small" onClick={() => onSendRequest(suggestion.id)}>
+                    <UserPlus className="w-4 h-4" />
+                </Button>
+            </div>
+        </CardContent>
+    </Card>
+));
 
 export function FriendsPage() {
-    const [activeTab, setActiveTab] = useState('friends')
-    const [searchQuery, setSearchQuery] = useState('')
+    const [activeTab, setActiveTab] = useState('friends');
+    const [searchQuery, setSearchQuery] = useState('');
 
-    // data states - initialized as empty arrays
-    const [friends, setFriends] = useState([])
-    const [friendRequests, setFriendRequests] = useState([])
-    const [suggestions, setSuggestions] = useState([])
-    
-    // user state
-    const [currentUserId, setCurrentUserId] = useState(null)
-    const [loading, setLoading] = useState(true)
+    const [friends, setFriends] = useState([]);
+    const [friendRequests, setFriendRequests] = useState([]);
+    const [suggestions, setSuggestions] = useState([]);
 
-    // fetch user_id based on email from localStorage
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         const fetchUserId = async () => {
-        const storedId = localStorage.getItem('userId')
+            const storedId = localStorage.getItem('userId');
 
-        if (!storedId) {
-            console.error('No id found in localStorage')
-            setLoading(false)
-            return
-        }
-
-        try {
-            // call api to find user by email
-            const res = await fetch(`${API_BASE}/friends/find?id=${storedId}`)
-            
-            if (!res.ok) throw new Error('User not found')
-
-            const data = await res.json()
-
-            if (data.data && data.data.id) {
-            setCurrentUserId(data.data.id)
-            fetchAllData(data.data.id)
+            if (!storedId) {
+                setLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error('Error fetching user ID:', error)
-            setLoading(false)
-        }
-        }
 
-        fetchUserId()
-    }, [])
+            try {
+                const data = await friendService.findUserById(storedId);
 
-    // fetch all friend-related data
+                if (data.data && data.data.id) {
+                    setCurrentUserId(data.data.id);
+                    fetchAllData(data.data.id);
+                }
+            } catch {
+                setLoading(false);
+            }
+        };
+
+        fetchUserId();
+    }, []);
+
     const fetchAllData = async (userId) => {
-        setLoading(true)
+        setLoading(true);
         try {
-        const [friendsRes, requestsRes, suggestionsRes] = await Promise.all([
-            fetch(`${API_BASE}/friends/list?userId=${userId}`),
-            fetch(`${API_BASE}/friends/requests?userId=${userId}`),
-            fetch(`${API_BASE}/friends/suggestions?userId=${userId}`)
-        ])
+            const [friendsData, requestsData, suggestionsData] = await Promise.all([
+                friendService.getFriendsList(userId),
+                friendService.getFriendRequests(userId),
+                friendService.getSuggestions(userId)
+            ]);
 
-        const friendsData = await friendsRes.json()
-        const requestsData = await requestsRes.json()
-        const suggestionsData = await suggestionsRes.json()
-
-        // set state with enriched data
-        setFriends(friendsData.data.map(enrichUserData))
-        setFriendRequests(requestsData.data.map(enrichUserData))
-        setSuggestions(suggestionsData.data.map(enrichUserData))
+            setFriends(friendsData.data.map(enrichUserData));
+            setFriendRequests(requestsData.data.map(enrichUserData));
+            setSuggestions(suggestionsData.data.map(enrichUserData));
         } catch (error) {
-        console.error('Failed to fetch friends data:', error)
+            console.error(error);
         } finally {
-        setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
-    // handle accepting friend request
     const handleAcceptRequest = useCallback(
         async (requesterId) => {
-        if (!currentUserId) return
-        try {
-            const res = await fetch(`${API_BASE}/friends/accept/${requesterId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ currentUserId: currentUserId })
-            })
-
-            if (res.ok) {
-            const acceptedUser = friendRequests.find((r) => r.id === requesterId)
-            setFriendRequests((prev) => prev.filter((r) => r.id !== requesterId))
-            setFriends((prev) => [acceptedUser, ...prev])
+            if (!currentUserId) return;
+            try {
+                await friendService.acceptRequest(requesterId, currentUserId);
+                const acceptedUser = friendRequests.find((r) => r.id === requesterId);
+                setFriendRequests((prev) => prev.filter((r) => r.id !== requesterId));
+                if (acceptedUser) {
+                    setFriends((prev) => [acceptedUser, ...prev]);
+                }
+            } catch (error) {
+                console.error(error);
             }
-        } catch (error) {
-            console.error('Error accepting:', error)
-        }
         },
         [friendRequests, currentUserId]
-    )
+    );
 
-    // handle rejecting request or removing friend
     const handleRejectOrRemove = useCallback(
         async (targetId) => {
-        if (!currentUserId) return
-        try {
-            const res = await fetch(`${API_BASE}/friends/remove/${targetId}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ currentUserId: currentUserId })
-            })
-
-            if (res.ok) {
-            setFriendRequests((prev) => prev.filter((r) => r.id !== targetId))
-            setFriends((prev) => prev.filter((f) => f.id !== targetId))
+            if (!currentUserId) return;
+            try {
+                await friendService.removeOrReject(targetId, currentUserId);
+                setFriendRequests((prev) => prev.filter((r) => r.id !== targetId));
+                setFriends((prev) => prev.filter((f) => f.id !== targetId));
+            } catch (error) {
+                console.error(error);
             }
-        } catch (error) {
-            console.error('Error removing:', error)
-        }
         },
         [currentUserId]
-    )
+    );
 
-    // handle sending friend request from suggestions
     const handleSendRequest = useCallback(
         async (targetUserId) => {
-        if (!currentUserId) return
-        try {
-            const res = await fetch(`${API_BASE}/friends/request`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                currentUserId: currentUserId,
-                targetUserId: targetUserId
-            })
-            })
-
-            if (res.ok) {
-            setSuggestions((prev) => prev.filter((s) => s.id !== targetUserId))
-            alert('Friend request sent!')
+            if (!currentUserId) return;
+            try {
+                await friendService.sendRequest(currentUserId, targetUserId);
+                setSuggestions((prev) => prev.filter((s) => s.id !== targetUserId));
+                alert('Friend request sent!');
+            } catch (error) {
+                console.error(error);
             }
-        } catch (error) {
-            console.error('Error sending request:', error)
-        }
         },
         [currentUserId]
-    )
+    );
 
     const filteredFriends = useMemo(() => {
         if (!searchQuery) return friends;
@@ -287,12 +239,11 @@ export function FriendsPage() {
         , [friends]);
 
     if (loading) {
-        return <div className="p-8 text-center">Loading data...</div>
+        return <div className="p-8 text-center">Loading data...</div>;
     }
 
     return (
         <div className="space-y-6 animate-fadeIn">
-            {/* Header */}
             <Card className="border-0 bg-primary text-primary-foreground shadow-xl">
                 <CardContent className="p-8">
                     <div className="flex items-center gap-4">
@@ -309,7 +260,6 @@ export function FriendsPage() {
                 </CardContent>
             </Card>
 
-            {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)}>
                 <TabsList className="w-full justify-start">
                     <TabsTrigger value="friends" className="flex-1 sm:flex-none">
@@ -331,7 +281,6 @@ export function FriendsPage() {
                 </TabsList>
 
                 <TabsContent value="friends" className="space-y-4">
-                    {/* Search Bar */}
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
@@ -343,7 +292,6 @@ export function FriendsPage() {
                         />
                     </div>
 
-                    {/* Friends Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {filteredFriends.map(friend => (
                             <FriendCard
@@ -355,7 +303,6 @@ export function FriendsPage() {
                         ))}
                     </div>
 
-                    {/* Empty State */}
                     {filteredFriends.length === 0 && (
                         <Card>
                             <CardContent className="text-center py-12">
@@ -383,7 +330,6 @@ export function FriendsPage() {
                         ))}
                     </div>
 
-                    {/* Empty State */}
                     {friendRequests.length === 0 && (
                         <Card>
                             <CardContent className="text-center py-12">
@@ -408,7 +354,6 @@ export function FriendsPage() {
                         ))}
                     </div>
 
-                    {/* Empty State */}
                     {suggestions.length === 0 && (
                         <Card>
                             <CardContent className="text-center py-12">

@@ -5,9 +5,20 @@ import { Button, Box, Typography, Paper, Chip, Card, CardContent } from "@mui/ma
 import { QuickSaveButtons } from './QuickSaveButtons';
 import { GameWithRating } from "./GameWithRating";
 
-// Card symbols/emojis
+// Card symbols - using images
 const CARD_SYMBOLS = [
-  "🎮", "🎯", "🎲", "🎪", "🎨", "🎭", "🎬", "🎸", "🎺", "🎻", "🎹", "🎤"
+  "https://cdn-icons-png.freepik.com/512/7654/7654577.png", // Game controller
+  "https://cdn-icons-png.flaticon.com/512/470/470222.png", // Target
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-axCihJZ3UG4LwUDFF7kjqQ52TVtepHg3uA&s", // Dice
+  "https://cdn-icons-png.freepik.com/512/1998/1998918.png", // Circus
+  "https://cdn-icons-png.flaticon.com/512/2400/2400603.png", // Palette
+  "https://cdn-icons-png.freepik.com/512/3365/3365473.png", // Mask
+  "https://png.pngtree.com/element_our/png/20181227/movie-icon-which-is-designed-for-all-application-purpose-new-png_287896.jpg", // Movie
+  "https://cdn-icons-png.flaticon.com/512/2917/2917777.png", // Guitar
+  "https://cdn-icons-png.flaticon.com/512/3176/3176320.png", // Trumpet
+  "https://cdn-icons-png.flaticon.com/512/3176/3176375.png", // Violin
+  "https://cdn-icons-png.flaticon.com/512/3176/3176390.png", // Piano
+  "https://cdn-icons-png.flaticon.com/512/2917/2917061.png", // Microphone
 ];
 
 // Difficulty levels
@@ -264,19 +275,28 @@ export function MemoryCardGame() {
                                         disabled={isMatched || gameStatus === 'paused'}
                                         className={`
                                             aspect-square w-16 sm:w-20 md:w-24 rounded-xl transition-all duration-300 transform perspective-1000
-                                            ${isFlipped ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/80"}
+                                            ${isFlipped ? "bg-white" : "bg-gradient-to-br from-blue-500 to-purple-600"}
                                             ${isMatched ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"}
-                                            border-2 ${isFlipped ? "border-primary" : "border-border"}
-                                            flex items-center justify-center text-3xl sm:text-4xl shadow-md
+                                            border-2 ${isFlipped ? "border-blue-400" : "border-blue-700"}
+                                            flex items-center justify-center shadow-lg p-2
                                         `}
                                         style={{
                                             transform: isFlipped ? "rotateY(0deg)" : "rotateY(180deg)",
                                             transformStyle: "preserve-3d",
                                         }}
                                     >
-                                        <span style={{ backfaceVisibility: 'hidden' }}>
-                                             {isFlipped ? card.symbol : "❓"}
-                                        </span>
+                                        {isFlipped ? (
+                                            <img 
+                                                src={card.symbol} 
+                                                alt="card" 
+                                                className="w-full h-full object-contain"
+                                                style={{ backfaceVisibility: 'hidden' }}
+                                            />
+                                        ) : (
+                                            <span className="text-4xl" style={{ backfaceVisibility: 'hidden' }}>
+                                                ❓
+                                            </span>
+                                        )}
                                     </button>
                                 );
                             })}

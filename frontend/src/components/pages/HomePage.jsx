@@ -34,7 +34,6 @@ export const HomePage = () => {
   const CATEGORIES = ["Tất cả", "Trí tuệ", "Chiến thuật", "Đối kháng", "Giải trí"];
   const { user } = useContext(AuthContext);
   const [ratings, setRatings] = useState([]);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -69,6 +68,7 @@ export const HomePage = () => {
     console.log(user);
     return
   }
+  
   return (
     <div className="space-y-8 animate-fade-in pb-10">
         {/* Loading Overlay */}

@@ -1,7 +1,15 @@
 import { Router } from "express";
 import gameControllers from "../controllers/game.controllers.js";
+import { saveGame, loadGame } from "../controllers/gameState.controllers.js";
+import { authenticateAccessToken } from "../middlewares/jwt.middlewares.js";
 
 const router = Router();
+
+// Game State Routes (Protected)
+router.post("/save", authenticateAccessToken, saveGame);
+router.get("/load", authenticateAccessToken, loadGame);
+
+// Game Management Routes
 router.get("/", gameControllers.getAllGames);
 router.get("/:id", gameControllers.getGameById);
 // quyền admin, sau sẽ có authAdmin

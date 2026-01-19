@@ -1,14 +1,55 @@
 import User from "../models/user.models.js";
 import { checkConflicUpdate, checkExistUser } from "../services/admin.services.js";
+import db from "../models/db.js";
+
 async function deleteUser(req, res) {
   const { userId } = req.params;
   try {
-    const cnt = await User.deleteUser(userId);
-    if (cnt === 0) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    await db.transaction(async (trx) => {
+      // 1. Delete user_achievements
+      await trx("user_achievements").where("user_id", userId).del();
+
+      // 2. Delete ratings
+      await trx("ratings").where("user_id", userId).del();
+
+      // 3. Delete game_sessions
+      await trx("game_sessions").where("user_id", userId).del();
+
+      // 4. Delete game_states
+      await trx("game_states").where("user_id", userId).del();
+
+      // 5. Delete friendships (requester or addressee)
+      await trx("friendships")
+        .where("requester_id", userId)
+        .orWhere("addressee_id", userId)
+        .del();
+
+      // 6. Delete messages (sender or receiver)
+      await trx("messages")
+        .where("sender_id", userId)
+        .orWhere("receiver_id", userId)
+        .del();
+
+      // 7. Delete friends (user_id_01 or user_id_02)
+      await trx("friends")
+        .where("user_id_01", userId)
+        .orWhere("user_id_02", userId)
+        .del();
+
+      // 8. Finally delete user
+      const cnt = await trx("users").where("id", userId).del();
+      
+      if (cnt === 0) {
+        throw new Error("User not found");
+      }
+    });
+
     return res.status(200).json({ message: "Deleted successfully" });
   } catch (error) {
+    if (error.message === "User not found") {
+        return res.status(404).json({ message: "User not found" });
+    }
+    console.error("Delete user error:", error);
     return res.status(500).json({ error: error.message });
   }
 }
@@ -91,15 +132,17 @@ async function updateUser(req, res) {
 
 async function getAllUsers(req, res) {
   try {
-    const listUser = await User.getAllUsers();
-    if (listUser.length === 0) {
-      return res
-        .status(200)
-        .json({ message: "No users found in the system" });
-    }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const { data: listUser, total } = await User.getAllUsers(page, limit);
+    
     return res.status(200).json({
       message: "Users retrieved successfully",
-      listUser
+      listUser,
+      total,
+      page,
+      limit
     });
   } catch (error) {
     console.error(error);

@@ -2,21 +2,20 @@ import api from "./service";
 
 export const rankingService = {
     // Global rankings 
-    getGlobalOverall: async () => {
+    getGlobalOverall: async (page = 1) => {
         try {
-            const response = await api.get("/api/rankings/global/overall");
-            return response.data.ranking;
-
+            const response = await api.post("/api/rankings/global/overall", { page });
+            return { ranking: response.data.ranking, page: response.data.page, limit: response.data.limit };
         } catch (error) {
             console.error("Error fetching global overall ranking:", error);
             throw error;
         }
     },
 
-    getGlobalByGame: async (gameId) => {
+    getGlobalByGame: async (gameId, page = 1) => {
         try {
-            const response = await api.get(`/api/rankings/global/${gameId}`);
-            return response.data.ranking;
+            const response = await api.post(`/api/rankings/global/${gameId}`, { page });
+            return { ranking: response.data.ranking, page: response.data.page, limit: response.data.limit };
         } catch (error) {
             console.error(`Error fetching global ranking for game ${gameId}:`, error);
             throw error;
@@ -24,10 +23,10 @@ export const rankingService = {
     },
 
     // Friends rankings
-    getFriendsOverall: async () => {
+    getFriendsOverall: async (page = 1) => {
         try {
-            const response = await api.get("/api/rankings/friends/overall");
-            return response.data.ranking;
+            const response = await api.post("/api/rankings/friends/overall", { page });
+            return { ranking: response.data.ranking, page: response.data.page, limit: response.data.limit };
         } catch (error) {
             //debug 
             console.error("❌ Error fetching friends overall ranking:");
@@ -39,10 +38,10 @@ export const rankingService = {
         }
     },
 
-    getFriendsByGame: async (gameId) => {
+    getFriendsByGame: async (gameId, page = 1) => {
         try {
-            const response = await api.get(`/api/rankings/friends/${gameId}`);
-            return response.data.ranking;
+            const response = await api.post(`/api/rankings/friends/${gameId}`, { page });
+            return { ranking: response.data.ranking, page: response.data.page, limit: response.data.limit };
         } catch (error) {
             console.error(`Error fetching friends ranking for game ${gameId}:`, error);
             throw error;

@@ -1,4 +1,4 @@
-import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Medal, Award, Target, Dices, Circle, Candy, Worm, Filter } from 'lucide-react';
+import { Trophy, TrendingUp, TrendingDown, Minus, Crown, Medal, Award, Target, Dices, Circle, Candy, Worm, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useContext, useEffect } from 'react';
 import { Card, CardContent } from '@mui/material';
 import { Badge } from '@mui/material';
@@ -13,9 +13,15 @@ export function RankingPage() {
     const [activeTab, setActiveTab] = useState('global');
     const { user } = useContext(AuthContext);
     const [globalRanking, setGlobalRanking] = useState([]);
+    const [top3GlobalRanking, setTop3GlobalRanking] = useState([]); // [NEW] Top 3 fixed
     const [friendsRanking, setFriendsRanking] = useState([]);
     const [personalStatsData, setPersonalStatsData] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    
+    // Pagination states
+    const [globalPage, setGlobalPage] = useState(1);
+    const [friendsPage, setFriendsPage] = useState(1);
+    const [gamePage, setGamePage] = useState(1);
     
     // By Game tab states
     const [games, setGames] = useState([]);
@@ -44,15 +50,22 @@ export function RankingPage() {
         const fetchRankings = async () => {
             try {
                 setIsLoading(true);
-                const global = await rankingService.getGlobalOverall();
-                setGlobalRanking(global || []);
+                const globalResponse = await rankingService.getGlobalOverall(globalPage);
+                setGlobalRanking(globalResponse?.ranking || []);
+                // Update page if backend returned different page (fallback)
+                if (globalResponse.page && globalResponse.page !== globalPage) {
+                    setGlobalPage(globalResponse.page);
+                }
 
                 // lấy ranking bạn bè và cá nhân 
                 if (user) {
                     try {
                         // bạn bè
-                        const friends = await rankingService.getFriendsOverall();
-                        setFriendsRanking(friends || []);
+                        const friendsResponse = await rankingService.getFriendsOverall(friendsPage);
+                        setFriendsRanking(friendsResponse?.ranking || []);
+                        if (friendsResponse.page && friendsResponse.page !== friendsPage) {
+                            setFriendsPage(friendsResponse.page);
+                        }
                         // cá nhân 
                         const stats = await rankingService.getPersonalStats();
                         setPersonalStatsData(stats || {});
@@ -69,7 +82,20 @@ export function RankingPage() {
             }
         }
         fetchRankings();
-    }, [user]);
+    }, [user, globalPage, friendsPage]);
+
+    // [NEW] Fetch Top 3 Global Fixed
+    useEffect(() => {
+        const fetchTop3 = async () => {
+            try {
+                const response = await rankingService.getGlobalOverall(1);
+                setTop3GlobalRanking(response?.ranking || []);
+            } catch (error) {
+                console.error("Error fetching top 3 global:", error);
+            }
+        };
+        fetchTop3();
+    }, []);
 
     // Fetch game-specific rankings
     useEffect(() => {
@@ -78,29 +104,33 @@ export function RankingPage() {
             
             try {
                 if (gameViewMode === 'global') {
-                    const ranking = await rankingService.getGlobalByGame(selectedGameId);
-                    setGameRanking(ranking || []);
+                    const response = await rankingService.getGlobalByGame(selectedGameId, gamePage);
+                    setGameRanking(response?.ranking || []);
+                    if (response.page && response.page !== gamePage) setGamePage(response.page);
                 } else if (gameViewMode === 'friends') {
-                    const ranking = await rankingService.getFriendsByGame(selectedGameId);
-                    setGameRanking(ranking || []);
+                    const response = await rankingService.getFriendsByGame(selectedGameId, gamePage);
+                    setGameRanking(response?.ranking || []);
+                    if (response.page && response.page !== gamePage) setGamePage(response.page);
                 }
             } catch (error) {
                 console.error("Error fetching game ranking:", error);
             }
         };
         fetchGameRanking();
-    }, [selectedGameId, gameViewMode]);
+    }, [selectedGameId, gameViewMode, gamePage]);
 
     // console.log("personnal", personalStatsData);
     // console.log("globalRanking", globalRanking);
     // console.log("friendsRanking", friendsRanking)
 
     // Helper: Map API data to UI format
-    const mapRankingData = (apiData, currentUserId) => {
-        return apiData.map((player) => ({
-            rank: player.ranking,
+    const mapRankingData = (apiData, currentUserId, page = 1, limit = 3) => {
+        // Calculate actual rank based on page and limit
+        const baseRank = (page - 1) * limit + 1;
+        return apiData.map((player, index) => ({
+            rank: baseRank + index, // Calculate rank based on position in current page
             username: player.name || player.username,
-            avatar: player.avatar || 'U',
+            avatar: player.avatar || '',
             score: player.total_score || player.max_score,
             games: player.total_games,
             winRate: 0, // Không có từ API, để 0 hoặc tính toán
@@ -203,8 +233,38 @@ export function RankingPage() {
         );
     };
 
-    const globalLeaderboard = isLoading ? [] : (globalRanking.length > 0 ? mapRankingData(globalRanking, user?.id) : []);
-    const friendsLeaderboard = isLoading ? [] : (friendsRanking.length > 0 ? mapRankingData(friendsRanking, user?.id) : []);
+    // Pagination component
+    const PaginationControls = ({ currentPage, onPageChange, itemsLength }) => {
+        return (
+            <div className="border-t border-border pt-4 mt-4">
+                <div className="flex items-center justify-center gap-2">
+                <button
+                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                </button>
+                <span className="px-4 py-2 text-sm font-medium">
+                    Page {currentPage}
+                </span>
+                <button
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={itemsLength < 3}
+                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                </button>
+                </div>
+            </div>
+        );
+    };
+
+    const globalLeaderboard = isLoading ? [] : (globalRanking.length > 0 ? mapRankingData(globalRanking, user?.id, globalPage, 3) : []);
+    const top3Leaderboard = top3GlobalRanking.length > 0 ? mapRankingData(top3GlobalRanking, user?.id, 1, 3) : [];
+    const friendsLeaderboard = isLoading ? [] : (friendsRanking.length > 0 ? mapRankingData(friendsRanking, user?.id, friendsPage, 3) : []);
     const personalStats = isLoading ? null : (personalStatsData?.overall ? mapPersonalStats(personalStatsData) : getMockPersonalStats());
     // console.log("global leader board ", globalLeaderboard)
     return (
@@ -242,22 +302,22 @@ export function RankingPage() {
                 </TabsList>
 
                 <TabsContent value="global" className="space-y-6">
-                    {/* Top 3 Podium */}
-                    {globalLeaderboard.length >= 3 && (
+                    {/* Top 3 Podium - Always show Page 1 Data */}
+                    {top3Leaderboard.length >= 3 && (
                     <div className="grid grid-cols-3 gap-4">
                         {/* 2nd Place */}
                         <div className="flex flex-col items-center pt-12">
                             <Avatar className="w-20 h-20 mb-3 shadow-lg">
-                                <AvatarImage src={globalLeaderboard[1].avatar} />
+                                <AvatarImage src={top3Leaderboard[1].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
-                                    {globalLeaderboard[1].avatar}
+                                    {top3Leaderboard[1].avatar}
                                 </AvatarFallback>
                             </Avatar>
                             <p className="text-sm font-semibold truncate w-full text-center mb-1">
-                                {globalLeaderboard[1].username}
+                                {top3Leaderboard[1].username}
                             </p>
                             <p className="text-xs text-muted-foreground mb-2">
-                                {globalLeaderboard[1].score.toLocaleString()}
+                                {top3Leaderboard[1].score.toLocaleString()}
                             </p>
                             <Card className="w-full h-32 rounded-t-2xl bg-muted/50">
                                 <CardContent className="flex flex-col items-center justify-start pt-4 h-full">
@@ -271,16 +331,16 @@ export function RankingPage() {
                         <div className="flex flex-col items-center">
                             <Crown className="w-10 h-10 text-yellow-500 mb-2 animate-pulse" />
                             <Avatar className="w-24 h-24 mb-3 shadow-2xl ring-4 ring-yellow-500/30">
-                                <AvatarImage src={globalLeaderboard[0].avatar} />
+                                <AvatarImage src={top3Leaderboard[0].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
-                                    {globalLeaderboard[0].avatar}
+                                    {top3Leaderboard[0].avatar}
                                 </AvatarFallback>
                             </Avatar>
                             <p className="font-semibold truncate w-full text-center mb-1">
-                                {globalLeaderboard[0].username}
+                                {top3Leaderboard[0].username}
                             </p>
                             <p className="text-sm text-muted-foreground mb-2">
-                                {globalLeaderboard[0].score.toLocaleString()}
+                                {top3Leaderboard[0].score.toLocaleString()}
                             </p>
                             <Card className="w-full h-40 rounded-t-2xl bg-yellow-500 text-white border-yellow-400">
                                 <CardContent className="flex flex-col items-center justify-start pt-4 h-full">
@@ -293,16 +353,16 @@ export function RankingPage() {
                         {/* 3rd Place */}
                         <div className="flex flex-col items-center pt-16">
                             <Avatar className="w-20 h-20 mb-3 shadow-lg">
-                                <AvatarImage src={globalLeaderboard[2].avatar} />
+                                <AvatarImage src={top3Leaderboard[2].avatar} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xl font-semibold">
-                                    {globalLeaderboard[2].avatar}
+                                    {top3Leaderboard[2].avatar}
                                 </AvatarFallback>
                             </Avatar>
                             <p className="text-sm font-semibold truncate w-full text-center mb-1">
-                                {globalLeaderboard[2].username}
+                                {top3Leaderboard[2].username}
                             </p>
                             <p className="text-xs text-muted-foreground mb-2">
-                                {globalLeaderboard[2].score.toLocaleString()}
+                                {top3Leaderboard[2].score.toLocaleString()}
                             </p>
                             <Card className="w-full h-28 rounded-t-2xl bg-orange-500 text-white border-orange-400">
                                 <CardContent className="flex flex-col items-center justify-start pt-4 h-full">
@@ -399,6 +459,11 @@ export function RankingPage() {
                                 </tbody>
                             </table>
                         </div>
+                        <PaginationControls 
+                            currentPage={globalPage} 
+                            onPageChange={setGlobalPage}
+                            itemsLength={globalRanking.length}
+                        />
                     </Card>
                 </TabsContent>
 
@@ -546,6 +611,11 @@ export function RankingPage() {
                                 </tbody>
                             </table>
                         </div>
+                        <PaginationControls 
+                            currentPage={friendsPage} 
+                            onPageChange={setFriendsPage}
+                            itemsLength={friendsRanking.length}
+                        />
                     </Card>
                 </TabsContent>
 
@@ -628,7 +698,7 @@ export function RankingPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {mapRankingData(gameRanking, user?.id).map((player) => (
+                                        {mapRankingData(gameRanking, user?.id, gamePage, 3).map((player) => (
                                             <tr
                                                 key={player.rank}
                                                 className={`transition-colors duration-200 ${
@@ -676,6 +746,11 @@ export function RankingPage() {
                                     </div>
                                 )}
                             </div>
+                            <PaginationControls 
+                                currentPage={gamePage} 
+                                onPageChange={setGamePage}
+                                itemsLength={gameRanking.length}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -800,4 +875,4 @@ export function RankingPage() {
             </Tabs>
         </div>
     );
-}
+    }

@@ -146,18 +146,28 @@ class User {
       .first();
     return !!user;
   };
-  static getAllUsers = async () => {
+  static getAllUsers = async (page = 1, limit = 1000) => {
     try {
-      return await db("users").select(
-        "id",
-        "name",
-        "username",
-        "email",
-        "role",
-        "avatar",
-        "phone",
-        "created_at",
-      );
+      const offset = (page - 1) * limit;
+
+      const [countResult] = await db("users").count("id as total");
+      const total = parseInt(countResult.total);
+
+      const data = await db("users")
+        .select(
+          "id",
+          "name",
+          "username",
+          "email",
+          "role",
+          "avatar",
+          "phone",
+          "created_at",
+        )
+        .limit(limit)
+        .offset(offset);
+
+      return { data, total };
     } catch (error) {
       throw new Error("Error fetching users: " + error.message);
     }

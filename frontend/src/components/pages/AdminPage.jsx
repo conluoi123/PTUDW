@@ -20,8 +20,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import { CreateGameDialog } from '@/components/admin/CreateGameDialog';
-
-
+import { UpdateUserDialog } from '@/components/admin/UpdateUserDialog';
+import { Pagination } from '@/components/ui/pagination';
 
 export function AdminPage() {
     const [activeTab, setActiveTab] = useState('overview');
@@ -32,51 +32,85 @@ export function AdminPage() {
     const [gameConfigs, setGameConfigs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     
+    // Pagination state
+    const [usersPage, setUsersPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const [gamesPage, setGamesPage] = useState(1);
+    const [totalGames, setTotalGames] = useState(0);
+    const LIMIT = 3;
+    
     // Dashboard overview data
     const [dashboardStats, setDashboardStats] = useState(null);
     const [dailyActiveUsers, setDailyActiveUsers] = useState([]);
     const [gamePopularity, setGamePopularity] = useState([]);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+    const [editingUserId, setEditingUserId] = useState(null);
 
-    // Fetch data on mount
+    // Function to refresh users list
+    const refreshUsers = async () => {
+         try {
+            const response = await adminService.getAllUsers(usersPage, LIMIT);
+            const { listUser, total } = response;
+            
+             // Map users data to match UI format
+             const mappedUsers = listUser.map(user => ({
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                level: user.level || 1,
+                totalGames: user.total_games || 0,
+                winRate: user.win_rate || 0,
+                status: user.role === 'admin' ? 'active' : (user.status || 'active'),
+                joinDate: user.create_at ? new Date(user.create_at).toISOString().split('T')[0] : 'N/A'
+            }));
+            setUsers(mappedUsers);
+            setTotalUsers(total);
+         } catch(e) { console.error(e); }
+    };
+
+    const handleEditUser = (userId) => {
+        setEditingUserId(userId);
+        setIsUpdateDialogOpen(true);
+    };
+
+    // Fetch Users
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const [usersData, gamesData, dashboardData] = await Promise.all([
-                    adminService.getAllUsers(),
-                    GameService.getAllGames(),
-                    adminService.getDashboardOverview()
-                ]);
+        refreshUsers();
+    }, [usersPage]);
+
+    // Fetch Games
+    useEffect(() => {
+        const fetchGames = async () => {
+             try {
+                const response = await GameService.getAllGames(gamesPage, LIMIT);
+                const { data, total } = response;
                 
-                // Map users data to match UI format
-                const mappedUsers = usersData.map(user => ({
-                    id: user.id,
-                    username: user.username,
-                    email: user.email,
-                    level: user.level || 1,
-                    totalGames: user.total_games || 0,
-                    winRate: user.win_rate || 0,
-                    status: user.role === 'admin' ? 'active' : (user.status || 'active'),
-                    joinDate: user.create_at ? new Date(user.create_at).toISOString().split('T')[0] : 'N/A'
-                }));
-                
-                setUsers(mappedUsers);
-                
-                // Map games data
-                if (gamesData?.data) {
-                    const mappedGames = gamesData.data.map(game => ({
+                if (data) {
+                    const mappedGames = data.map(game => ({
                         id: game.id,
                         name: game.name,
                         enabled: game.status === 'active',
                         boardSize: game.config?.boardSize || 'N/A',
                         maxPlayers: game.config?.maxPlayers || 2,
                         timeLimit: game.config?.timeLimit || 0,
-                        difficulty: game.config?.difficulty || 'medium'
+                        difficulty: game.config?.difficulty || 'medium',
+                        config: game.config
                     }));
                     setGameConfigs(mappedGames);
+                    setTotalGames(total);
                 }
+             } catch (e) { console.error(e); }
+        };
+        fetchGames();
+    }, [gamesPage]);
 
+    // Fetch Dashboard on mount
+    useEffect(() => {
+        const fetchDashboard = async () => {
+            try {
+                setIsLoading(true);
+                const dashboardData = await adminService.getDashboardOverview();
                 // Set dashboard data
                 if (dashboardData) {
                     setDashboardStats(dashboardData.stats);
@@ -89,11 +123,8 @@ export function AdminPage() {
                 setIsLoading(false);
             }
         };
-        
-        fetchData();
+        fetchDashboard();
     }, []);
-
-    // Mock data removed - now using real data from API
 
     const handleSort = (field) => {
         if (sortField === field) {
@@ -170,6 +201,8 @@ export function AdminPage() {
             <ChevronUp className="w-4 h-4 inline" /> :
             <ChevronDown className="w-4 h-4 inline" />;
     };
+
+
 
     return (
         <div className="space-y-6">
@@ -410,8 +443,18 @@ export function AdminPage() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <button
+                                                        onClick={() => {
+                                                            setEditingUserId(user.id);
+                                                            setIsUpdateDialogOpen(true);
+                                                        }}
+                                                        className="p-1 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleUserAction(user.id, 'delete')}
-                                                        className="p-1 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
+                                                        className="p-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded"
                                                         title="Delete"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -424,6 +467,13 @@ export function AdminPage() {
                                 </tbody>
                             </table>
                         </div>
+                        <Pagination 
+                            currentPage={usersPage} 
+                            onPageChange={setUsersPage} 
+                            hasNext={usersPage * LIMIT < totalUsers}
+                            hasPrevious={usersPage > 1}
+                            className="mt-4"
+                        />
                     </div>
                 </div>
             )}
@@ -449,7 +499,7 @@ export function AdminPage() {
                     {/* Games List */}
                     <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg overflow-hidden">
                         <div className="p-4 border-b border-border">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Games ({gameConfigs.length})</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Games ({totalGames})</h3>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full">
@@ -512,6 +562,13 @@ export function AdminPage() {
                                 </tbody>
                             </table>
                         </div>
+                        <Pagination 
+                            currentPage={gamesPage} 
+                            onPageChange={setGamesPage} 
+                            hasNext={gamesPage * LIMIT < totalGames}
+                            hasPrevious={gamesPage > 1}
+                            className="mt-4"
+                        />
                     </div>
 
                     {/* Game Popularity Chart */}
@@ -636,12 +693,32 @@ export function AdminPage() {
                 onGameCreated={async () => {
                     // Refresh games list
                     try {
-                        const response = await GameService.getAllGames();
-                        setGameConfigs(response.data || []);
+                        const response = await GameService.getAllGames(gamesPage, LIMIT);
+                        if (response.data) {
+                             const mappedGames = response.data.map(game => ({
+                                id: game.id,
+                                name: game.name,
+                                enabled: game.status === 'active',
+                                boardSize: game.config?.boardSize || 'N/A',
+                                maxPlayers: game.config?.maxPlayers || 2,
+                                timeLimit: game.config?.timeLimit || 0,
+                                difficulty: game.config?.difficulty || 'medium',
+                                config: game.config
+                            }));
+                            setGameConfigs(mappedGames);
+                            setTotalGames(response.total);
+                        }
                     } catch (error) {
                         console.error('Failed to refresh games:', error);
                     }
                 }}
+            />
+
+            <UpdateUserDialog 
+                isOpen={isUpdateDialogOpen}
+                userId={editingUserId}
+                onClose={() => setIsUpdateDialogOpen(false)}
+                onUserUpdated={refreshUsers}
             />
         </div>
     );

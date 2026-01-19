@@ -2,10 +2,17 @@ import GameModel from "../models/game.models.js";
 
 const getAllGames = async (req, res) => {
     try {
-        const games = await GameModel.getAll();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const { data: games, total } = await GameModel.getAll(page, limit);
+        
         return res.status(200).json({
             message: "Lấy danh sách games thành công",
-            data: games
+            data: games,
+            total,
+            page,
+            limit
         })
     } catch (error) {
         console.error(error);

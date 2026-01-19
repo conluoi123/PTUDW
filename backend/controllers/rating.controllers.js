@@ -78,10 +78,19 @@ const deleteRating = async (req, res) => {
 
 const getListRatings = async (req, res) => {
   try {
-    const ratings = await Rating.getAllRatings();
+    const page = parseInt(req.body?.page || req.query?.page || 1);
+    const limit = 3;
+    let ratings = await Rating.getAllRatings(page, limit);
+    let currentPage = page;
+
+    if ((!ratings || ratings.length === 0) && page > 1) {
+        ratings = await Rating.getAllRatings(1, limit);
+        currentPage = 1;
+    }
+
     return res
       .status(200)
-      .json({ message: "get list rating successfully", ratings });
+      .json({ message: "get list rating successfully", ratings, page: currentPage, limit });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });

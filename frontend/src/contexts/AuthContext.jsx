@@ -41,6 +41,7 @@ function AuthProvider({ children }) {
       console.error("Xóa cookie không thành công", error);
     } finally {
       setUser(null);
+      localStorage.removeItem("userId");
       setIsLoading(false);
       setIsLogout(true);
     }

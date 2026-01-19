@@ -1,66 +1,43 @@
-const API_BASE = 'http://localhost:3000/api'
-
-const headers = {
-    'Content-Type': 'application/json'
-}
-
-const handleResponse = async (response) => {
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error.message || 'API Error')
-    }
-    return response.json()
-}
+import api from "./service";
 
 export const friendService = {
     findUserById: async (storedId) => {
-        const res = await fetch(`${API_BASE}/friends/find?id=${storedId}`)
-        return handleResponse(res)
+        const res = await api.get(`/api/friends/find?id=${storedId}`);
+        return res.data;
     },
 
-    getFriendsList: async (userId) => {
-        const res = await fetch(`${API_BASE}/friends/list?userId=${userId}`)
-        console.log("res", res)
-        return handleResponse(res)
+    getFriendsList: async (userId, page = 1) => {
+        const res = await api.post(`/api/friends/list`, { currentUserId: userId, page });
+        return res.data;
     },
 
     getFriendRequests: async (userId) => {
-        const res = await fetch(`${API_BASE}/friends/requests?userId=${userId}`)
-        return handleResponse(res)
+        const res = await api.get(`/api/friends/requests?userId=${userId}`);
+        return res.data;
     },
 
-    getSuggestions: async (userId) => {
-        const res = await fetch(`${API_BASE}/friends/suggestions?userId=${userId}`)
-        return handleResponse(res)
+    getSuggestions: async (userId, page = 1) => {
+        const res = await api.post(`/api/friends/suggestions`, { currentUserId: userId, page });
+        return res.data;
     },
 
     acceptRequest: async (requesterId, currentUserId) => {
-        const res = await fetch(`${API_BASE}/friends/accept/${requesterId}`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ currentUserId })
-        })
-        return handleResponse(res)
+        const res = await api.post(`/api/friends/accept/${requesterId}`, { currentUserId });
+        return res.data;
     },
 
     removeOrReject: async (targetId, currentUserId) => {
-        const res = await fetch(`${API_BASE}/friends/remove/${targetId}`, {
-            method: 'DELETE',
-            headers,
-            body: JSON.stringify({ currentUserId })
-        })
-        return handleResponse(res)
+        const res = await api.delete(`/api/friends/remove/${targetId}`, {
+            data: { currentUserId } // axios delete body
+        });
+        return res.data;
     },
 
     sendRequest: async (currentUserId, targetUserId) => {
-        const res = await fetch(`${API_BASE}/friends/request`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                currentUserId,
-                targetUserId
-            })
-        })
-        return handleResponse(res)
+        const res = await api.post(`/api/friends/request`, {
+            currentUserId,
+            targetUserId
+        });
+        return res.data;
     }
-}
+};

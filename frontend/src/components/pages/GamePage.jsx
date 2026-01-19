@@ -3,10 +3,6 @@ import {
   Save,
   FolderOpen,
   Play,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  ArrowDown,
   CornerUpLeft,
   Gamepad2,
   Trophy,
@@ -15,7 +11,12 @@ import {
   MessageSquare,
   Star,
   X,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
+import { ratingService } from "../../services/gamePage.services";
 
 const BOARD_SIZE = 15;
 const COLORS = {
@@ -37,6 +38,17 @@ const GAMES = [
   { id: "memory", name: "Memory", description: "Card Flip" },
   { id: "draw", name: "Free Draw", description: "Pixel Art" },
 ];
+
+// --- MAPPING ID CHÍNH XÁC THEO DATABASE CỦA BẠN ---
+const GAME_DB_IDS = {
+  "caro5": 1,      // DB ID: 1 - Caro hàng 5
+  "caro4": 2,      // DB ID: 2 - Caro hàng 4
+  "tictactoe": 3,  // DB ID: 3 - Tic-tac-toe
+  "snake": 4,      // DB ID: 4 - Rắn săn mồi
+  "match3": 5,     // DB ID: 5 - Ghép hàng 3
+  "memory": 6,     // DB ID: 6 - Cờ trí nhớ
+  "draw": 7,       // DB ID: 7 - Bảng vẽ tự do
+};
 
 const ICONS = {
   caro5: [
@@ -238,23 +250,18 @@ export const GamesPage = () => {
   const [winner, setWinner] = useState(null);
   const [hintCell, setHintCell] = useState(null);
 
-  // Snake State
   const [snake, setSnake] = useState([[7, 7]]);
   const [food, setFood] = useState(null);
   const [direction, setDirection] = useState("RIGHT");
 
-  // Memory State
   const [memoryRevealed, setMemoryRevealed] = useState([]);
   const [memoryMatched, setMemoryMatched] = useState([]);
 
-  // Match3 State
   const [match3Selected, setMatch3Selected] = useState(null);
 
-  // Draw State
   const [isDragging, setIsDragging] = useState(false);
   const dragAction = useRef(null);
 
-  // Rating & Comment State
   const [showRating, setShowRating] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [currentRating, setCurrentRating] = useState(5);
@@ -270,13 +277,20 @@ export const GamesPage = () => {
     }
   }, [mode, gameIdx]);
 
-  // Load reviews on mount
+  // Fetch rating khi mở bảng rating hoặc khi đang chơi
   useEffect(() => {
-    const savedReviews = localStorage.getItem("retro_reviews");
-    if (savedReviews) {
-      setReviews(JSON.parse(savedReviews));
+    if (showRating || mode === "PLAYING") {
+      const frontendId = GAMES[gameIdx].id;
+      const backendId = GAME_DB_IDS[frontendId];
+
+      if (backendId) {
+        ratingService
+          .getRatingsByGame(backendId)
+          .then((data) => setReviews(data))
+          .catch((err) => console.error(err));
+      }
     }
-  }, []);
+  }, [gameIdx, showRating, mode]);
 
   useEffect(() => {
     if (mode === "PLAYING" && !isPaused && !winner && !showRating) {
@@ -285,7 +299,6 @@ export const GamesPage = () => {
     return () => clearInterval(timerRef.current);
   }, [mode, isPaused, winner, showRating]);
 
-  // Handle Drag Global
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       setIsDragging(false);
@@ -378,7 +391,7 @@ export const GamesPage = () => {
   };
 
   const handleControl = (action) => {
-    if (showRating) return; // Disable controls when rating is open
+    if (showRating) return;
 
     if (mode === "MENU") {
       if (action === "LEFT")
@@ -599,18 +612,27 @@ export const GamesPage = () => {
     setShowRating(!showRating);
   };
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (!commentText.trim()) return;
-    const newReview = {
-      id: Date.now(),
-      stars: currentRating,
-      text: commentText,
-      date: new Date().toLocaleDateString(),
-    };
-    const updatedReviews = [newReview, ...reviews];
-    setReviews(updatedReviews);
-    localStorage.setItem("retro_reviews", JSON.stringify(updatedReviews));
-    setCommentText("");
+    try {
+      const frontendId = GAMES[gameIdx].id;
+      const backendId = GAME_DB_IDS[frontendId];
+
+      if (!backendId) {
+        alert("Lỗi: Không tìm thấy ID game trong database.");
+        return;
+      }
+
+      await ratingService.submitRating(backendId, {
+        point: currentRating,
+        comment: commentText,
+      });
+      setCommentText("");
+      const updatedRatings = await ratingService.getRatingsByGame(backendId);
+      setReviews(updatedRatings);
+    } catch (error) {
+      alert(error.response?.data?.error || "Failed to submit rating");
+    }
   };
 
   const renderCell = (i) => {
@@ -736,7 +758,6 @@ export const GamesPage = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Allow typing in the comment box if rating is open
       if (showRating) return;
 
       if (
@@ -864,7 +885,6 @@ export const GamesPage = () => {
                   </div>
                 )}
 
-                {/* RATING MODAL */}
                 {showRating && (
                   <div className="absolute inset-0 bg-slate-900/95 z-50 rounded-lg flex flex-col p-4 text-white overflow-hidden">
                     <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-2">
@@ -892,8 +912,14 @@ export const GamesPage = () => {
                             className="bg-slate-800 p-2 rounded text-xs border border-slate-700"
                           >
                             <div className="flex justify-between text-slate-400 mb-1 text-[10px]">
-                              <span>Anonymous User</span>
-                              <span>{rev.date}</span>
+                              <span>
+                                {rev.user_name ||
+                                  rev.user_username ||
+                                  "Anonymous User"}
+                              </span>
+                              <span>
+                                {new Date(rev.created_at).toLocaleDateString()}
+                              </span>
                             </div>
                             <div className="flex mb-1">
                               {[1, 2, 3, 4, 5].map((s) => (
@@ -901,14 +927,14 @@ export const GamesPage = () => {
                                   key={s}
                                   size={10}
                                   className={
-                                    s <= rev.stars
+                                    s <= rev.point
                                       ? "text-yellow-400 fill-yellow-400"
                                       : "text-slate-600"
                                   }
                                 />
                               ))}
                             </div>
-                            <p className="text-slate-200">{rev.text}</p>
+                            <p className="text-slate-200">{rev.comment}</p>
                           </div>
                         ))
                       )}

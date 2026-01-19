@@ -52,10 +52,9 @@ export function LoadingOverlay({ message = "Loading...", description = "" }) {
                             
                             {/* Progress bar */}
                             <div className="w-64 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-pulse rounded-full"
+                                <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
                                      style={{ 
-                                         animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, shimmer 2s linear infinite',
-                                         backgroundSize: '200% 100%'
+                                         animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                                      }}>
                                 </div>
                             </div>
@@ -63,13 +62,6 @@ export function LoadingOverlay({ message = "Loading...", description = "" }) {
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-                @keyframes shimmer {
-                    0% { background-position: -200% 0; }
-                    100% { background-position: 200% 0; }
-                }
-            `}</style>
         </div>
     );
 }

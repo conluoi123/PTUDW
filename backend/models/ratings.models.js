@@ -31,7 +31,7 @@ class Rating {
           point,
           comment,
           created_at: new Date(),
-          updated_at: new Date(),
+          // updated_at: new Date(),
         })
         .returning("*");
       return newRatings;
@@ -46,7 +46,7 @@ class Rating {
         .update({
           point,
           comment,
-          updated_at: new Date(),
+          // updated_at: new Date(),
         })
         .returning("*");
       return upRatings;

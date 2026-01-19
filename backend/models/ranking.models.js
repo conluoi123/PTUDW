@@ -2,8 +2,9 @@ import db from "../models/db.js";
 
 class Ranking {
   // Ranking global cho 1 game cụ thể
-  static rankingGlobal = async (gameId) => {
+  static rankingGlobal = async (gameId, page = 1, limit = 3) => {
     try {
+      const offset = (page - 1) * limit;
       const ranking = await db
         .select(
           "u.id as user_id",
@@ -24,7 +25,9 @@ class Ranking {
             .as("t");
         })
         .join("users as u", "t.user_id", "u.id")
-        .orderBy("ranking", "asc");
+        .orderBy("ranking", "asc")
+        .limit(limit)
+        .offset(offset);
 
       return ranking;
     } catch (error) {
@@ -33,8 +36,9 @@ class Ranking {
   };
 
   // Ranking global OVERALL (tất cả games)
-  static rankingGlobalOverall = async () => {
+  static rankingGlobalOverall = async (page = 1, limit = 3) => {
     try {
+      const offset = (page - 1) * limit;
       const ranking = await db
         .select(
           "u.id as user_id",
@@ -55,7 +59,8 @@ class Ranking {
         })
         .join("users as u", "t.user_id", "u.id")
         .orderBy("ranking", "asc")
-        .limit(100);
+        .limit(limit)
+        .offset(offset);
 
       return ranking;
     } catch (error) {
@@ -173,8 +178,9 @@ class Ranking {
   };
 
   // Ranking friends cho 1 game
-  static rankingListFriends = async (gameId, userId) => {
+  static rankingListFriends = async (gameId, userId, page = 1, limit = 3) => {
     try {
+      const offset = (page - 1) * limit;
       const friendIds = db("friends")
         .where("user_id_01", userId)
         .select("user_id_02 as id")
@@ -207,7 +213,9 @@ class Ranking {
             .as("t");
         })
         .join("users as u", "t.user_id", "u.id")
-        .orderBy("ranking", "asc");
+        .orderBy("ranking", "asc")
+        .limit(limit)
+        .offset(offset);
 
       return ranking;
     } catch (error) {
@@ -216,8 +224,9 @@ class Ranking {
   };
 
   // Ranking friends OVERALL (tất cả games)
-  static rankingFriendsOverall = async (userId) => {
+  static rankingFriendsOverall = async (userId, page = 1, limit = 3) => {
     try {
+      const offset = (page - 1) * limit;
       const friendIds = db("friends")
         .where("user_id_01", userId)
         .select("user_id_02 as id")
@@ -249,7 +258,9 @@ class Ranking {
             .as("t");
         })
         .join("users as u", "t.user_id", "u.id")
-        .orderBy("ranking", "asc");
+        .orderBy("ranking", "asc")
+        .limit(limit)
+        .offset(offset);
 
       return ranking;
     } catch (error) {

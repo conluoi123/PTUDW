@@ -34,7 +34,8 @@ export const deleteFriendship = async (userId1, userId2) => {
     .del()
 }
 
-export const getFriendsList = async (userId) => {
+export const getFriendsList = async (userId, page = 1, limit = 3) => {
+  const offset = (page - 1) * limit;
   return await db('friendships')
     .join('users', function () {
       this.on('users.id', '=', 'friendships.requester_id').orOn(
@@ -51,7 +52,9 @@ export const getFriendsList = async (userId) => {
     })
     .andWhere('friendships.status', 'accepted')
     .andWhere('users.id', '!=', userId)
-    .select('users.id', 'users.username', 'users.name', 'users.email')
+    .select('users.id', 'users.username', 'users.name', 'users.email', 'users.avatar')
+    .limit(limit)
+    .offset(offset)
 }
 
 export const getPendingRequests = async (userId) => {
@@ -62,20 +65,42 @@ export const getPendingRequests = async (userId) => {
     .select('users.id', 'users.username', 'users.name', 'users.email', 'friendships.create_at as requestedAt')
 }
 
-export const getSuggestions = async (userId) => {
-  const subquery = db('friendships')
-    .select('requester_id')
-    .where('addressee_id', userId)
-    .union(function () {
-      this.select('addressee_id').from('friendships').where('requester_id', userId)
-    });
+export const getSuggestions = async (userId, page = 1, limit = 3) => {
+  const offset = (page - 1) * limit;
 
+  // Use whereNotExists to filter out existing relationships (both pending and accepted)
+  // Check both directions: requester_id=userId OR addressee_id=userId
   return await db('users')
-    .whereNotIn('id', subquery)
-    .andWhere('id', '!=', userId)
-    .select('id', 'username', 'name')
+    .whereNot('id', userId)
+    .whereNotExists(function() {
+      this.select('*')
+        .from('friendships')
+        .where(function() {
+          this.whereRaw('friendships.requester_id = users.id AND friendships.addressee_id = ?', [userId])
+              .orWhereRaw('friendships.requester_id = ? AND friendships.addressee_id = users.id', [userId])
+        })
+    })
+    .select('id', 'username', 'name', 'avatar')
+    .limit(limit)
+    .offset(offset);
 }
 
 export const getUserById = async (id) => {
   return await db('users').where('id', id).first();
 }
+
+export const getSuggestionsCount = async (userId) => {
+    const result = await db('users')
+      .whereNot('id', userId)
+      .whereNotExists(function() {
+        this.select('*')
+          .from('friendships')
+          .where(function() {
+            this.whereRaw('friendships.requester_id = users.id AND friendships.addressee_id = ?', [userId])
+                .orWhereRaw('friendships.requester_id = ? AND friendships.addressee_id = users.id', [userId])
+          })
+      })
+      .count('id as total')
+      .first();
+    return result.total;
+  }

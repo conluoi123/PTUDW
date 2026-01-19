@@ -7,8 +7,10 @@ router.post('/accept/:id', friendController.acceptRequest)
 router.delete('/remove/:id', friendController.removeFriend)
 router.get('/search/:id', friendController.searchFriendStatus)
 router.get('/list', friendController.getListFriends)
+router.post('/list', friendController.getListFriends)
 router.get('/requests', friendController.getPendingRequests)
 router.get('/suggestions', friendController.getSuggestions)
+router.post('/suggestions', friendController.getSuggestions)
 router.get('/find', friendController.findUserById)
 
 export default router;

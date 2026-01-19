@@ -3,13 +3,13 @@ import api from '@/services/service';
 const BASE_URL = '/api/messages';
 
 export const MessageService = {
-    getConversations: async (userId) => {
+    getConversations: async (userId, page = 1) => {
         try {
-            const response = await api.get(`${BASE_URL}/conversation/${userId}`);
-            return response.data;
+            const response = await api.post(`${BASE_URL}/conversation/${userId}`, { page });
+            return { data: response.data.data, page: response.data.page, limit: response.data.limit };
         } catch (err) {
             console.error(err);
-            return [];
+            return { data: [], page: 1, limit: 3 };
         }
     },
 

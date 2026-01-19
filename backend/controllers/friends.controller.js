@@ -41,11 +41,20 @@ export const removeFriend = async (req, res) => {
 export const getListFriends = async (req, res) => {
   try {
     const currentUserId = req.query.userId || req.body.currentUserId
+    const page = parseInt(req.body?.page || req.query?.page || 1)
+    const limit = 3
     console.log("Getting friends list for user:", currentUserId)
     if (!currentUserId) return res.status(400).json({ message: 'Missing userId' })
 
-    const list = await friendService.getListFriends(currentUserId)
-    res.status(200).json({ data: list })
+    let list = await friendService.getListFriends(currentUserId, page, limit)
+    let currentPage = page;
+
+    if ((!list || list.length === 0) && page > 1) {
+        list = await friendService.getListFriends(currentUserId, 1, limit);
+        currentPage = 1;
+    }
+
+    res.status(200).json({ data: list, page: currentPage, limit })
   }
   catch (error) {
     console.error("Error in getListFriends:", error)
@@ -79,8 +88,19 @@ export const getPendingRequests = async (req, res) => {
 export const getSuggestions = async (req, res) => {
   try {
     const currentUserId = req.query.userId || req.body.currentUserId
-    const list = await friendService.getSuggestions(currentUserId)
-    res.status(200).json({ data: list })
+    const page = parseInt(req.body?.page || req.query?.page || 1)
+    const limit = 3
+    
+    let list = await friendService.getSuggestions(currentUserId, page, limit)
+    let total = await friendService.getSuggestionsCount(currentUserId);
+    let currentPage = page;
+
+    if ((!list || list.length === 0) && page > 1) {
+        list = await friendService.getSuggestions(currentUserId, 1, limit);
+        currentPage = 1;
+    }
+
+    res.status(200).json({ data: list, total, page: currentPage, limit })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

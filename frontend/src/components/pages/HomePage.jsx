@@ -10,7 +10,9 @@ import {
   Gamepad2,
   Swords,
   MessageSquareQuote,
-  Star
+  Star,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import api from '@/services/service';
 import { 
@@ -25,7 +27,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 import { ratingService } from "@/services/rating.services";
+import { loadingService } from "@/services/loading.services"; // Is this needed?
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
+import { Pagination } from "@/components/ui/pagination";
 export const HomePage = () => {
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
@@ -35,17 +39,22 @@ export const HomePage = () => {
   const CATEGORIES = ["Tất cả", "Trí tuệ", "Chiến thuật", "Đối kháng", "Giải trí"];
   const { user } = useContext(AuthContext);
   const [ratings, setRatings] = useState([]);
+  const [ratingsPage, setRatingsPage] = useState(1);
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [gamesRes, ratingsData] = await Promise.all([
+        const [gamesRes, ratingsResponse] = await Promise.all([
           api.get('/api/games'),
-          ratingService.getListRating()
+          ratingService.getListRating(ratingsPage)
         ]);
         
         setGames(gamesRes.data.data || []);
-        setRatings(ratingsData || []);
+        setRatings(ratingsResponse?.ratings || []);
+        // Sync page if backend returned different page (fallback logic)
+        if (ratingsResponse?.page && ratingsResponse.page !== ratingsPage) {
+          setRatingsPage(ratingsResponse.page);
+        }
       } catch (error) {
         console.error("Failed to load data", error);
       } finally {
@@ -53,7 +62,7 @@ export const HomePage = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [ratingsPage]);
 
   const getGameImage = (game) => {
     if (game.config && game.config.image) return game.config.image;
@@ -349,6 +358,19 @@ export const HomePage = () => {
                     </div>
                 )}
             </div>
+
+
+
+            {/* Pagination for ratings */}
+            {ratings.length > 0 && (
+                <Pagination
+                    currentPage={ratingsPage}
+                    onPageChange={setRatingsPage}
+                    hasNext={ratings.length >= 3}
+                    hasPrevious={ratingsPage > 1}
+                    className="border-t border-border pt-6 mt-6"
+                />
+            )}
         </section>
     </div>
   );

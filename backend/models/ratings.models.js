@@ -65,8 +65,9 @@ class Rating {
   }
 
   // lấy hết tất cả các đánh giá để hiển thị trang Home
-  static getAllRatings = async () => {
+  static getAllRatings = async (page = 1, limit = 3) => {
     try {
+      const offset = (page - 1) * limit;
       return await db("ratings")
         .join("users", "ratings.user_id", "users.id")
         .join("games", "ratings.game_id", "games.id")
@@ -82,7 +83,8 @@ class Rating {
           "games.id as game_id"
         )
         .orderBy("ratings.created_at", "desc")
-        .limit(6); // Limit to 6 most recent reviews for homepage
+        .limit(limit)
+        .offset(offset);
     } catch (err) {
       console.error(err);
       throw new Error("Error get list ratings");

@@ -1,10 +1,10 @@
 import api from "./service";
 
 export const ratingService = {
-    getListRating: async () => {
+    getListRating: async (page = 1) => {
         try {
-            const response = await api.get("/api/ratings/list_ratings");
-            return response.data.ratings;
+            const response = await api.post("/api/ratings/list_ratings", { page });
+            return { ratings: response.data.ratings, page: response.data.page, limit: response.data.limit };
         } catch (error) {
             console.error(error);
             throw error;

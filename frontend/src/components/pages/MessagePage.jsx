@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, memo, useRef, useEffect, useContext } from 'react';
-import { MessageCircle, Send, Search, MoreVertical, Phone, Video, Image, Smile, ArrowLeft, Check, CheckCheck } from 'lucide-react';
+import { MessageCircle, Send, Search, MoreVertical, Phone, Video, Image, Smile, ArrowLeft, Check, CheckCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { MessageService } from '@/services/message.services';
 import { AuthContext } from '@/contexts/AuthContext';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import { Pagination } from '@/components/ui/pagination';
 
 
 
@@ -164,6 +165,7 @@ export function MessagesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef(null);
     const { user } = useContext(AuthContext);
+    const [conversationsPage, setConversationsPage] = useState(1);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -178,7 +180,8 @@ export function MessagesPage() {
 
         const fetchConversations = async () => {
             try {
-                const data = await MessageService.getConversations(user.id);
+                const response = await MessageService.getConversations(user.id, conversationsPage);
+                const data = response.data || [];
                 
                 // Map backend data to UI format
                 const formattedConversations = data.map(conv => ({
@@ -208,7 +211,7 @@ export function MessagesPage() {
         // Vì ko realtime nên setInterval 10s sẽ useEffect một lần
         const interval = setInterval(fetchConversations, 10000);
         return () => clearInterval(interval);
-    }, [user?.id]); // Add user.id to dependency
+    }, [user?.id, conversationsPage]); // Add user.id and conversationsPage to dependency
     // conversations.map((conv)=> {
     //     console.log(conv.avatar);
     // }) // debug
@@ -368,7 +371,7 @@ export function MessagesPage() {
                 </div>
 
                 {/* Conversation List */}
-                <ScrollArea className="flex-1 bg-white/30 dark:bg-transparent h-[calc(100vh-200px)]" type='always'>
+                <ScrollArea className="flex-1 bg-white/30 dark:bg-transparent" type='always'>
                     <div className="divide-y divide-gray-100 dark:divide-white/5">
                         {isLoading ? (
                              <div className="p-8 text-center text-gray-500 text-sm">Loading conversations...</div>
@@ -393,7 +396,19 @@ export function MessagesPage() {
                             </p>
                         </div>
                     )}
+
                 </ScrollArea>
+
+                {/* Pagination for conversations */}
+                {!isLoading && (conversations.length > 0 || conversationsPage > 1) && !searchQuery && (
+                    <Pagination
+                        currentPage={conversationsPage}
+                        onPageChange={setConversationsPage}
+                        hasNext={conversations.length >= 3}
+                        hasPrevious={conversationsPage > 1}
+                        className="p-4 border-t border-gray-200 dark:border-white/5 bg-white/50 dark:bg-[#16181d]/50 backdrop-blur-sm"
+                    />
+                )}
             </div>
 
             {/* Chat Area */}

@@ -14,11 +14,15 @@ const rankingRouter = (app) => {
 
     // Public routes (không cần auth)
     router.get("/global/overall", getRankingGlobalOverall);
+    router.post("/global/overall", getRankingGlobalOverall);
     router.get("/global/:gameId", getRankingGlobal);
+    router.post("/global/:gameId", getRankingGlobal);
 
     // Protected routes (cần auth để biết userId)
     router.get("/friends/overall", authenticateAccessToken, getRankingFriendsOverall);
+    router.post("/friends/overall", authenticateAccessToken, getRankingFriendsOverall);
     router.get("/friends/:gameId", authenticateAccessToken, getRankingFriendList);
+    router.post("/friends/:gameId", authenticateAccessToken, getRankingFriendList);
     router.get("/personal/stats", authenticateAccessToken, getPersonalStatsOverall);
     router.get("/user/:gameId", authenticateAccessToken, getRanking);
 

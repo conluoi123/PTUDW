@@ -12,10 +12,19 @@ class Game {
         this.config = data.config;
     }
 
-    static async getAll() {
+    static async getAll(page = 1, limit = 1000) {
         try {
-            const games = await db("games").select("*");
-            return games;
+            const offset = (page - 1) * limit;
+            
+            const [countResult] = await db("games").count("id as total");
+            const total = parseInt(countResult.total);
+
+            const games = await db("games")
+                .select("*")
+                .limit(limit)
+                .offset(offset);
+                
+            return { data: games, total };
         } catch (error) {
             console.error(error); // Fixed console.err
             throw new Error("Lỗi lấy danh sách games");

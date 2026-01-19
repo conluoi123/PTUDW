@@ -1,13 +1,15 @@
-import { useState, useMemo, useCallback, memo, useEffect } from 'react';
-import { UserPlus, UserCheck, UserMinus, Search, Users, X } from 'lucide-react';
+import { useState, useMemo, useCallback, memo, useEffect, useContext } from 'react';
+import { AuthContext } from '@/contexts/AuthContext';
+import { UserPlus, UserCheck, UserMinus, Search, Users, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, Input, Badge, Card, CardContent } from '@mui/material';
-import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { friendService } from '../../services/friends.services';
+import { Pagination } from '@/components/ui/pagination';
 
 const enrichUserData = (user) => ({
     ...user,
-    avatar: user.name ? user.name.substring(0, 2).toUpperCase() : 'UN',
+    avatar: user.avatar || (user.name ? user.name.substring(0, 2).toUpperCase() : 'UN'),
     level: Math.floor(Math.random() * 50) + 1,
     isOnline: Math.random() > 0.5,
     mutualFriends: Math.floor(Math.random() * 10),
@@ -24,8 +26,9 @@ const FriendCard = memo(({ friend, onRemove, showActions = false }) => (
             <div className="flex items-center gap-4">
                 <div className="relative">
                     <Avatar className="w-14 h-14">
+                        <AvatarImage src={friend.avatar} alt={friend.name || friend.username} />
                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                            {friend.avatar}
+                            {friend.name ? friend.name.substring(0, 2).toUpperCase() : (friend.username ? friend.username.substring(0, 2).toUpperCase() : 'UN')}
                         </AvatarFallback>
                     </Avatar>
                     <OnlineStatusIndicator isOnline={friend.isOnline} />
@@ -104,8 +107,9 @@ const SuggestionCard = memo(({ suggestion, onSendRequest }) => (
             <div className="flex items-center gap-4">
                 <div className="relative">
                     <Avatar className="w-14 h-14">
+                        <AvatarImage src={suggestion.avatar} alt={suggestion.name || suggestion.username} />
                         <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                            {suggestion.avatar}
+                            {suggestion.name ? suggestion.name.substring(0, 2).toUpperCase() : (suggestion.username ? suggestion.username.substring(0, 2).toUpperCase() : 'UN')}
                         </AvatarFallback>
                     </Avatar>
                     <OnlineStatusIndicator isOnline={suggestion.isOnline} />
@@ -136,45 +140,33 @@ export function FriendsPage() {
     const [friendRequests, setFriendRequests] = useState([]);
     const [suggestions, setSuggestions] = useState([]);
 
-    const [currentUserId, setCurrentUserId] = useState(null);
+    const [totalSuggestions, setTotalSuggestions] = useState(0);
+
+    const { user } = useContext(AuthContext);
     const [loading, setLoading] = useState(true);
+    
+    // Pagination states
+    const [friendsPage, setFriendsPage] = useState(1);
+    const [suggestionsPage, setSuggestionsPage] = useState(1);
 
-    useEffect(() => {
-        const fetchUserId = async () => {
-            const storedId = localStorage.getItem('userId');
 
-            if (!storedId) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const data = await friendService.findUserById(storedId);
-
-                if (data.data && data.data.id) {
-                    setCurrentUserId(data.data.id);
-                    fetchAllData(data.data.id);
-                }
-            } catch {
-                setLoading(false);
-            }
-        };
-
-        fetchUserId();
-    }, []);
 
     const fetchAllData = async (userId) => {
         setLoading(true);
         try {
             const [friendsData, requestsData, suggestionsData] = await Promise.all([
-                friendService.getFriendsList(userId),
+                friendService.getFriendsList(userId, friendsPage),
                 friendService.getFriendRequests(userId),
-                friendService.getSuggestions(userId)
+                friendService.getSuggestions(userId, suggestionsPage)
             ]);
 
-            setFriends(friendsData.data.map(enrichUserData));
-            setFriendRequests(requestsData.data.map(enrichUserData));
-            setSuggestions(suggestionsData.data.map(enrichUserData));
+            setFriends((friendsData.data || []).map(enrichUserData));
+            setFriendRequests((requestsData.data || []).map(enrichUserData));
+            setSuggestions((suggestionsData.data || []).map(enrichUserData));
+            if (suggestionsData.total) setTotalSuggestions(suggestionsData.total);
+            
+            if (friendsData.page && friendsData.page !== friendsPage) setFriendsPage(friendsData.page);
+            if (suggestionsData.page && suggestionsData.page !== suggestionsPage) setSuggestionsPage(suggestionsData.page);
         } catch (error) {
             console.error(error);
         } finally {
@@ -182,11 +174,45 @@ export function FriendsPage() {
         }
     };
 
+    // Initial Fetch when user is available
+    useEffect(() => {
+        if (user?.id) {
+            fetchAllData(user.id);
+        }
+    }, [user]);
+
+    // Refetch when page changes
+    // Refetch when pagination changes
+    useEffect(() => {
+        if (user?.id) {
+            const fetchData = async () => {
+                try {
+                    // Only fetch the specific tab data needed or all if complex
+                    // For simplicity, we can fetch specific lists based on active tab or just specific pagination updates
+                    // Here we update friends and suggestions as they are paginated
+                    const [friendsData, suggestionsData] = await Promise.all([
+                        friendService.getFriendsList(user.id, friendsPage),
+                        friendService.getSuggestions(user.id, suggestionsPage)
+                    ]);
+                    setFriends((friendsData.data || []).map(enrichUserData));
+                    setSuggestions((suggestionsData.data || []).map(enrichUserData));
+                    if (suggestionsData.total) setTotalSuggestions(suggestionsData.total);
+
+                    if (friendsData.page && friendsData.page !== friendsPage) setFriendsPage(friendsData.page);
+                    if (suggestionsData.page && suggestionsData.page !== suggestionsPage) setSuggestionsPage(suggestionsData.page);
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+            fetchData();
+        }
+    }, [friendsPage, suggestionsPage, user]);
+
     const handleAcceptRequest = useCallback(
         async (requesterId) => {
-            if (!currentUserId) return;
+            if (!user?.id) return;
             try {
-                await friendService.acceptRequest(requesterId, currentUserId);
+                await friendService.acceptRequest(requesterId, user.id);
                 const acceptedUser = friendRequests.find((r) => r.id === requesterId);
                 setFriendRequests((prev) => prev.filter((r) => r.id !== requesterId));
                 if (acceptedUser) {
@@ -196,41 +222,41 @@ export function FriendsPage() {
                 console.error(error);
             }
         },
-        [friendRequests, currentUserId]
+        [friendRequests, user?.id]
     );
 
     const handleRejectOrRemove = useCallback(
         async (targetId) => {
-            if (!currentUserId) return;
+            if (!user?.id) return;
             try {
-                await friendService.removeOrReject(targetId, currentUserId);
+                await friendService.removeOrReject(targetId, user.id);
                 setFriendRequests((prev) => prev.filter((r) => r.id !== targetId));
                 setFriends((prev) => prev.filter((f) => f.id !== targetId));
             } catch (error) {
                 console.error(error);
             }
         },
-        [currentUserId]
+        [user?.id]
     );
 
     const handleSendRequest = useCallback(
         async (targetUserId) => {
-            if (!currentUserId) return;
+            if (!user?.id) return;
             try {
-                await friendService.sendRequest(currentUserId, targetUserId);
+                await friendService.sendRequest(user.id, targetUserId);
                 setSuggestions((prev) => prev.filter((s) => s.id !== targetUserId));
                 alert('Friend request sent!');
             } catch (error) {
                 console.error(error);
             }
         },
-        [currentUserId]
+        [user?.id]
     );
 
     const filteredFriends = useMemo(() => {
         if (!searchQuery) return friends;
         return friends.filter(friend =>
-            friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+            (friend.name || friend.username || '').toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [friends, searchQuery]);
 
@@ -276,7 +302,7 @@ export function FriendsPage() {
                         </span>
                     </TabsTrigger>
                     <TabsTrigger value="suggestions" className="flex-1 sm:flex-none">
-                        Suggestions ({suggestions.length})
+                        Suggestions ({totalSuggestions})
                     </TabsTrigger>
                 </TabsList>
 
@@ -316,6 +342,17 @@ export function FriendsPage() {
                             </CardContent>
                         </Card>
                     )}
+
+                    {/* Pagination for friends */}
+                    {filteredFriends.length > 0 && !searchQuery && (
+                        <Pagination 
+                            currentPage={friendsPage} 
+                            onPageChange={setFriendsPage} 
+                            hasNext={friends.length >= 3}
+                            hasPrevious={friendsPage > 1}
+                            className="border-t border-border pt-4 mt-4"
+                        />
+                    )}
                 </TabsContent>
 
                 <TabsContent value="requests" className="space-y-4">
@@ -344,7 +381,7 @@ export function FriendsPage() {
                 </TabsContent>
 
                 <TabsContent value="suggestions" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         {suggestions.map(suggestion => (
                             <SuggestionCard
                                 key={suggestion.id}
@@ -364,6 +401,17 @@ export function FriendsPage() {
                                 </p>
                             </CardContent>
                         </Card>
+                    )}
+
+                    {/* Pagination for suggestions */}
+                    {suggestions.length > 0 && (
+                        <Pagination 
+                            currentPage={suggestionsPage} 
+                            onPageChange={setSuggestionsPage} 
+                            hasNext={suggestions.length >= 3}
+                            hasPrevious={suggestionsPage > 1}
+                            className="border-t border-border pt-4 mt-4"
+                        />
                     )}
                 </TabsContent>
             </Tabs>

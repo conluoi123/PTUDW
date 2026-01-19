@@ -2,10 +2,10 @@ import api from "./service";
 
 const adminService = {
     // User Management
-    getAllUsers: async () => {
+    getAllUsers: async (page = 1, limit = 10) => {
         try {
-            const response = await api.get("/api/admin/users");
-            return response.data.listUser;
+            const response = await api.get(`/api/admin/users?page=${page}&limit=${limit}`);
+            return response.data; // Now returns { listUser, total, page, limit }
         } catch (error) {
             console.error("Error fetching users:", error);
             throw error;

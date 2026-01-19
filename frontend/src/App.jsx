@@ -20,10 +20,12 @@ import { FriendsPage } from './components/pages/FriendsPage';
 import { MemoryCardGame } from './components/games/MemoryCardGame';
 import { Caro5 } from './components/games/Caro5';
 import { Caro4 } from './components/games/Caro4';
+import ScrollToTop from './components/utils/ScrollToTop';
 function App() {
   
     return (
       <BrowserRouter>
+        <ScrollToTop />
         <ThemeProvider>
           <AuthProvider>
             <Routes>

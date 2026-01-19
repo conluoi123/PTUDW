@@ -91,7 +91,7 @@ export function AdminPage() {
                         id: game.id,
                         name: game.name,
                         enabled: game.status === 'active',
-                        boardSize: game.config?.boardSize || 'N/A',
+                        boardSize: game.config?.board_size || game.config?.boardSize || 'N/A',
                         maxPlayers: game.config?.maxPlayers || 2,
                         timeLimit: game.config?.timeLimit || 0,
                         difficulty: game.config?.difficulty || 'medium',
@@ -148,6 +148,65 @@ export function AdminPage() {
         } catch (error) {
             console.error("Error toggling game:", error);
             alert("Failed to toggle game status");
+        }
+    };
+
+    const handleSaveConfigs = async () => {
+        try {
+            // Loop through all games and update them one by one
+            // In a real app, you might want a bulk update API
+            const updatePromises = gameConfigs.map(game => {
+                // Prepare the update payload. 
+                // We need to merge the top-level status with the config object updates.
+                const updatePayload = {
+                    status: game.enabled ? 'active' : 'inactive',
+                    config: {
+                        ...game.config,
+                        boardSize: game.boardSize,
+                        maxPlayers: game.maxPlayers,
+                        timeLimit: game.timeLimit,
+                        difficulty: game.difficulty,
+                        // Ensure other config fields are preserved or updated if needed
+                        // Mapping back to backend expectation if needed. 
+                        // Note: backend 'board_size' in seeds vs frontend 'boardSize'. 
+                        // We should probably save as 'board_size' to match seed convention if that's what backend expects 
+                        // OR ensure frontend and backend agree. 
+                        // Seed used "board_size". Let's save both or map it.
+                        board_size: game.boardSize 
+                    }
+                };
+                return adminService.updateGame(game.id, updatePayload);
+            });
+
+            await Promise.all(updatePromises);
+            alert("All changes saved successfully!");
+            
+            // Refresh to get latest state
+            const fetchGames = async () => {
+                 try {
+                    const response = await GameService.getAllGames(gamesPage, LIMIT);
+                    const { data, total } = response;
+                    if (data) {
+                        const mappedGames = data.map(game => ({
+                            id: game.id,
+                            name: game.name,
+                            enabled: game.status === 'active',
+                            boardSize: game.config?.board_size || game.config?.boardSize || 'N/A', // Handle both keys
+                            maxPlayers: game.config?.maxPlayers || 2,
+                            timeLimit: game.config?.timeLimit || 0,
+                            difficulty: game.config?.difficulty || 'medium',
+                            config: game.config
+                        }));
+                        setGameConfigs(mappedGames);
+                        setTotalGames(total);
+                    }
+                 } catch (e) { console.error(e); }
+            };
+            fetchGames();
+
+        } catch (error) {
+            console.error("Error saving configs:", error);
+            alert("Failed to save changes. Check console for details.");
         }
     };
 
@@ -600,7 +659,9 @@ export function AdminPage() {
                     <div className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-gray-900 dark:text-white">Game Configuration</h3>
-                            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors">
+                            <button 
+                                onClick={handleSaveConfigs}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors">
                                 <Save className="w-4 h-4" />
                                 Save All Changes
                             </button>
@@ -610,70 +671,70 @@ export function AdminPage() {
                     {gameConfigs.map((game) => (
                         <div
                             key={game.id}
-                            className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-6"
+                            className="bg-card dark:bg-card border border-border dark:border-border rounded-lg p-4"
                         >
-                            <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <h3 className="text-lg text-gray-900 dark:text-white mb-1">{game.name}</h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Configure game parameters</p>
+                                    <h3 className="text-base font-bold text-gray-900 dark:text-white mb-0.5">{game.name}</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Configure parameters</p>
                                 </div>
                                 <button
                                     onClick={() => handleToggleGame(game.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-colors ${game.enabled
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-medium transition-colors ${game.enabled
                                         ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                                         : 'border-gray-300 dark:border-gray-700 bg-accent dark:bg-accent text-gray-600 dark:text-gray-400'
                                         }`}
                                 >
-                                    {game.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                    {game.enabled ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                                     {game.enabled ? 'Enabled' : 'Disabled'}
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div>
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                         Board Size
                                     </label>
                                     <input
                                         type="text"
                                         value={game.boardSize}
                                         onChange={(e) => handleUpdateGameConfig(game.id, 'boardSize', e.target.value)}
-                                        className="w-full px-3 py-2 bg-accent dark:bg-accent border border-border dark:border-border rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-2 py-1.5 text-sm bg-accent dark:bg-accent border border-border dark:border-border rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                         Max Players
                                     </label>
                                     <input
                                         type="number"
                                         value={game.maxPlayers}
                                         onChange={(e) => handleUpdateGameConfig(game.id, 'maxPlayers', parseInt(e.target.value))}
-                                        className="w-full px-3 py-2 bg-accent dark:bg-accent border border-border dark:border-border rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-2 py-1.5 text-sm bg-accent dark:bg-accent border border-border dark:border-border rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                        Time Limit (seconds)
+                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Time (s)
                                     </label>
                                     <input
                                         type="number"
                                         value={game.timeLimit}
                                         onChange={(e) => handleUpdateGameConfig(game.id, 'timeLimit', parseInt(e.target.value))}
-                                        className="w-full px-3 py-2 bg-accent dark:bg-accent border border-border dark:border-border rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-2 py-1.5 text-sm bg-accent dark:bg-accent border border-border dark:border-border rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                         Difficulty
                                     </label>
                                     <select
                                         value={game.difficulty}
                                         onChange={(e) => handleUpdateGameConfig(game.id, 'difficulty', e.target.value)}
-                                        className="w-full px-3 py-2 bg-accent dark:bg-accent border border-border dark:border-border rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                        className="w-full px-2 py-1.5 text-sm bg-accent dark:bg-accent border border-border dark:border-border rounded-md text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
                                     >
                                         <option value="easy">Easy</option>
                                         <option value="medium">Medium</option>
@@ -683,6 +744,13 @@ export function AdminPage() {
                             </div>
                         </div>
                     ))}
+                    <Pagination 
+                        currentPage={gamesPage} 
+                        onPageChange={setGamesPage} 
+                        hasNext={gamesPage * LIMIT < totalGames}
+                        hasPrevious={gamesPage > 1}
+                        className="mt-4"
+                    />
                 </div>
             )}
 
@@ -699,7 +767,7 @@ export function AdminPage() {
                                 id: game.id,
                                 name: game.name,
                                 enabled: game.status === 'active',
-                                boardSize: game.config?.boardSize || 'N/A',
+                                boardSize: game.config?.board_size || game.config?.boardSize || 'N/A',
                                 maxPlayers: game.config?.maxPlayers || 2,
                                 timeLimit: game.config?.timeLimit || 0,
                                 difficulty: game.config?.difficulty || 'medium',

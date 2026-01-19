@@ -22,7 +22,7 @@ import { Caro5 } from './components/games/Caro5';
 import { Caro4 } from './components/games/Caro4';
 import { TicTacToe } from './components/games/TicTacToe.jsx';
 import ScrollToTop from './components/utils/ScrollToTop';
-import { Snake } from './components/games/Snake.jsx';
+// import { Snake } from './components/games/Snake.jsx';
 function App() {
   
     return (
@@ -61,7 +61,7 @@ function App() {
                 <Route path="/games/caro-5" element={<Caro5 />} />
                 <Route path="/games/caro-4" element={<Caro4 />} />
                 <Route path = "/games/TicTacToe" element = {<TicTacToe />} />
-                <Route path ="/games/snake" element = {<Snake/>}/>
+                {/* <Route path ="/games/snake" element = {<Snake/>}/> */}
               </Route>
               </Route>  
             </Routes>

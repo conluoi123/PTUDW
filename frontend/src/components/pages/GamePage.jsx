@@ -19,6 +19,7 @@ import {
   Palette,
 } from "lucide-react";
 import { ratingService } from "../../services/gamePage.services";
+import { GameService } from "../../services/game.services";
 
 const DEFAULT_BOARD_SIZE = 15;
 
@@ -62,15 +63,19 @@ const MEMORY_ICONS = [
   "🌜", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒"
 ];
 
-const GAMES = [
-  { id: "caro5", name: "Caro 5", description: "5 in a row", config: { board_size: "15*15" } },
-  { id: "caro4", name: "Caro 4", description: "Connect 4", config: { board_size: "15*15" } },
-  { id: "tictactoe", name: "Tic Tac Toe", description: "3 in a row", config: { board_size: "3*3" } },
-  { id: "snake", name: "Snake", description: "Classic Snake", config: { board_size: "15*15" } },
-  { id: "match3", name: "Match 3", description: "Tile Matching", config: { board_size: "15*15" } },
-  { id: "memory", name: "Memory", description: "Card Flip", config: { board_size: "15*15" } },
-  { id: "draw", name: "Free Draw", description: "Pixel Art", config: { board_size: "15*15" } },
+const FALLBACK_GAMES = [
+  { id: "caro5", name: "Caro 5", description: "5 in a row", config: { board_size: "15*15" }, status: "active", instruction: "Win by getting 5 in a row." },
 ];
+
+// This mapping might still be needed if your backend returns numeric IDs but frontend uses string IDs for logic.
+// However, if backend returns the string ID in the 'id' field (or 'slug'), we can use that directly.
+// For now, assuming backend 'id' matches the frontend logic keys (caro5, tictactoe, etc.), OR we map them dynamically.
+// If backend IDs are numeric (1, 2, 3) and we need string keys for ICONS, we might need a reverse map or rely on `game.name` or `game.tictactoe_id` if it exists.
+// Let's assume the API returns an 'id' that is the NUMERIC ID, and maybe a 'code' or we infer logic from name?
+// Actually, looking at previous context, GAME_DB_IDS mapped "caro5" -> 1.
+// If the API returns the numeric ID as `id`, we need to know which frontend logic (ICONS, rules) to apply.
+// We will try to match by Name or assume the API returns a `code` field. If not, we might have to map by Name.
+// For now, let's keep GAME_DB_IDS for reverse lookup if needed, but we will mostly rely on the fetched list.
 
 const GAME_DB_IDS = {
   "caro5": 1,
@@ -276,24 +281,72 @@ const resolveMatch3Board = (board, boardSize) => {
 export const GamesPage = () => {
   const location = useLocation();
   const [mode, setMode] = useState("MENU");
+  const [games, setGames] = useState([]);
   const [gameIdx, setGameIdx] = useState(0);
+  const [loading, setLoading] = useState(true);
+  
+  // Toast State
+  const [toast, setToast] = useState(null); // { message, type }
+
+  // Instruction Modal State
+  const [showInstruction, setShowInstruction] = useState(false);
 
   useEffect(() => {
-    if (location.state?.gameId) {
-      const targetDbId = location.state.gameId;
-      const targetFrontendId = Object.keys(GAME_DB_IDS).find(key => GAME_DB_IDS[key] === targetDbId);
-      
-      if (targetFrontendId) {
-        const targetIndex = GAMES.findIndex(g => g.id === targetFrontendId);
-        if (targetIndex !== -1) {
-          setGameIdx(targetIndex);
+    const fetchGames = async () => {
+      try {
+        const response = await GameService.getAllGames(1, 100);
+        if (response && response.data) {
+           // We need to ensure the games have the correct 'logic key' for our frontend ICONS/Rules.
+           // Since we don't have a 'code' field in the DB schema shown earlier, we might have to map by ID or Name.
+           // Schema: id, name, description, instruction, thumbnail, status, create_at, config
+           // Hardcoded mapping for now to link DB ID to UI Logic:
+           const LOGIC_MAP = {
+             1: "caro5",
+             2: "caro4",
+             3: "tictactoe",
+             4: "snake", 
+             5: "match3",
+             6: "memory",
+             7: "draw"
+           };
+           
+           const mappedGames = response.data.map(g => ({
+             ...g,
+             logicKey: LOGIC_MAP[g.id] || "unknown" 
+           }));
+           setGames(mappedGames);
+        } else {
+           setGames(FALLBACK_GAMES.map(g => ({...g, logicKey: g.id})));
         }
+      } catch (error) {
+        console.error("Failed to fetch games", error);
+        setGames(FALLBACK_GAMES.map(g => ({...g, logicKey: g.id})));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGames();
+  }, []);
+
+  useEffect(() => {
+    if (games.length > 0 && location.state?.gameId) {
+      const targetIndex = games.findIndex(g => g.id === location.state.gameId);
+      if (targetIndex !== -1) {
+        setGameIdx(targetIndex);
       }
     }
-  }, [location.state]);
+  }, [location.state, games]);
 
-  // Derive board size from current game config
-  const configBoardSize = GAMES[gameIdx].config?.board_size;
+  // Toast Helper
+  const showToast = (message) => {
+    setToast({ message });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const currentGame = games[gameIdx];
+  // Safe access to derived props
+  const logicKey = currentGame?.logicKey || "caro5"; 
+  const configBoardSize = currentGame?.config?.board_size;
   const parsedSize = configBoardSize ? parseInt(configBoardSize.split('*')[0]) : DEFAULT_BOARD_SIZE;
   const currentBoardSize = isNaN(parsedSize) ? DEFAULT_BOARD_SIZE : parsedSize;
 
@@ -327,16 +380,15 @@ export const GamesPage = () => {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (mode === "MENU") {
-      setBoard(generateIconGrid(GAMES[gameIdx].id, currentBoardSize));
+    if (mode === "MENU" && logicKey) {
+      setBoard(generateIconGrid(logicKey, currentBoardSize));
       setWinner(null);
     }
-  }, [mode, gameIdx]);
+  }, [mode, gameIdx, logicKey, currentBoardSize]);
 
   useEffect(() => {
     if (showRating || mode === "PLAYING") {
-      const frontendId = GAMES[gameIdx].id;
-      const backendId = GAME_DB_IDS[frontendId];
+      const backendId = currentGame?.id;
 
       if (backendId) {
         ratingService
@@ -401,7 +453,7 @@ export const GamesPage = () => {
   useEffect(() => {
     if (
       mode === "PLAYING" &&
-      GAMES[gameIdx].id === "snake" &&
+      logicKey === "snake" &&
       !isPaused &&
       !winner &&
       !showRating
@@ -471,18 +523,22 @@ export const GamesPage = () => {
 
     if (mode === "MENU") {
       if (action === "LEFT")
-        setGameIdx((prev) => (prev - 1 + GAMES.length) % GAMES.length);
-      if (action === "RIGHT") setGameIdx((prev) => (prev + 1) % GAMES.length);
+        setGameIdx((prev) => (prev - 1 + games.length) % games.length);
+      if (action === "RIGHT") setGameIdx((prev) => (prev + 1) % games.length);
       if (action === "ENTER") {
+        if (currentGame.status !== "active") {
+             showToast("Game is disabled");
+             return;
+        }
         setMode("PLAYING");
-        initGame(GAMES[gameIdx].id);
+        initGame(logicKey);
       }
       return;
     }
     if (mode === "PLAYING") {
       if (winner) {
         if (action === "ENTER") {
-          initGame(GAMES[gameIdx].id);
+          initGame(logicKey);
         }
         if (action === "BACK") {
           setWinner(null);
@@ -505,7 +561,7 @@ export const GamesPage = () => {
 
   const handleMouseClick = (index) => {
     if (mode !== "PLAYING" || isPaused || winner || showRating) return;
-    if (GAMES[gameIdx].id === "snake") return;
+    if (logicKey === "snake") return;
     setCursor(index);
     handleGameInput("ENTER", index);
   };
@@ -515,7 +571,7 @@ export const GamesPage = () => {
     setIsDragging(true);
     setCursor(index);
 
-    if (GAMES[gameIdx].id === "draw") {
+    if (logicKey === "draw") {
       dragAction.current = "PAINT";
       const newB = [...board];
       newB[index] = drawColor;
@@ -535,7 +591,7 @@ export const GamesPage = () => {
     setCursor(index);
     const newB = [...board];
 
-    if (GAMES[gameIdx].id === "draw" && dragAction.current === "PAINT") {
+    if (logicKey === "draw" && dragAction.current === "PAINT") {
       newB[index] = drawColor;
     } else if (dragAction.current === "ADD") newB[index] = "X";
     else if (dragAction.current === "REMOVE") newB[index] = null;
@@ -544,7 +600,7 @@ export const GamesPage = () => {
   };
 
   const handleGameInput = (action, overrideCursor = null) => {
-    const gameId = GAMES[gameIdx].id;
+    const gameId = logicKey;
     const activeCursor = overrideCursor !== null ? overrideCursor : cursor;
     const totalCells = currentBoardSize * currentBoardSize;
 
@@ -704,8 +760,7 @@ export const GamesPage = () => {
   const submitReview = async () => {
     if (!commentText.trim()) return;
     try {
-      const frontendId = GAMES[gameIdx].id;
-      const backendId = GAME_DB_IDS[frontendId];
+      const backendId = currentGame?.id;
 
       if (!backendId) {
         alert("Lỗi: Không tìm thấy ID game trong database.");
@@ -726,7 +781,7 @@ export const GamesPage = () => {
 
   const renderCell = (i) => {
     const val = board[i];
-    const gameId = GAMES[gameIdx].id;
+    const gameId = logicKey;
     let color = "transparent";
     let text = "";
     let glow = false;
@@ -914,8 +969,56 @@ export const GamesPage = () => {
     showRating,
   ]);
 
+  if (loading || games.length === 0) {
+      return (
+        <div className="w-full min-h-screen flex items-center justify-center bg-zinc-900 text-white font-mono">
+           LOADING SYSTEM...
+        </div>
+      );
+  }
+
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-zinc-900 p-4 font-sans select-none">
+    <div className="w-full min-h-screen flex items-center justify-center bg-zinc-900 p-4 font-sans select-none relative">
+      {/* Custom Toast */}
+      {toast && (
+          <div className="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-[100] flex items-center gap-4 animate-bounce">
+              <span className="font-bold">{toast.message}</span>
+              <button onClick={() => setToast(null)}><X size={18} /></button>
+          </div>
+      )}
+
+      {/* Instruction Modal */}
+      {showInstruction && (
+        <div className="absolute inset-0 z-[60] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+           <div className="bg-slate-800 border border-slate-600 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+              <button 
+                  onClick={() => setShowInstruction(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              >
+                  <X size={24} />
+              </button>
+              
+              <div className="text-center mb-6">
+                  <h2 className="text-2xl font-black text-blue-500 mb-2 uppercase tracking-widest">{currentGame.name}</h2>
+                  <p className="text-slate-400 italic">{currentGame.description}</p>
+              </div>
+              
+              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-slate-300 text-sm leading-relaxed max-h-[60vh] overflow-y-auto">
+                  {currentGame.instruction || "No instructions available."}
+              </div>
+              
+              <div className="mt-6 flex justify-center">
+                  <button 
+                      onClick={() => setShowInstruction(false)}
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-2 rounded-full font-bold shadow-lg transition-all active:scale-95"
+                  >
+                      GOT IT
+                  </button>
+              </div>
+           </div>
+        </div>
+      )}
+
       <div className="relative w-full max-w-4xl bg-[#1e293b] rounded-[3rem] p-4 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border-4 border-[#334155] ring-8 ring-[#0f172a]">
         <div className="absolute top-0 left-0 w-full h-full rounded-[2.5rem] bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-50"></div>
 
@@ -942,10 +1045,10 @@ export const GamesPage = () => {
                 <span>
                   {mode === "MENU"
                     ? "SYSTEM READY"
-                    : `PLAYING: ${GAMES[gameIdx].name.toUpperCase()}`}
+                    : `PLAYING: ${currentGame.name.toUpperCase()}`}
                 </span>
                 <div className="flex items-center gap-4">
-                  {mode === "PLAYING" && GAMES[gameIdx].id !== "snake" && (
+                  {mode === "PLAYING" && logicKey !== "snake" && (
                     <span className="flex items-center gap-1 text-[10px] text-blue-400">
                       <MousePointer2 size={10} /> MOUSE ON
                     </span>
@@ -989,7 +1092,7 @@ export const GamesPage = () => {
                           BACK (Esc)
                         </button>
                         <button
-                          onClick={() => initGame(GAMES[gameIdx].id)}
+                          onClick={() => initGame(logicKey)}
                           className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-xs shadow-lg transition-all"
                         >
                           PLAY AGAIN (Enter)
@@ -1115,10 +1218,10 @@ export const GamesPage = () => {
           <div className="w-full md:w-72 bg-[#1e293b] p-4 flex flex-col justify-end gap-8 relative">
             <div className="bg-[#0f172a] p-4 rounded-xl border-l-4 border-blue-500 shadow-lg">
               <h3 className="text-white font-bold text-lg mb-1">
-                {GAMES[gameIdx].name}
+                {currentGame.name}
               </h3>
               <p className="text-slate-400 text-xs">
-                {GAMES[gameIdx].description}
+                {currentGame.description}
               </p>
             </div>
 
@@ -1137,7 +1240,7 @@ export const GamesPage = () => {
               </button>
             </div>
 
-            {mode === "PLAYING" && GAMES[gameIdx].id === "draw" && (
+            {mode === "PLAYING" && logicKey === "draw" && (
               <div className="min-h-[320px] flex flex-col justify-center mb-4">
                 <div className="bg-[#0f172a] p-3 rounded-xl border border-slate-700">
                   <div className="flex items-center gap-2 text-slate-400 text-xs mb-2 font-bold">
@@ -1161,7 +1264,7 @@ export const GamesPage = () => {
               </div>
             )}
 
-            {!(mode === "PLAYING" && GAMES[gameIdx].id === "draw") && (
+            {!(mode === "PLAYING" && logicKey === "draw") && (
               <div className="flex flex-col items-center gap-8 mb-4">
                 <div className="relative w-40 h-40">
                   <div className="absolute inset-0 bg-[#0f172a] rounded-full opacity-50 blur-xl"></div>
@@ -1222,7 +1325,7 @@ export const GamesPage = () => {
                 <FolderOpen size={16} />
               </button>
               <button
-                onClick={handleHint}
+                onClick={() => setShowInstruction(true)}
                 className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-yellow-400 hover:bg-slate-700"
               >
                 <HelpCircle size={16} />

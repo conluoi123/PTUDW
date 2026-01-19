@@ -62,7 +62,7 @@ export const HomePage = () => {
     };
     fetchData();
   }, [ratingsPage]);
-
+  console.log(games);
   const getGameImage = (game) => {
     if (game.config && game.config.image) return game.config.image;
     if (game.image) return game.image;
@@ -160,7 +160,7 @@ export const HomePage = () => {
                     {games.length > 0 ? games.map((game) => (
                       <CarouselItem key={game.id} className="basis-full">
                         <div 
-                          onClick={() => navigate(`/game/${game.id}`)}
+                          onClick={() => navigate('/games', { state: { gameId: game.id } })}
                           className="p-1"
                         >
                           <div className="group relative h-[350px] rounded-3xl overflow-hidden cursor-pointer border border-slate-800 bg-slate-900 shadow-2xl transition-all hover:shadow-indigo-500/20 hover:border-indigo-500/50">
@@ -184,7 +184,13 @@ export const HomePage = () => {
                                    <h3 className="text-4xl font-black text-white mb-2 leading-tight drop-shadow-md">{game.name}</h3>
                                    <p className="text-slate-300 line-clamp-2 max-w-lg text-lg mb-6 drop-shadow-sm">{game.tagline || game.description}</p>
                                    
-                                   <button className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 duration-300">
+                                     <button 
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         navigate('/games', { state: { gameId: game.id } });
+                                       }}
+                                     className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 duration-300"
+                                   >
                                      <Play className="w-5 h-5 fill-current" /> Chơi Ngay
                                    </button>
                                 </div>
@@ -263,7 +269,7 @@ export const HomePage = () => {
                     {/* Content */}
                     <CardContent 
                       className="relative h-full p-6 flex flex-col justify-end z-10"
-                      onClick={() => navigate(`/game/${game.id}`)}
+                      onClick={() => navigate('/games', { state: { gameId: game.id } })}
                     >
                       <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                         {/* Title */}
@@ -277,7 +283,13 @@ export const HomePage = () => {
                         </p>
                         
                         {/* Play Button */}
-                        <button className="w-full py-3 px-6 bg-white text-slate-900 font-semibold rounded-xl hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/games', { state: { gameId: game.id } });
+                          }}
+                          className="w-full py-3 px-6 bg-white text-slate-900 font-semibold rounded-xl hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                        >
                           <Play className="w-5 h-5" fill="currentColor" />
                           Play Now
                         </button>

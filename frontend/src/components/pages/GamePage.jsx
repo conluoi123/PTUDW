@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from 'react-router-dom';
 import {
   Save,
   FolderOpen,
   Play,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  ArrowDown,
   CornerUpLeft,
   Gamepad2,
   Trophy,
@@ -15,7 +12,13 @@ import {
   MessageSquare,
   Star,
   X,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Palette,
 } from "lucide-react";
+import { ratingService } from "../../services/gamePage.services";
 
 const BOARD_SIZE = 15;
 const COLORS = {
@@ -28,6 +31,36 @@ const COLORS = {
   food: "#ef4444",
 };
 
+const DRAW_COLORS = [
+  "#ffffff", 
+  "#ef4444", 
+  "#3b82f6", 
+  "#22c55e", 
+  "#eab308", 
+  "#a855f7", 
+  "#f97316", 
+  "#ec4899", 
+];
+
+const MEMORY_ICONS = [
+  "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼",
+  "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐙", "🐵",
+  "🐔", "🐧", "🐦", "🦆", "🦅", "🦉", "🦇", "🐺",
+  "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞",
+  "🐜", "🦟", "🦗", "🕷", "🦂", "🐢", "🐍", "🦎",
+  "🦖", "🦕", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍",
+  "🦧", "🦣", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒",
+  "🦘", "🦬", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏",
+  "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕‍🦺",
+  "🐈", "🐈‍⬛", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩",
+  "🕊", "🐇", "🦝", "🦨", "🦡", "🦦", "🦥", "🐁",
+  "🐀", "🐿", "🦔", "🐉", "🐲", "🌵", "🎄", "🌲",
+  "🌳", "🌴", "🌱", "🌿", "☘️", "🍀", "🎍", "🎋",
+  "🍃", "🍂", "🍁", "🍄", "🌾", "💐", "🌷", "🌹",
+  "🥀", "🌺", "🌸", "🌼", "🌻", "🌞", "🌝", "🌛", 
+  "🌜", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒"
+];
+
 const GAMES = [
   { id: "caro5", name: "Caro 5", description: "5 in a row" },
   { id: "caro4", name: "Caro 4", description: "Connect 4" },
@@ -37,6 +70,16 @@ const GAMES = [
   { id: "memory", name: "Memory", description: "Card Flip" },
   { id: "draw", name: "Free Draw", description: "Pixel Art" },
 ];
+
+const GAME_DB_IDS = {
+  "caro5": 1,
+  "caro4": 2,
+  "tictactoe": 3,
+  "snake": 4,
+  "match3": 5,
+  "memory": 6,
+  "draw": 7,
+};
 
 const ICONS = {
   caro5: [
@@ -228,8 +271,24 @@ const resolveMatch3Board = (board) => {
 };
 
 export const GamesPage = () => {
+  const location = useLocation();
   const [mode, setMode] = useState("MENU");
   const [gameIdx, setGameIdx] = useState(0);
+
+  useEffect(() => {
+    if (location.state?.gameId) {
+      const targetDbId = location.state.gameId;
+      const targetFrontendId = Object.keys(GAME_DB_IDS).find(key => GAME_DB_IDS[key] === targetDbId);
+      
+      if (targetFrontendId) {
+        const targetIndex = GAMES.findIndex(g => g.id === targetFrontendId);
+        if (targetIndex !== -1) {
+          setGameIdx(targetIndex);
+        }
+      }
+    }
+  }, [location.state]);
+
   const [board, setBoard] = useState(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
   const [cursor, setCursor] = useState(112);
   const [score, setScore] = useState(0);
@@ -238,23 +297,19 @@ export const GamesPage = () => {
   const [winner, setWinner] = useState(null);
   const [hintCell, setHintCell] = useState(null);
 
-  // Snake State
   const [snake, setSnake] = useState([[7, 7]]);
   const [food, setFood] = useState(null);
   const [direction, setDirection] = useState("RIGHT");
 
-  // Memory State
   const [memoryRevealed, setMemoryRevealed] = useState([]);
   const [memoryMatched, setMemoryMatched] = useState([]);
 
-  // Match3 State
   const [match3Selected, setMatch3Selected] = useState(null);
 
-  // Draw State
   const [isDragging, setIsDragging] = useState(false);
+  const [drawColor, setDrawColor] = useState("#ffffff");
   const dragAction = useRef(null);
 
-  // Rating & Comment State
   const [showRating, setShowRating] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [currentRating, setCurrentRating] = useState(5);
@@ -270,13 +325,19 @@ export const GamesPage = () => {
     }
   }, [mode, gameIdx]);
 
-  // Load reviews on mount
   useEffect(() => {
-    const savedReviews = localStorage.getItem("retro_reviews");
-    if (savedReviews) {
-      setReviews(JSON.parse(savedReviews));
+    if (showRating || mode === "PLAYING") {
+      const frontendId = GAMES[gameIdx].id;
+      const backendId = GAME_DB_IDS[frontendId];
+
+      if (backendId) {
+        ratingService
+          .getRatingsByGame(backendId)
+          .then((data) => setReviews(data))
+          .catch((err) => console.error(err));
+      }
     }
-  }, []);
+  }, [gameIdx, showRating, mode]);
 
   useEffect(() => {
     if (mode === "PLAYING" && !isPaused && !winner && !showRating) {
@@ -285,7 +346,6 @@ export const GamesPage = () => {
     return () => clearInterval(timerRef.current);
   }, [mode, isPaused, winner, showRating]);
 
-  // Handle Drag Global
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       setIsDragging(false);
@@ -344,7 +404,8 @@ export const GamesPage = () => {
   }, [mode, isPaused, winner, snakeStep, gameIdx, showRating]);
 
   const initGame = (id) => {
-    setBoard(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
+    const totalCells = BOARD_SIZE * BOARD_SIZE;
+    setBoard(Array(totalCells).fill(null));
     setWinner(null);
     setScore(0);
     setTimer(0);
@@ -362,12 +423,32 @@ export const GamesPage = () => {
       setDirection("UP");
       setFood(40);
     } else if (id === "memory") {
-      const icons = [1, 2, 3, 4, 5, 6, 7, 8];
-      setBoard([...icons, ...icons].sort(() => Math.random() - 0.5));
+      const pairCount = Math.floor(totalCells / 2);
+      let deck = [];
+      while (deck.length < pairCount) {
+        deck = [...deck, ...MEMORY_ICONS];
+      }
+      deck = deck.slice(0, pairCount);
+      deck = [...deck, ...deck];
+      deck.sort(() => Math.random() - 0.5);
+      
+      const newBoard = Array(totalCells).fill(null);
+      let deckIdx = 0;
+      for (let i = 0; i < totalCells; i++) {
+        if (totalCells % 2 !== 0 && i === Math.floor(totalCells / 2)) {
+            newBoard[i] = null;
+        } else {
+            if (deckIdx < deck.length) {
+                newBoard[i] = deck[deckIdx];
+                deckIdx++;
+            }
+        }
+      }
+      setBoard(newBoard);
       setMemoryRevealed([]);
       setMemoryMatched([]);
     } else if (id === "match3") {
-      const newB = Array(BOARD_SIZE * BOARD_SIZE)
+      const newB = Array(totalCells)
         .fill(null)
         .map(() => Math.floor(Math.random() * 5) + 1);
       const resolved = resolveMatch3Board(newB);
@@ -378,7 +459,7 @@ export const GamesPage = () => {
   };
 
   const handleControl = (action) => {
-    if (showRating) return; // Disable controls when rating is open
+    if (showRating) return;
 
     if (mode === "MENU") {
       if (action === "LEFT")
@@ -425,12 +506,19 @@ export const GamesPage = () => {
     if (mode !== "PLAYING" || isPaused || winner || showRating) return;
     setIsDragging(true);
     setCursor(index);
-    const action = board[index] ? "REMOVE" : "ADD";
-    dragAction.current = action;
 
-    const newB = [...board];
-    newB[index] = action === "ADD" ? "X" : null;
-    setBoard(newB);
+    if (GAMES[gameIdx].id === "draw") {
+      dragAction.current = "PAINT";
+      const newB = [...board];
+      newB[index] = drawColor;
+      setBoard(newB);
+    } else {
+      const action = board[index] ? "REMOVE" : "ADD";
+      dragAction.current = action;
+      const newB = [...board];
+      newB[index] = action === "ADD" ? "X" : null;
+      setBoard(newB);
+    }
   };
 
   const handleDrawMove = (index) => {
@@ -438,14 +526,19 @@ export const GamesPage = () => {
       return;
     setCursor(index);
     const newB = [...board];
-    if (dragAction.current === "ADD") newB[index] = "X";
+
+    if (GAMES[gameIdx].id === "draw" && dragAction.current === "PAINT") {
+      newB[index] = drawColor;
+    } else if (dragAction.current === "ADD") newB[index] = "X";
     else if (dragAction.current === "REMOVE") newB[index] = null;
+
     setBoard(newB);
   };
 
   const handleGameInput = (action, overrideCursor = null) => {
     const gameId = GAMES[gameIdx].id;
     const activeCursor = overrideCursor !== null ? overrideCursor : cursor;
+    const totalCells = BOARD_SIZE * BOARD_SIZE;
 
     if (gameId === "snake") {
       if (["UP", "DOWN", "LEFT", "RIGHT"].includes(action)) {
@@ -489,7 +582,7 @@ export const GamesPage = () => {
         setTimeout(() => aiMove(newB, gameId), 300);
       } else if (gameId === "draw") {
         const newB = [...board];
-        newB[activeCursor] = newB[activeCursor] ? null : "X";
+        newB[activeCursor] = newB[activeCursor] ? null : drawColor;
         setBoard(newB);
       } else if (gameId === "memory") {
         if (
@@ -504,7 +597,8 @@ export const GamesPage = () => {
             setMemoryMatched([...memoryMatched, ...newRev]);
             setScore((s) => s + 10);
             setMemoryRevealed([]);
-            if (memoryMatched.length + 2 === 16) setWinner("WIN");
+            const totalPlayable = totalCells - (totalCells % 2);
+            if (memoryMatched.length + 2 === totalPlayable) setWinner("WIN");
           } else {
             setTimeout(() => setMemoryRevealed([]), 1000);
           }
@@ -599,18 +693,27 @@ export const GamesPage = () => {
     setShowRating(!showRating);
   };
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (!commentText.trim()) return;
-    const newReview = {
-      id: Date.now(),
-      stars: currentRating,
-      text: commentText,
-      date: new Date().toLocaleDateString(),
-    };
-    const updatedReviews = [newReview, ...reviews];
-    setReviews(updatedReviews);
-    localStorage.setItem("retro_reviews", JSON.stringify(updatedReviews));
-    setCommentText("");
+    try {
+      const frontendId = GAMES[gameIdx].id;
+      const backendId = GAME_DB_IDS[frontendId];
+
+      if (!backendId) {
+        alert("Lỗi: Không tìm thấy ID game trong database.");
+        return;
+      }
+
+      await ratingService.submitRating(backendId, {
+        point: currentRating,
+        comment: commentText,
+      });
+      setCommentText("");
+      const updatedRatings = await ratingService.getRatingsByGame(backendId);
+      setReviews(updatedRatings);
+    } catch (error) {
+      alert(error.response?.data?.error || "Failed to submit rating");
+    }
   };
 
   const renderCell = (i) => {
@@ -620,57 +723,87 @@ export const GamesPage = () => {
     let text = "";
     let glow = false;
 
-    const isSnake =
-      gameId === "snake" && snake.some((s) => s[1] * 15 + s[0] === i);
-    const isSnakeHead =
-      gameId === "snake" &&
-      snake.length > 0 &&
-      snake[0][1] * 15 + snake[0][0] === i;
-    const isFood = gameId === "snake" && food === i;
-    const isCursor = mode === "PLAYING" && cursor === i;
+    // --- MENU MODE LOGIC ---
+    if (mode === "MENU") {
+      if (val === "ICON") {
+        color = COLORS.accent;
+        glow = true;
+      }
+    } else {
+      // --- PLAYING MODE LOGIC ---
+      
+      const isSnake =
+        gameId === "snake" && snake.some((s) => s[1] * 15 + s[0] === i);
+      const isSnakeHead =
+        gameId === "snake" &&
+        snake.length > 0 &&
+        snake[0][1] * 15 + snake[0][0] === i;
+      const isFood = gameId === "snake" && food === i;
+
+      if (gameId === "draw" && val) color = val;
+
+      if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
+        if (val === "X") {
+          color = COLORS.playerX;
+          text = "X";
+          glow = true;
+        }
+        if (val === "O") {
+          color = COLORS.playerO;
+          text = "O";
+          glow = true;
+        }
+      }
+
+      if (isSnake) color = isSnakeHead ? "#4ade80" : COLORS.snake;
+      if (isFood) {
+        color = COLORS.food;
+        glow = true;
+      }
+
+      if (gameId === "match3" && val) {
+        const colors = ["#ef4444", "#3b82f6", "#eab308", "#a855f7", "#22c55e"];
+        color = colors[val - 1] || "#fff";
+        text = ["●", "■", "▲", "◆", "★"][val - 1];
+      }
+
+      if (gameId === "memory") {
+        if (memoryRevealed.includes(i) || memoryMatched.includes(i)) {
+          text = val;
+          color = "#cbd5e1";
+          glow = true;
+        } else if (val) {
+          text = "?";
+          color = COLORS.cell;
+        }
+      }
+    }
+
+    const isCursor = mode === "PLAYING" && cursor === i && gameId !== "snake";
     const isHint = hintCell === i;
     const isSelected = match3Selected === i;
 
     const isClickable = mode === "PLAYING" && gameId !== "snake";
     const isGridDot = color === "transparent" && !val;
 
-    if (mode === "MENU" && val === "ICON") {
-      color = COLORS.accent;
-      glow = true;
-    }
-    if (gameId === "draw" && val) color = "#fff";
-    if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
-      if (val === "X") {
-        color = COLORS.playerX;
-        text = "X";
-        glow = true;
-      }
-      if (val === "O") {
-        color = COLORS.playerO;
-        text = "O";
-        glow = true;
-      }
-    }
-    if (isSnake) color = isSnakeHead ? "#4ade80" : COLORS.snake;
-    if (isFood) {
-      color = COLORS.food;
-      glow = true;
-    }
-    if (gameId === "match3" && val) {
-      const colors = ["#ef4444", "#3b82f6", "#eab308", "#a855f7", "#22c55e"];
-      color = colors[val - 1] || "#fff";
-      text = ["●", "■", "▲", "◆", "★"][val - 1];
-    }
-    if (gameId === "memory") {
-      if (memoryRevealed.includes(i) || memoryMatched.includes(i)) {
-        text = val;
-        color = "#cbd5e1";
-        glow = true;
-      } else if (val) {
-        text = "?";
-        color = COLORS.cell;
-      }
-    }
+    const isMatch3Cursor = gameId === "match3" && isCursor;
+    
+    const cellBackgroundColor = (gameId === "draw" && val)
+      ? val
+      : isMatch3Cursor
+      ? (color === "transparent" ? "rgba(255,255,255,0.1)" : color)
+      : isCursor
+      ? "#fff"
+      : isHint
+      ? "#fbbf24"
+      : (color === "transparent" ? COLORS.cell : color);
+
+    const cellFilter =
+      gameId === "match3" && (isCursor || isSelected)
+        ? "brightness(1.5)"
+        : "none";
+
+    const textSizeClass = gameId === "memory" ? "text-2xl" : "text-xs";
 
     return (
       <div
@@ -691,7 +824,7 @@ export const GamesPage = () => {
             : null
         }
         className={`
-            relative flex items-center justify-center text-xs font-bold transition-all duration-150
+            relative flex items-center justify-center ${textSizeClass} font-bold transition-all duration-150
             ${
               isGridDot
                 ? "rounded-full opacity-10 scale-50"
@@ -702,20 +835,16 @@ export const GamesPage = () => {
             } 
         `}
         style={{
-          backgroundColor: isCursor
-            ? "#fff"
-            : isHint
-            ? "#fbbf24"
-            : color === "transparent"
-            ? COLORS.cell
-            : color,
-          color: isCursor
-            ? "#000"
-            : gameId === "memory" || gameId === "match3"
-            ? isCursor
+          backgroundColor: cellBackgroundColor,
+          filter: cellFilter,
+          color:
+            isCursor && gameId !== "match3"
               ? "#000"
-              : "rgba(0,0,0,0.6)"
-            : "#fff",
+              : gameId === "memory" || gameId === "match3"
+              ? isCursor
+                ? "#fff"
+                : "rgba(0,0,0,0.6)"
+              : "#fff",
           width: "100%",
           height: "100%",
           opacity: mode === "MENU" && val !== "ICON" ? 0.1 : 1,
@@ -736,7 +865,6 @@ export const GamesPage = () => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Allow typing in the comment box if rating is open
       if (showRating) return;
 
       if (
@@ -864,7 +992,6 @@ export const GamesPage = () => {
                   </div>
                 )}
 
-                {/* RATING MODAL */}
                 {showRating && (
                   <div className="absolute inset-0 bg-slate-900/95 z-50 rounded-lg flex flex-col p-4 text-white overflow-hidden">
                     <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-2">
@@ -892,8 +1019,14 @@ export const GamesPage = () => {
                             className="bg-slate-800 p-2 rounded text-xs border border-slate-700"
                           >
                             <div className="flex justify-between text-slate-400 mb-1 text-[10px]">
-                              <span>Anonymous User</span>
-                              <span>{rev.date}</span>
+                              <span>
+                                {rev.user_name ||
+                                  rev.user_username ||
+                                  "Anonymous User"}
+                              </span>
+                              <span>
+                                {new Date(rev.created_at).toLocaleDateString()}
+                              </span>
                             </div>
                             <div className="flex mb-1">
                               {[1, 2, 3, 4, 5].map((s) => (
@@ -901,14 +1034,14 @@ export const GamesPage = () => {
                                   key={s}
                                   size={10}
                                   className={
-                                    s <= rev.stars
+                                    s <= rev.point
                                       ? "text-yellow-400 fill-yellow-400"
                                       : "text-slate-600"
                                   }
                                 />
                               ))}
                             </div>
-                            <p className="text-slate-200">{rev.text}</p>
+                            <p className="text-slate-200">{rev.comment}</p>
                           </div>
                         ))
                       )}
@@ -990,50 +1123,76 @@ export const GamesPage = () => {
               </button>
             </div>
 
-            <div className="flex flex-col items-center gap-8 mb-4">
-              <div className="relative w-40 h-40">
-                <div className="absolute inset-0 bg-[#0f172a] rounded-full opacity-50 blur-xl"></div>
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <button
-                    className="absolute top-0 w-12 h-14 bg-[#334155] rounded-t-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-start justify-center pt-2 shadow-lg"
-                    onClick={() => handleControl("UP")}
-                  >
-                    <ArrowUp size={24} className="text-slate-900" />
-                  </button>
-                  <button
-                    className="absolute bottom-0 w-12 h-14 bg-[#334155] rounded-b-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-end justify-center pb-2 shadow-lg"
-                    onClick={() => handleControl("DOWN")}
-                  >
-                    <ArrowDown size={24} className="text-slate-900" />
-                  </button>
-                  <button
-                    className="absolute left-0 h-12 w-14 bg-[#334155] rounded-l-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-start pl-2 shadow-lg"
-                    onClick={() => handleControl("LEFT")}
-                  >
-                    <ArrowLeft size={24} className="text-slate-900" />
-                  </button>
-                  <button
-                    className="absolute right-0 h-12 w-14 bg-[#334155] rounded-r-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-end pr-2 shadow-lg"
-                    onClick={() => handleControl("RIGHT")}
-                  >
-                    <ArrowRight size={24} className="text-slate-900" />
-                  </button>
-                  <div className="w-12 h-12 bg-[#334155] z-10"></div>
+            {mode === "PLAYING" && GAMES[gameIdx].id === "draw" && (
+              <div className="min-h-[320px] flex flex-col justify-center mb-4">
+                <div className="bg-[#0f172a] p-3 rounded-xl border border-slate-700">
+                  <div className="flex items-center gap-2 text-slate-400 text-xs mb-2 font-bold">
+                    <Palette size={12} /> PALETTE
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DRAW_COLORS.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setDrawColor(c)}
+                        className={`w-8 h-8 rounded-md transition-transform active:scale-90 ${
+                          drawColor === c
+                            ? "ring-2 ring-white ring-offset-2 ring-offset-slate-900"
+                            : ""
+                        }`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
+            )}
 
-              <button
-                onClick={() => handleControl("ENTER")}
-                className="w-24 h-24 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 shadow-[0_6px_0_rgb(30,58,138),0_15px_20px_rgba(0,0,0,0.4)] active:shadow-none active:translate-y-1.5 transition-all flex items-center justify-center border-4 border-[#1e293b]"
-              >
-                <span className="font-black text-white text-xl tracking-wider">
-                  Play
-                </span>
-              </button>
-              <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-[-20px]">
-                Enter / Space
+            {!(mode === "PLAYING" && GAMES[gameIdx].id === "draw") && (
+              <div className="flex flex-col items-center gap-8 mb-4">
+                <div className="relative w-40 h-40">
+                  <div className="absolute inset-0 bg-[#0f172a] rounded-full opacity-50 blur-xl"></div>
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <button
+                      className="absolute top-0 w-12 h-14 bg-[#334155] rounded-t-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-start justify-center pt-2 shadow-lg"
+                      onClick={() => handleControl("UP")}
+                    >
+                      <ArrowUp size={24} className="text-slate-900" />
+                    </button>
+                    <button
+                      className="absolute bottom-0 w-12 h-14 bg-[#334155] rounded-b-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-end justify-center pb-2 shadow-lg"
+                      onClick={() => handleControl("DOWN")}
+                    >
+                      <ArrowDown size={24} className="text-slate-900" />
+                    </button>
+                    <button
+                      className="absolute left-0 h-12 w-14 bg-[#334155] rounded-l-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-start pl-2 shadow-lg"
+                      onClick={() => handleControl("LEFT")}
+                    >
+                      <ArrowLeft size={24} className="text-slate-900" />
+                    </button>
+                    <button
+                      className="absolute right-0 h-12 w-14 bg-[#334155] rounded-r-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-end pr-2 shadow-lg"
+                      onClick={() => handleControl("RIGHT")}
+                    >
+                      <ArrowRight size={24} className="text-slate-900" />
+                    </button>
+                    <div className="w-12 h-12 bg-[#334155] z-10"></div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleControl("ENTER")}
+                  className="w-24 h-24 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 shadow-[0_6px_0_rgb(30,58,138),0_15px_20px_rgba(0,0,0,0.4)] active:shadow-none active:translate-y-1.5 transition-all flex items-center justify-center border-4 border-[#1e293b]"
+                >
+                  <span className="font-black text-white text-xl tracking-wider">
+                    Play
+                  </span>
+                </button>
+                <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-[-20px]">
+                  Enter / Space
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex gap-2 justify-center">
               <button

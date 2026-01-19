@@ -1,13 +1,42 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { ArrowLeft, RotateCcw, Circle, X, User, Cpu, Clock, Trophy, Play, Menu, Skull, Frown, Grid3x3, Save, FolderOpen, Pause } from "lucide-react";
 import { Button, Box, Typography, Paper, Card, CardContent } from "@mui/material";
 import { QuickSaveButtons } from './QuickSaveButtons';
 import { GameWithRating } from "./GameWithRating";
+import GameSessionService from '../../services/gameSession.service.js';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const BOARD_SIZE = 12;
 const WIN_STREAK = 4;
 const SAVE_KEY = "caro4_save_state";
+
+// Score calculation function
+const calculateScore = (result, durationInSeconds, moveCount, difficulty) => {
+  let baseScore = 0;
+  const speedBonus = Math.max(0, 500 - durationInSeconds * 5); // Bonus for quick games
+  
+  // Difficulty multiplier
+  const difficultyMultipliers = {
+    easy: 1.0,
+    medium: 1.5,
+    hard: 2.0
+  };
+  const difficultyMultiplier = difficultyMultipliers[difficulty] || 1.0;
+  
+  // Base score varies by result
+  if (result === 'win') {
+    baseScore = 800;
+  } else if (result === 'lose') {
+    baseScore = 0; // Set score to 0 when user loses
+  } else if (result === 'draw') {
+    baseScore = 500;
+  }
+
+  // Apply difficulty multiplier (harder games give more points)
+  const totalScore = Math.round((baseScore + speedBonus) * difficultyMultiplier);
+  return Math.max(0, totalScore); // Minimum score of 0
+};
 
 const DIFFICULTIES = {
   easy: { 
@@ -132,6 +161,7 @@ const getBestMove = (squares, difficulty) => {
 export function Caro4() {
   const location = useLocation();
   const { gameId } = location.state || {};
+  const { user } = useContext(AuthContext);
 
   const [gameStatus, setGameStatus] = useState("menu");
   const [difficulty, setDifficulty] = useState(null);
@@ -141,6 +171,56 @@ export function Caro4() {
   const [winner, setWinner] = useState(null);
   const [lastMove, setLastMove] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [startTime, setStartTime] = useState(null);
+
+  // Handle saving the game session when a game ends
+  const handleGameEnd = async (gameWinner) => {
+    // Only save if a user is logged in and the game has started
+    if (!user || !startTime) return;
+
+    const endTime = new Date();
+    const durationInSeconds = Math.round((endTime - startTime) / 1000);
+    
+    // Count moves played
+    const moveCount = board.filter(cell => cell !== null).length;
+
+    // Determine result
+    let result = 'draw';
+    if (gameWinner && gameWinner !== 'draw') {
+      // Assuming the user is always 'X' for simplicity
+      result = gameWinner === 'X' ? 'win' : 'lose';
+    }
+
+    const score = calculateScore(result, durationInSeconds, moveCount, difficulty);
+
+    const sessionData = {
+      game_id: 2, // Caro4 Game ID
+      score,
+      result,
+      duration: durationInSeconds,
+    };
+
+    try {
+      console.log("Saving game session:", sessionData);
+      console.log("Game result:", result, "Duration:", durationInSeconds, "s", "Score:", score);
+      const response = await GameSessionService.create(sessionData);
+      console.log("Game session saved successfully.", response);
+      
+      // Show achievement unlock notification (optional enhancement)
+      if (response.data?.achievements_unlocked) {
+        console.log("New achievements unlocked:", response.data.achievements_unlocked);
+      }
+    } catch (error) {
+      console.error("Failed to save game session:", error);
+    }
+  };
+
+  // Effect to handle game end
+  useEffect(() => {
+    if (winner && (gameStatus === 'won' || gameStatus === 'lost' || gameStatus === 'draw')) {
+      handleGameEnd(winner);
+    }
+  }, [gameStatus, winner]);
 
   const startGame = (level) => {
     setDifficulty(level);
@@ -150,6 +230,7 @@ export function Caro4() {
     setWinner(null);
     setLastMove(null);
     setTimeLeft(DIFFICULTIES[level].time);
+    setStartTime(new Date()); // Set start time for scoring
     setGameStatus("playing");
   };
 
@@ -229,6 +310,7 @@ export function Caro4() {
     setDifficulty(null);
     setBoard(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
     setTimeLeft(0);
+    setStartTime(null); // Reset start time
   };
 
   const gameState = {

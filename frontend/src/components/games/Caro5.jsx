@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { ArrowLeft, RotateCcw, Circle, X, User, Cpu, Clock, Trophy, Play, Menu, Skull, Frown, Grid3x3, Save, FolderOpen } from "lucide-react";
+import { ArrowLeft, RotateCcw, Circle, X, User, Cpu, Clock, Trophy, Play, Menu, Skull, Frown, Grid3x3, Save, FolderOpen, Pause } from "lucide-react";
 import { Button, Box, Typography, Paper, Card, CardContent } from "@mui/material";
 import { QuickSaveButtons } from './QuickSaveButtons';
 import { GameWithRating } from "./GameWithRating";
@@ -154,6 +154,21 @@ export function Caro5() {
   };
 
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        if (gameStatus === 'playing') {
+          setGameStatus('paused');
+        } else if (gameStatus === 'paused') {
+          setGameStatus('playing');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameStatus]);
+
+  useEffect(() => {
     if (gameStatus === "playing" && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
@@ -217,7 +232,7 @@ export function Caro5() {
   };
 
   const gameState = {
-    gameStatus: gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw" ? "menu" : gameStatus,
+    gameStatus: gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw" ? "menu" : (gameStatus === "paused" ? "playing" : gameStatus),
     difficulty,
     board,
     xIsNext,
@@ -360,7 +375,7 @@ export function Caro5() {
             </div>
           )}
 
-          {gameStatus !== "menu" && (
+          {(gameStatus === "playing" || gameStatus === "paused" || gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw") && (
             <div className="w-full max-w-3xl flex flex-col items-center gap-6 animate-in fade-in duration-500 py-4">
               
               <div className="w-full bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -392,7 +407,20 @@ export function Caro5() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-800 w-full overflow-hidden">
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-800 w-full overflow-hidden relative">
+                
+                {gameStatus === 'paused' && (
+                  <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900/10 backdrop-blur-sm animate-in fade-in">
+                     <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl border-2 border-slate-100 dark:border-slate-700 flex flex-col items-center">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-4">
+                           <Pause className="w-8 h-8 text-blue-600 dark:text-blue-400 stroke-[3px]" />
+                        </div>
+                        <Typography variant="h5" className="font-black text-slate-800 dark:text-white mb-2">GAME PAUSED</Typography>
+                        <Typography className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">Press Enter to Resume</Typography>
+                     </div>
+                  </div>
+                )}
+
                 <div 
                   className="grid gap-1 p-2 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800"
                   style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}
@@ -416,6 +444,12 @@ export function Caro5() {
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="flex justify-center w-full">
+                <Typography className="text-slate-400 dark:text-slate-500 text-sm font-bold tracking-wide flex items-center gap-2">
+                  Press <span className="bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-700">Enter</span> to Pause
+                </Typography>
               </div>
 
               {(gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw") && (

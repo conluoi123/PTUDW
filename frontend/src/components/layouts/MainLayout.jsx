@@ -85,19 +85,22 @@ export function MainLayout() {
                     Liên kết nhanh
                   </h4>
                   <ul className="space-y-2">
-                    {["Trang chủ", "Games", "Bảng xếp hạng", "Tin nhắn"].map(
-                      (link, i) => (
-                        <li key={i}>
-                          <a
-                            href="#"
-                            className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 group"
-                          >
-                            <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:scale-150 transition-transform"></span>
-                            {link}
-                          </a>
-                        </li>
-                      ),
-                    )}
+                    {[
+                      { label: "Trang chủ", path: "/home" },
+                      { label: "Games", path: "/games" },
+                      { label: "Bảng xếp hạng", path: "/ranking" },
+                      { label: "Tin nhắn", path: "/messages" }
+                    ].map((link, i) => (
+                      <li key={i}>
+                        <button
+                          onClick={() => navigate(link.path)}
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2 group cursor-pointer"
+                        >
+                          <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:scale-150 transition-transform"></span>
+                          {link.label}
+                        </button>
+                      </li>
+                    ))}
                   </ul>
                 </div>
 

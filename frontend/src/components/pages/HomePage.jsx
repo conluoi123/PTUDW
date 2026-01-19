@@ -27,7 +27,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 import { ratingService } from "@/services/rating.services";
-import { loadingService } from "@/services/loading.services"; // Is this needed?
+// import { loadingService } from "@/services/loading.services"; // Is this needed?
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import { Pagination } from "@/components/ui/pagination";
 export const HomePage = () => {

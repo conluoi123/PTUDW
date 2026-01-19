@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Save,
   FolderOpen,
-  Cpu,
   Play,
-  RotateCcw,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
@@ -14,23 +12,25 @@ import {
   Trophy,
   HelpCircle,
   MousePointer2,
+  MessageSquare,
+  Star,
+  X,
 } from "lucide-react";
 
-// --- CONSTANTS ---
 const BOARD_SIZE = 15;
 const COLORS = {
   bg: "#0f172a",
   cell: "#334155",
   accent: "#3b82f6",
-  playerX: "#3b82f6", // Xanh
-  playerO: "#ef4444", // Đỏ
+  playerX: "#3b82f6",
+  playerO: "#ef4444",
   snake: "#22c55e",
   food: "#ef4444",
 };
 
 const GAMES = [
   { id: "caro5", name: "Caro 5", description: "5 in a row" },
-  { id: "caro4", name: "Caro 4", description: "Connect 4 (Free)" },
+  { id: "caro4", name: "Caro 4", description: "Connect 4" },
   { id: "tictactoe", name: "Tic Tac Toe", description: "3 in a row" },
   { id: "snake", name: "Snake", description: "Classic Snake" },
   { id: "match3", name: "Match 3", description: "Tile Matching" },
@@ -38,7 +38,6 @@ const GAMES = [
   { id: "draw", name: "Free Draw", description: "Pixel Art" },
 ];
 
-// --- ICONS & LOGIC HELPERS ---
 const ICONS = {
   caro5: [
     [0, 0, 1, 0, 0],
@@ -137,7 +136,6 @@ const checkWin = (board, size, streak) => {
 };
 
 const findBestMove = (board, size, streak, playerTag, opponentTag) => {
-  // 1. Attack (Win immediately)
   for (let i = 0; i < board.length; i++) {
     if (board[i] === null) {
       board[i] = playerTag;
@@ -148,7 +146,6 @@ const findBestMove = (board, size, streak, playerTag, opponentTag) => {
       board[i] = null;
     }
   }
-  // 2. Defend (Block opponent)
   for (let i = 0; i < board.length; i++) {
     if (board[i] === null) {
       board[i] = opponentTag;
@@ -159,7 +156,6 @@ const findBestMove = (board, size, streak, playerTag, opponentTag) => {
       board[i] = null;
     }
   }
-  // 3. Random
   const empties = board
     .map((v, i) => (v === null ? i : null))
     .filter((v) => v !== null);
@@ -231,7 +227,6 @@ const resolveMatch3Board = (board) => {
   return { board: currentBoard, scoreDelta: totalScore };
 };
 
-// --- MAIN COMPONENT ---
 export const GamesPage = () => {
   const [mode, setMode] = useState("MENU");
   const [gameIdx, setGameIdx] = useState(0);
@@ -243,32 +238,62 @@ export const GamesPage = () => {
   const [winner, setWinner] = useState(null);
   const [hintCell, setHintCell] = useState(null);
 
-  // Snake States
+  // Snake State
   const [snake, setSnake] = useState([[7, 7]]);
   const [food, setFood] = useState(null);
   const [direction, setDirection] = useState("RIGHT");
 
-  // Memory States
+  // Memory State
   const [memoryRevealed, setMemoryRevealed] = useState([]);
   const [memoryMatched, setMemoryMatched] = useState([]);
 
-  // Match 3 States
+  // Match3 State
   const [match3Selected, setMatch3Selected] = useState(null);
+
+  // Draw State
+  const [isDragging, setIsDragging] = useState(false);
+  const dragAction = useRef(null);
+
+  // Rating & Comment State
+  const [showRating, setShowRating] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [currentRating, setCurrentRating] = useState(5);
+  const [commentText, setCommentText] = useState("");
 
   const gameLoopRef = useRef(null);
   const timerRef = useRef(null);
 
-  // --- LOOPS ---
   useEffect(() => {
-    if (mode === "MENU") setBoard(generateIconGrid(GAMES[gameIdx].id));
+    if (mode === "MENU") {
+      setBoard(generateIconGrid(GAMES[gameIdx].id));
+      setWinner(null);
+    }
   }, [mode, gameIdx]);
 
+  // Load reviews on mount
   useEffect(() => {
-    if (mode === "PLAYING" && !isPaused && !winner) {
+    const savedReviews = localStorage.getItem("retro_reviews");
+    if (savedReviews) {
+      setReviews(JSON.parse(savedReviews));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mode === "PLAYING" && !isPaused && !winner && !showRating) {
       timerRef.current = setInterval(() => setTimer((t) => t + 1), 1000);
     }
     return () => clearInterval(timerRef.current);
-  }, [mode, isPaused, winner]);
+  }, [mode, isPaused, winner, showRating]);
+
+  // Handle Drag Global
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      dragAction.current = null;
+    };
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+  }, []);
 
   const snakeStep = useCallback(() => {
     setSnake((prev) => {
@@ -310,14 +335,14 @@ export const GamesPage = () => {
       mode === "PLAYING" &&
       GAMES[gameIdx].id === "snake" &&
       !isPaused &&
-      !winner
+      !winner &&
+      !showRating
     ) {
       gameLoopRef.current = setInterval(snakeStep, 150);
     }
     return () => clearInterval(gameLoopRef.current);
-  }, [mode, isPaused, winner, snakeStep, gameIdx]);
+  }, [mode, isPaused, winner, snakeStep, gameIdx, showRating]);
 
-  // --- INIT ---
   const initGame = (id) => {
     setBoard(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
     setWinner(null);
@@ -326,6 +351,8 @@ export const GamesPage = () => {
     setIsPaused(false);
     setHintCell(null);
     setCursor(112);
+    setIsDragging(false);
+    dragAction.current = null;
     if (id === "snake") {
       setSnake([
         [7, 5],
@@ -350,8 +377,9 @@ export const GamesPage = () => {
     }
   };
 
-  // --- CONTROLS ---
   const handleControl = (action) => {
+    if (showRating) return; // Disable controls when rating is open
+
     if (mode === "MENU") {
       if (action === "LEFT")
         setGameIdx((prev) => (prev - 1 + GAMES.length) % GAMES.length);
@@ -363,11 +391,21 @@ export const GamesPage = () => {
       return;
     }
     if (mode === "PLAYING") {
+      if (winner) {
+        if (action === "ENTER") {
+          initGame(GAMES[gameIdx].id);
+        }
+        if (action === "BACK") {
+          setWinner(null);
+          setMode("MENU");
+        }
+        return;
+      }
       if (action === "BACK") {
+        setWinner(null);
         setMode("MENU");
         return;
       }
-      if (winner) return;
       if (action === "HINT") {
         handleHint();
         return;
@@ -376,15 +414,35 @@ export const GamesPage = () => {
     }
   };
 
-  // --- LOGIC XỬ LÝ CLICK CHUỘT ---
   const handleMouseClick = (index) => {
-    if (mode !== "PLAYING" || isPaused || winner) return;
+    if (mode !== "PLAYING" || isPaused || winner || showRating) return;
     if (GAMES[gameIdx].id === "snake") return;
     setCursor(index);
     handleGameInput("ENTER", index);
   };
 
-  // --- CORE GAME INPUT LOGIC ---
+  const handleDrawStart = (index) => {
+    if (mode !== "PLAYING" || isPaused || winner || showRating) return;
+    setIsDragging(true);
+    setCursor(index);
+    const action = board[index] ? "REMOVE" : "ADD";
+    dragAction.current = action;
+
+    const newB = [...board];
+    newB[index] = action === "ADD" ? "X" : null;
+    setBoard(newB);
+  };
+
+  const handleDrawMove = (index) => {
+    if (!isDragging || mode !== "PLAYING" || isPaused || winner || showRating)
+      return;
+    setCursor(index);
+    const newB = [...board];
+    if (dragAction.current === "ADD") newB[index] = "X";
+    else if (dragAction.current === "REMOVE") newB[index] = null;
+    setBoard(newB);
+  };
+
   const handleGameInput = (action, overrideCursor = null) => {
     const gameId = GAMES[gameIdx].id;
     const activeCursor = overrideCursor !== null ? overrideCursor : cursor;
@@ -412,14 +470,12 @@ export const GamesPage = () => {
     }
 
     if (action === "ENTER") {
-      // LOGIC CHUNG CHO CARO 4, 5, TICTACTOE (Đặt đâu nằm đó)
       if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
         if (board[activeCursor]) return;
         const newB = [...board];
         newB[activeCursor] = "X";
         setBoard(newB);
 
-        // Xác định luật thắng
         let streak = 3;
         if (gameId === "caro5") streak = 5;
         if (gameId === "caro4") streak = 4;
@@ -498,13 +554,11 @@ export const GamesPage = () => {
   };
 
   const handleHint = useCallback(() => {
-    // Tìm các ô trống
     const empties = board
       .map((v, i) => (v === null ? i : null))
       .filter((v) => v !== null);
 
     if (empties.length > 0) {
-      // Logic random nằm trong này là an toàn vì nó chỉ chạy khi người dùng click
       setHintCell(empties[Math.floor(Math.random() * empties.length)]);
       setTimeout(() => setHintCell(null), 1000);
     }
@@ -521,7 +575,7 @@ export const GamesPage = () => {
         snake,
         food,
         memoryMatched,
-      }),
+      })
     );
     alert("Game Saved");
   };
@@ -538,6 +592,25 @@ export const GamesPage = () => {
       setMemoryMatched(data.memoryMatched);
       setMode("PLAYING");
     }
+  };
+
+  const toggleRating = () => {
+    if (mode === "PLAYING") setIsPaused(true);
+    setShowRating(!showRating);
+  };
+
+  const submitReview = () => {
+    if (!commentText.trim()) return;
+    const newReview = {
+      id: Date.now(),
+      stars: currentRating,
+      text: commentText,
+      date: new Date().toLocaleDateString(),
+    };
+    const updatedReviews = [newReview, ...reviews];
+    setReviews(updatedReviews);
+    localStorage.setItem("retro_reviews", JSON.stringify(updatedReviews));
+    setCommentText("");
   };
 
   const renderCell = (i) => {
@@ -558,7 +631,6 @@ export const GamesPage = () => {
     const isHint = hintCell === i;
     const isSelected = match3Selected === i;
 
-    // Xác định xem ô có click được không (để hiện con trỏ chuột)
     const isClickable = mode === "PLAYING" && gameId !== "snake";
     const isGridDot = color === "transparent" && !val;
 
@@ -603,27 +675,47 @@ export const GamesPage = () => {
     return (
       <div
         key={i}
-        onClick={() => handleMouseClick(i)}
+        onMouseDown={
+          gameId === "draw" && mode === "PLAYING"
+            ? () => handleDrawStart(i)
+            : null
+        }
+        onMouseEnter={
+          gameId === "draw" && mode === "PLAYING"
+            ? () => handleDrawMove(i)
+            : null
+        }
+        onClick={
+          gameId !== "draw" && mode === "PLAYING"
+            ? () => handleMouseClick(i)
+            : null
+        }
         className={`
             relative flex items-center justify-center text-xs font-bold transition-all duration-150
-            ${isGridDot ? "rounded-full opacity-10 scale-50" : "rounded-md shadow-sm"}
-            ${isClickable ? "cursor-pointer hover:bg-white/10" : "cursor-default"} 
+            ${
+              isGridDot
+                ? "rounded-full opacity-10 scale-50"
+                : "rounded-md shadow-sm"
+            }
+            ${
+              isClickable ? "cursor-pointer hover:bg-white/10" : "cursor-default"
+            } 
         `}
         style={{
           backgroundColor: isCursor
             ? "#fff"
             : isHint
-              ? "#fbbf24"
-              : color === "transparent"
-                ? COLORS.cell
-                : color,
+            ? "#fbbf24"
+            : color === "transparent"
+            ? COLORS.cell
+            : color,
           color: isCursor
             ? "#000"
             : gameId === "memory" || gameId === "match3"
-              ? isCursor
-                ? "#000"
-                : "rgba(0,0,0,0.6)"
-              : "#fff",
+            ? isCursor
+              ? "#000"
+              : "rgba(0,0,0,0.6)"
+            : "#fff",
           width: "100%",
           height: "100%",
           opacity: mode === "MENU" && val !== "ICON" ? 0.1 : 1,
@@ -631,8 +723,8 @@ export const GamesPage = () => {
           transform: isCursor
             ? "scale(1.15) translateZ(10px)"
             : isSelected
-              ? "scale(0.9)"
-              : "scale(1)",
+            ? "scale(0.9)"
+            : "scale(1)",
           zIndex: isCursor ? 10 : 1,
           border: isSelected ? "2px solid white" : "none",
         }}
@@ -642,23 +734,49 @@ export const GamesPage = () => {
     );
   };
 
-  // --- KEYBOARD SUPPORT ---
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) e.preventDefault();
+      // Allow typing in the comment box if rating is open
+      if (showRating) return;
+
+      if (
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)
+      )
+        e.preventDefault();
       const keyMap = {
-        ArrowUp: "UP", ArrowDown: "DOWN", ArrowLeft: "LEFT", ArrowRight: "RIGHT",
-        Enter: "ENTER", " ": "ENTER", Escape: "BACK", Backspace: "BACK",
-        h: "HINT", p: "PAUSE",
+        ArrowUp: "UP",
+        ArrowDown: "DOWN",
+        ArrowLeft: "LEFT",
+        ArrowRight: "RIGHT",
+        Enter: "ENTER",
+        " ": "ENTER",
+        Escape: "BACK",
+        Backspace: "BACK",
+        h: "HINT",
+        p: "PAUSE",
       };
       if (keyMap[e.key]) {
-        if(keyMap[e.key] === "PAUSE") { setIsPaused(prev => !prev); return; }
+        if (keyMap[e.key] === "PAUSE") {
+          setIsPaused((prev) => !prev);
+          return;
+        }
         handleControl(keyMap[e.key]);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mode, gameIdx, cursor, board, snake, direction, isPaused, winner, match3Selected]);
+  }, [
+    mode,
+    gameIdx,
+    cursor,
+    board,
+    snake,
+    direction,
+    isPaused,
+    winner,
+    match3Selected,
+    showRating,
+  ]);
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-zinc-900 p-4 font-sans select-none">
@@ -713,21 +831,121 @@ export const GamesPage = () => {
                         size={48}
                         className="text-yellow-500 mx-auto mb-2"
                       />
-                      <div className="text-yellow-500 font-black text-3xl mb-1">
+                      <div className="text-yellow-500 font-black text-3xl mb-4">
                         {winner === "X" || winner === "WIN"
                           ? "YOU WIN!"
                           : "GAME OVER"}
                       </div>
-                      <div className="text-slate-400 text-xs">
-                        PRESS BACK TO EXIT
+                      <div className="flex gap-4 justify-center">
+                        <button
+                          onClick={() => {
+                            setWinner(null);
+                            setMode("MENU");
+                          }}
+                          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-full font-bold text-xs shadow-lg transition-all"
+                        >
+                          BACK (Esc)
+                        </button>
+                        <button
+                          onClick={() => initGame(GAMES[gameIdx].id)}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-xs shadow-lg transition-all"
+                        >
+                          PLAY AGAIN (Enter)
+                        </button>
                       </div>
                     </div>
                   </div>
                 )}
-                {isPaused && (
+                {isPaused && !showRating && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg z-30 backdrop-blur-sm">
                     <div className="text-white font-black text-2xl tracking-widest">
                       PAUSED
+                    </div>
+                  </div>
+                )}
+
+                {/* RATING MODAL */}
+                {showRating && (
+                  <div className="absolute inset-0 bg-slate-900/95 z-50 rounded-lg flex flex-col p-4 text-white overflow-hidden">
+                    <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-2">
+                      <h3 className="font-bold flex items-center gap-2">
+                        <MessageSquare size={16} className="text-blue-500" />
+                        Rating & Comments
+                      </h3>
+                      <button
+                        onClick={() => setShowRating(false)}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 mb-4 scrollbar-thin scrollbar-thumb-slate-600">
+                      {reviews.length === 0 ? (
+                        <div className="text-center text-slate-500 text-xs mt-10">
+                          No comments yet. Be the first!
+                        </div>
+                      ) : (
+                        reviews.map((rev) => (
+                          <div
+                            key={rev.id}
+                            className="bg-slate-800 p-2 rounded text-xs border border-slate-700"
+                          >
+                            <div className="flex justify-between text-slate-400 mb-1 text-[10px]">
+                              <span>Anonymous User</span>
+                              <span>{rev.date}</span>
+                            </div>
+                            <div className="flex mb-1">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  size={10}
+                                  className={
+                                    s <= rev.stars
+                                      ? "text-yellow-400 fill-yellow-400"
+                                      : "text-slate-600"
+                                  }
+                                />
+                              ))}
+                            </div>
+                            <p className="text-slate-200">{rev.text}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="border-t border-slate-700 pt-2">
+                      <div className="flex justify-center gap-1 mb-2">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => setCurrentRating(s)}
+                            className="focus:outline-none transition-transform active:scale-90"
+                          >
+                            <Star
+                              size={20}
+                              className={
+                                s <= currentRating
+                                  ? "text-yellow-400 fill-yellow-400"
+                                  : "text-slate-600"
+                              }
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="Write a comment..."
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 mb-2"
+                      />
+                      <button
+                        onClick={submitReview}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded text-xs font-bold transition-colors"
+                      >
+                        SUBMIT
+                      </button>
                     </div>
                   </div>
                 )}
@@ -809,7 +1027,7 @@ export const GamesPage = () => {
                 className="w-24 h-24 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 shadow-[0_6px_0_rgb(30,58,138),0_15px_20px_rgba(0,0,0,0.4)] active:shadow-none active:translate-y-1.5 transition-all flex items-center justify-center border-4 border-[#1e293b]"
               >
                 <span className="font-black text-white text-xl tracking-wider">
-                  A
+                  Play
                 </span>
               </button>
               <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-[-20px]">
@@ -835,6 +1053,12 @@ export const GamesPage = () => {
                 className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-yellow-400 hover:bg-slate-700"
               >
                 <HelpCircle size={16} />
+              </button>
+              <button
+                onClick={toggleRating}
+                className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-blue-400 hover:bg-slate-700"
+              >
+                <MessageSquare size={16} />
               </button>
             </div>
           </div>

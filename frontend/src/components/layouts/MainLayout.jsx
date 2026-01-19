@@ -2,7 +2,7 @@ import { useState, useContext } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
-import { Sidebar } from '../Sidebar';
+import { Sidebar } from '../SideBar';
 import { Header } from '../Header';
 import { userApi } from '@/services/userApi.services';
 

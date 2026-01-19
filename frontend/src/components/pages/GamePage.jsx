@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import { ratingService } from "../../services/gamePage.services";
 
-const BOARD_SIZE = 15;
+const DEFAULT_BOARD_SIZE = 15;
+
 const COLORS = {
   bg: "#0f172a",
   cell: "#334155",
@@ -62,13 +63,13 @@ const MEMORY_ICONS = [
 ];
 
 const GAMES = [
-  { id: "caro5", name: "Caro 5", description: "5 in a row" },
-  { id: "caro4", name: "Caro 4", description: "Connect 4" },
-  { id: "tictactoe", name: "Tic Tac Toe", description: "3 in a row" },
-  { id: "snake", name: "Snake", description: "Classic Snake" },
-  { id: "match3", name: "Match 3", description: "Tile Matching" },
-  { id: "memory", name: "Memory", description: "Card Flip" },
-  { id: "draw", name: "Free Draw", description: "Pixel Art" },
+  { id: "caro5", name: "Caro 5", description: "5 in a row", config: { board_size: "15*15" } },
+  { id: "caro4", name: "Caro 4", description: "Connect 4", config: { board_size: "15*15" } },
+  { id: "tictactoe", name: "Tic Tac Toe", description: "3 in a row", config: { board_size: "3*3" } },
+  { id: "snake", name: "Snake", description: "Classic Snake", config: { board_size: "15*15" } },
+  { id: "match3", name: "Match 3", description: "Tile Matching", config: { board_size: "15*15" } },
+  { id: "memory", name: "Memory", description: "Card Flip", config: { board_size: "15*15" } },
+  { id: "draw", name: "Free Draw", description: "Pixel Art", config: { board_size: "15*15" } },
 ];
 
 const GAME_DB_IDS = {
@@ -97,11 +98,9 @@ const ICONS = {
     [1, 1, 1, 1, 1],
   ],
   tictactoe: [
-    [0, 0, 0, 0, 0],
-    [0, 1, 0, 1, 0],
-    [0, 0, 1, 0, 0],
-    [0, 1, 0, 1, 0],
-    [0, 0, 0, 0, 0],
+    [1, 0, 1],
+    [0, 1, 0],
+    [1, 0, 1],
   ],
   snake: [
     [0, 0, 1, 1, 0],
@@ -129,18 +128,22 @@ const ICONS = {
   ],
 };
 
-const generateIconGrid = (gameId) => {
-  const grid = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
+
+
+const generateIconGrid = (gameId, boardSize) => {
+  const grid = Array(boardSize * boardSize).fill(null);
   const icon = ICONS[gameId];
   if (!icon) return grid;
   const iconH = icon.length;
   const iconW = icon[0].length;
-  const startRow = Math.floor((BOARD_SIZE - iconH) / 2);
-  const startCol = Math.floor((BOARD_SIZE - iconW) / 2);
+  const startRow = Math.floor((boardSize - iconH) / 2);
+  const startCol = Math.floor((boardSize - iconW) / 2);
   for (let r = 0; r < iconH; r++) {
     for (let c = 0; c < iconW; c++) {
-      if (icon[r][c])
-        grid[(startRow + r) * BOARD_SIZE + (startCol + c)] = "ICON";
+      if (icon[r][c]) {
+        const idx = (startRow + r) * boardSize + (startCol + c);
+        if (idx >= 0 && idx < grid.length) grid[idx] = "ICON";
+      }
     }
   }
   return grid;
@@ -207,11 +210,11 @@ const findBestMove = (board, size, streak, playerTag, opponentTag) => {
     : null;
 };
 
-const checkMatch3Matches = (board) => {
+const checkMatch3Matches = (board, boardSize) => {
   let matches = new Set();
-  for (let r = 0; r < BOARD_SIZE; r++) {
-    for (let c = 0; c < BOARD_SIZE - 2; c++) {
-      const idx = r * BOARD_SIZE + c;
+  for (let r = 0; r < boardSize; r++) {
+    for (let c = 0; c < boardSize - 2; c++) {
+      const idx = r * boardSize + c;
       const v = board[idx];
       if (v && v === board[idx + 1] && v === board[idx + 2]) {
         matches.add(idx);
@@ -220,49 +223,49 @@ const checkMatch3Matches = (board) => {
       }
     }
   }
-  for (let c = 0; c < BOARD_SIZE; c++) {
-    for (let r = 0; r < BOARD_SIZE - 2; r++) {
-      const idx = r * BOARD_SIZE + c;
+  for (let c = 0; c < boardSize; c++) {
+    for (let r = 0; r < boardSize - 2; r++) {
+      const idx = r * boardSize + c;
       const v = board[idx];
       if (
         v &&
-        v === board[(r + 1) * BOARD_SIZE + c] &&
-        v === board[(r + 2) * BOARD_SIZE + c]
+        v === board[(r + 1) * boardSize + c] &&
+        v === board[(r + 2) * boardSize + c]
       ) {
         matches.add(idx);
-        matches.add((r + 1) * BOARD_SIZE + c);
-        matches.add((r + 2) * BOARD_SIZE + c);
+        matches.add((r + 1) * boardSize + c);
+        matches.add((r + 2) * boardSize + c);
       }
     }
   }
   return matches;
 };
 
-const resolveMatch3Board = (board) => {
+const resolveMatch3Board = (board, boardSize) => {
   let currentBoard = [...board];
   let totalScore = 0;
   let hasMatches = true;
   let iterations = 0;
   while (hasMatches && iterations < 5) {
-    const matches = checkMatch3Matches(currentBoard);
+    const matches = checkMatch3Matches(currentBoard, boardSize);
     if (matches.size === 0) hasMatches = false;
     else {
       totalScore += matches.size * 10;
       matches.forEach((idx) => {
         currentBoard[idx] = null;
       });
-      for (let c = 0; c < BOARD_SIZE; c++) {
-        let writePtr = BOARD_SIZE - 1;
-        for (let r = BOARD_SIZE - 1; r >= 0; r--) {
-          const idx = r * BOARD_SIZE + c;
+      for (let c = 0; c < boardSize; c++) {
+        let writePtr = boardSize - 1;
+        for (let r = boardSize - 1; r >= 0; r--) {
+          const idx = r * boardSize + c;
           if (currentBoard[idx] !== null) {
-            currentBoard[writePtr * BOARD_SIZE + c] = currentBoard[idx];
+            currentBoard[writePtr * boardSize + c] = currentBoard[idx];
             if (writePtr !== r) currentBoard[idx] = null;
             writePtr--;
           }
         }
         for (let r = writePtr; r >= 0; r--)
-          currentBoard[r * BOARD_SIZE + c] = Math.floor(Math.random() * 5) + 1;
+          currentBoard[r * boardSize + c] = Math.floor(Math.random() * 5) + 1;
       }
       iterations++;
     }
@@ -289,7 +292,12 @@ export const GamesPage = () => {
     }
   }, [location.state]);
 
-  const [board, setBoard] = useState(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
+  // Derive board size from current game config
+  const configBoardSize = GAMES[gameIdx].config?.board_size;
+  const parsedSize = configBoardSize ? parseInt(configBoardSize.split('*')[0]) : DEFAULT_BOARD_SIZE;
+  const currentBoardSize = isNaN(parsedSize) ? DEFAULT_BOARD_SIZE : parsedSize;
+
+  const [board, setBoard] = useState(Array(DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE).fill(null));
   const [cursor, setCursor] = useState(112);
   const [score, setScore] = useState(0);
   const [timer, setTimer] = useState(0);
@@ -320,7 +328,7 @@ export const GamesPage = () => {
 
   useEffect(() => {
     if (mode === "MENU") {
-      setBoard(generateIconGrid(GAMES[gameIdx].id));
+      setBoard(generateIconGrid(GAMES[gameIdx].id, currentBoardSize));
       setWinner(null);
     }
   }, [mode, gameIdx]);
@@ -366,29 +374,29 @@ export const GamesPage = () => {
 
       if (
         newHead[0] < 0 ||
-        newHead[0] >= BOARD_SIZE ||
+        newHead[0] >= currentBoardSize ||
         newHead[1] < 0 ||
-        newHead[1] >= BOARD_SIZE ||
+        newHead[1] >= currentBoardSize ||
         prev.some((s) => s[0] === newHead[0] && s[1] === newHead[1])
       ) {
         setWinner("GAME OVER");
         return prev;
       }
       const newSnake = [newHead, ...prev];
-      const headIdx = newHead[1] * BOARD_SIZE + newHead[0];
+      const headIdx = newHead[1] * currentBoardSize + newHead[0];
       if (headIdx === food) {
         setScore((s) => s + 10);
         let newFood;
         do {
-          newFood = Math.floor(Math.random() * 225);
-        } while (newSnake.some((s) => s[1] * 15 + s[0] === newFood));
+          newFood = Math.floor(Math.random() * currentBoardSize * currentBoardSize);
+        } while (newSnake.some((s) => s[1] * currentBoardSize + s[0] === newFood));
         setFood(newFood);
       } else {
         newSnake.pop();
       }
       return newSnake;
     });
-  }, [direction, food]);
+  }, [direction, food, currentBoardSize]);
 
   useEffect(() => {
     if (
@@ -404,14 +412,14 @@ export const GamesPage = () => {
   }, [mode, isPaused, winner, snakeStep, gameIdx, showRating]);
 
   const initGame = (id) => {
-    const totalCells = BOARD_SIZE * BOARD_SIZE;
+    const totalCells = currentBoardSize * currentBoardSize;
     setBoard(Array(totalCells).fill(null));
     setWinner(null);
     setScore(0);
     setTimer(0);
     setIsPaused(false);
     setHintCell(null);
-    setCursor(112);
+    setCursor(Math.floor(totalCells / 2)); // Dynamic center
     setIsDragging(false);
     dragAction.current = null;
     if (id === "snake") {
@@ -451,7 +459,7 @@ export const GamesPage = () => {
       const newB = Array(totalCells)
         .fill(null)
         .map(() => Math.floor(Math.random() * 5) + 1);
-      const resolved = resolveMatch3Board(newB);
+      const resolved = resolveMatch3Board(newB, currentBoardSize);
       setBoard(resolved.board);
       setScore(0);
       setMatch3Selected(null);
@@ -538,7 +546,7 @@ export const GamesPage = () => {
   const handleGameInput = (action, overrideCursor = null) => {
     const gameId = GAMES[gameIdx].id;
     const activeCursor = overrideCursor !== null ? overrideCursor : cursor;
-    const totalCells = BOARD_SIZE * BOARD_SIZE;
+    const totalCells = currentBoardSize * currentBoardSize;
 
     if (gameId === "snake") {
       if (["UP", "DOWN", "LEFT", "RIGHT"].includes(action)) {
@@ -555,11 +563,11 @@ export const GamesPage = () => {
 
     if (["UP", "DOWN", "LEFT", "RIGHT"].includes(action)) {
       let next = cursor;
-      if (action === "UP") next -= BOARD_SIZE;
-      if (action === "DOWN") next += BOARD_SIZE;
-      if (action === "LEFT" && cursor % BOARD_SIZE !== 0) next -= 1;
-      if (action === "RIGHT" && (cursor + 1) % BOARD_SIZE !== 0) next += 1;
-      if (next >= 0 && next < BOARD_SIZE * BOARD_SIZE) setCursor(next);
+      if (action === "UP") next -= currentBoardSize;
+      if (action === "DOWN") next += currentBoardSize;
+      if (action === "LEFT" && cursor % currentBoardSize !== 0) next -= 1;
+      if (action === "RIGHT" && (cursor + 1) % currentBoardSize !== 0) next += 1;
+      if (next >= 0 && next < totalCells) setCursor(next);
     }
 
     if (action === "ENTER") {
@@ -573,7 +581,7 @@ export const GamesPage = () => {
         if (gameId === "caro5") streak = 5;
         if (gameId === "caro4") streak = 4;
 
-        const w = checkWin(newB, BOARD_SIZE, streak);
+        const w = checkWin(newB, currentBoardSize, streak);
         if (w) {
           setWinner(w);
           return;
@@ -608,14 +616,14 @@ export const GamesPage = () => {
           setMatch3Selected(activeCursor);
         } else {
           const diff = Math.abs(activeCursor - match3Selected);
-          if (diff === 1 || diff === BOARD_SIZE) {
+          if (diff === 1 || diff === currentBoardSize) {
             const newB = [...board];
             const temp = newB[match3Selected];
             newB[match3Selected] = newB[activeCursor];
             newB[activeCursor] = temp;
-            const matches = checkMatch3Matches(newB);
+            const matches = checkMatch3Matches(newB, currentBoardSize);
             if (matches.size > 0) {
-              const result = resolveMatch3Board(newB);
+              const result = resolveMatch3Board(newB, currentBoardSize);
               setBoard(result.board);
               setScore((s) => s + result.scoreDelta);
             }
@@ -635,14 +643,14 @@ export const GamesPage = () => {
     if (gameId === "caro4") streak = 4;
 
     if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
-      move = findBestMove(currentBoard, BOARD_SIZE, streak, "O", "X");
+      move = findBestMove(currentBoard, currentBoardSize, streak, "O", "X");
     }
 
     if (move !== null) {
       const newB = [...currentBoard];
       newB[move] = "O";
       setBoard(newB);
-      const w = checkWin(newB, BOARD_SIZE, streak);
+      const w = checkWin(newB, currentBoardSize, streak);
       if (w) setWinner(w);
     }
   };
@@ -733,11 +741,11 @@ export const GamesPage = () => {
       // --- PLAYING MODE LOGIC ---
       
       const isSnake =
-        gameId === "snake" && snake.some((s) => s[1] * 15 + s[0] === i);
+        gameId === "snake" && snake.some((s) => s[1] * currentBoardSize + s[0] === i);
       const isSnakeHead =
         gameId === "snake" &&
         snake.length > 0 &&
-        snake[0][1] * 15 + snake[0][0] === i;
+        snake[0][1] * currentBoardSize + snake[0][0] === i;
       const isFood = gameId === "snake" && food === i;
 
       if (gameId === "draw" && val) color = val;
@@ -949,7 +957,13 @@ export const GamesPage = () => {
                 </div>
               </div>
 
-              <div className="aspect-square w-full max-w-[450px] mx-auto bg-[#0f172a] rounded-lg p-2 grid grid-cols-15 grid-rows-15 gap-1 relative z-10 shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
+              <div 
+                className="aspect-square w-full max-w-[450px] mx-auto bg-[#0f172a] rounded-lg p-2 grid gap-1 relative z-10 shadow-[inset_0_0_20px_rgba(0,0,0,1)]"
+                style={{
+                  gridTemplateColumns: `repeat(${currentBoardSize}, minmax(0, 1fr))`,
+                  gridTemplateRows: `repeat(${currentBoardSize}, minmax(0, 1fr))`
+                }}
+              >
                 {board.map((_, i) => renderCell(i))}
 
                 {winner && (

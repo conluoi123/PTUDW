@@ -35,7 +35,7 @@ class Message {
 
     /*
       Lấy danh sách conversation dựa trên bạn bè:
-      - Lấy tất cả bạn bè từ bảng friends
+      - Lấy tất cả bạn bè từ bảng friendships (status = 'accepted')
       - LEFT JOIN với messages để lấy tin nhắn cuối cùng (nếu có)
       - Đếm số tin nhắn chưa đọc từ mỗi bạn bè
       - Sắp xếp: có tin nhắn mới nhất lên đầu, không có tin nhắn thì theo tên
@@ -60,11 +60,11 @@ class Message {
                     AND m2.sender_id = u.id
                     AND m2.status != 'read'
                 ) as unread_count
-            FROM friends f
+            FROM friendships f
             INNER JOIN users u ON (
                 CASE 
-                    WHEN f.user_id_01 = ? THEN u.id = f.user_id_02
-                    WHEN f.user_id_02 = ? THEN u.id = f.user_id_01
+                    WHEN f.requester_id = ? THEN u.id = f.addressee_id
+                    WHEN f.addressee_id = ? THEN u.id = f.requester_id
                 END
             )
             LEFT JOIN LATERAL (
@@ -77,7 +77,8 @@ class Message {
                 ORDER BY sent_at DESC
                 LIMIT 1
             ) m ON true
-            WHERE f.user_id_01 = ? OR f.user_id_02 = ?
+            WHERE (f.requester_id = ? OR f.addressee_id = ?)
+            AND f.status = 'accepted'
             ORDER BY 
                 CASE WHEN m.sent_at IS NULL THEN 1 ELSE 0 END,
                 m.sent_at DESC NULLS LAST,
@@ -86,12 +87,12 @@ class Message {
             `
             const result = await db.raw(query, [
                 user_id,  // unread count check
-                user_id,  // friends user_id_01 check
-                user_id,  // friends user_id_02 check
+                user_id,  // friendships requester_id check
+                user_id,  // friendships addressee_id check
                 user_id,  // message sender check
                 user_id,  // message receiver check
-                user_id,  // friends filter user_id_01
-                user_id,  // friends filter user_id_02
+                user_id,  // friendships filter requester_id
+                user_id,  // friendships filter addressee_id
                 limit,    // limit
                 offset    // offset
             ]);

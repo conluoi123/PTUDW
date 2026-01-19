@@ -15,6 +15,7 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
+  Palette,
 } from "lucide-react";
 import { ratingService } from "../../services/gamePage.services";
 
@@ -29,6 +30,17 @@ const COLORS = {
   food: "#ef4444",
 };
 
+const DRAW_COLORS = [
+  "#ffffff", // White
+  "#ef4444", // Red
+  "#3b82f6", // Blue
+  "#22c55e", // Green
+  "#eab308", // Yellow
+  "#a855f7", // Purple
+  "#f97316", // Orange
+  "#ec4899", // Pink
+];
+
 const GAMES = [
   { id: "caro5", name: "Caro 5", description: "5 in a row" },
   { id: "caro4", name: "Caro 4", description: "Connect 4" },
@@ -39,15 +51,14 @@ const GAMES = [
   { id: "draw", name: "Free Draw", description: "Pixel Art" },
 ];
 
-// --- MAPPING ID CHÍNH XÁC THEO DATABASE CỦA BẠN ---
 const GAME_DB_IDS = {
-  "caro5": 1,      // DB ID: 1 - Caro hàng 5
-  "caro4": 2,      // DB ID: 2 - Caro hàng 4
-  "tictactoe": 3,  // DB ID: 3 - Tic-tac-toe
-  "snake": 4,      // DB ID: 4 - Rắn săn mồi
-  "match3": 5,     // DB ID: 5 - Ghép hàng 3
-  "memory": 6,     // DB ID: 6 - Cờ trí nhớ
-  "draw": 7,       // DB ID: 7 - Bảng vẽ tự do
+  "caro5": 1,
+  "caro4": 2,
+  "tictactoe": 3,
+  "snake": 4,
+  "match3": 5,
+  "memory": 6,
+  "draw": 7,
 };
 
 const ICONS = {
@@ -260,6 +271,7 @@ export const GamesPage = () => {
   const [match3Selected, setMatch3Selected] = useState(null);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [drawColor, setDrawColor] = useState("#ffffff");
   const dragAction = useRef(null);
 
   const [showRating, setShowRating] = useState(false);
@@ -277,7 +289,6 @@ export const GamesPage = () => {
     }
   }, [mode, gameIdx]);
 
-  // Fetch rating khi mở bảng rating hoặc khi đang chơi
   useEffect(() => {
     if (showRating || mode === "PLAYING") {
       const frontendId = GAMES[gameIdx].id;
@@ -442,7 +453,7 @@ export const GamesPage = () => {
     dragAction.current = action;
 
     const newB = [...board];
-    newB[index] = action === "ADD" ? "X" : null;
+    newB[index] = action === "ADD" ? drawColor : null;
     setBoard(newB);
   };
 
@@ -451,7 +462,7 @@ export const GamesPage = () => {
       return;
     setCursor(index);
     const newB = [...board];
-    if (dragAction.current === "ADD") newB[index] = "X";
+    if (dragAction.current === "ADD") newB[index] = drawColor;
     else if (dragAction.current === "REMOVE") newB[index] = null;
     setBoard(newB);
   };
@@ -502,7 +513,7 @@ export const GamesPage = () => {
         setTimeout(() => aiMove(newB, gameId), 300);
       } else if (gameId === "draw") {
         const newB = [...board];
-        newB[activeCursor] = newB[activeCursor] ? null : "X";
+        newB[activeCursor] = newB[activeCursor] ? null : drawColor;
         setBoard(newB);
       } else if (gameId === "memory") {
         if (
@@ -649,7 +660,8 @@ export const GamesPage = () => {
       snake.length > 0 &&
       snake[0][1] * 15 + snake[0][0] === i;
     const isFood = gameId === "snake" && food === i;
-    const isCursor = mode === "PLAYING" && cursor === i;
+
+    const isCursor = mode === "PLAYING" && cursor === i && gameId !== "snake";
     const isHint = hintCell === i;
     const isSelected = match3Selected === i;
 
@@ -660,7 +672,7 @@ export const GamesPage = () => {
       color = COLORS.accent;
       glow = true;
     }
-    if (gameId === "draw" && val) color = "#fff";
+    if (gameId === "draw" && val) color = val;
     if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
       if (val === "X") {
         color = COLORS.playerX;
@@ -694,6 +706,24 @@ export const GamesPage = () => {
       }
     }
 
+    const isMatch3Cursor = gameId === "match3" && isCursor;
+    const cellBackgroundColor = isMatch3Cursor
+      ? color === "transparent"
+        ? "rgba(255,255,255,0.1)"
+        : color
+      : isCursor
+      ? "#fff"
+      : isHint
+      ? "#fbbf24"
+      : color === "transparent"
+      ? COLORS.cell
+      : color;
+
+    const cellFilter =
+      gameId === "match3" && (isCursor || isSelected)
+        ? "brightness(1.5)"
+        : "none";
+
     return (
       <div
         key={i}
@@ -724,20 +754,16 @@ export const GamesPage = () => {
             } 
         `}
         style={{
-          backgroundColor: isCursor
-            ? "#fff"
-            : isHint
-            ? "#fbbf24"
-            : color === "transparent"
-            ? COLORS.cell
-            : color,
-          color: isCursor
-            ? "#000"
-            : gameId === "memory" || gameId === "match3"
-            ? isCursor
+          backgroundColor: cellBackgroundColor,
+          filter: cellFilter,
+          color:
+            isCursor && gameId !== "match3"
               ? "#000"
-              : "rgba(0,0,0,0.6)"
-            : "#fff",
+              : gameId === "memory" || gameId === "match3"
+              ? isCursor
+                ? "#fff"
+                : "rgba(0,0,0,0.6)"
+              : "#fff",
           width: "100%",
           height: "100%",
           opacity: mode === "MENU" && val !== "ICON" ? 0.1 : 1,
@@ -1016,50 +1042,78 @@ export const GamesPage = () => {
               </button>
             </div>
 
-            <div className="flex flex-col items-center gap-8 mb-4">
-              <div className="relative w-40 h-40">
-                <div className="absolute inset-0 bg-[#0f172a] rounded-full opacity-50 blur-xl"></div>
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <button
-                    className="absolute top-0 w-12 h-14 bg-[#334155] rounded-t-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-start justify-center pt-2 shadow-lg"
-                    onClick={() => handleControl("UP")}
-                  >
-                    <ArrowUp size={24} className="text-slate-900" />
-                  </button>
-                  <button
-                    className="absolute bottom-0 w-12 h-14 bg-[#334155] rounded-b-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-end justify-center pb-2 shadow-lg"
-                    onClick={() => handleControl("DOWN")}
-                  >
-                    <ArrowDown size={24} className="text-slate-900" />
-                  </button>
-                  <button
-                    className="absolute left-0 h-12 w-14 bg-[#334155] rounded-l-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-start pl-2 shadow-lg"
-                    onClick={() => handleControl("LEFT")}
-                  >
-                    <ArrowLeft size={24} className="text-slate-900" />
-                  </button>
-                  <button
-                    className="absolute right-0 h-12 w-14 bg-[#334155] rounded-r-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-end pr-2 shadow-lg"
-                    onClick={() => handleControl("RIGHT")}
-                  >
-                    <ArrowRight size={24} className="text-slate-900" />
-                  </button>
-                  <div className="w-12 h-12 bg-[#334155] z-10"></div>
+            {/* COLOR PICKER CHO FREE DRAW */}
+            {mode === "PLAYING" && GAMES[gameIdx].id === "draw" && (
+              <div className="min-h-[320px] flex flex-col justify-center mb-4">
+                <div className="bg-[#0f172a] p-3 rounded-xl border border-slate-700">
+                  <div className="flex items-center gap-2 text-slate-400 text-xs mb-2 font-bold">
+                    <Palette size={12} /> PALETTE
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DRAW_COLORS.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setDrawColor(c)}
+                        className={`w-8 h-8 rounded-md transition-transform active:scale-90 ${
+                          drawColor === c
+                            ? "ring-2 ring-white ring-offset-2 ring-offset-slate-900"
+                            : ""
+                        }`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
+            )}
 
-              <button
-                onClick={() => handleControl("ENTER")}
-                className="w-24 h-24 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 shadow-[0_6px_0_rgb(30,58,138),0_15px_20px_rgba(0,0,0,0.4)] active:shadow-none active:translate-y-1.5 transition-all flex items-center justify-center border-4 border-[#1e293b]"
-              >
-                <span className="font-black text-white text-xl tracking-wider">
-                  Play
-                </span>
-              </button>
-              <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-[-20px]">
-                Enter / Space
+            {/* D-PAD */}
+            {!(mode === "PLAYING" && GAMES[gameIdx].id === "draw") && (
+              <div className="flex flex-col items-center gap-8 mb-4">
+                <div className="relative w-40 h-40">
+                  <div className="absolute inset-0 bg-[#0f172a] rounded-full opacity-50 blur-xl"></div>
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <button
+                      className="absolute top-0 w-12 h-14 bg-[#334155] rounded-t-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-start justify-center pt-2 shadow-lg"
+                      onClick={() => handleControl("UP")}
+                    >
+                      <ArrowUp size={24} className="text-slate-900" />
+                    </button>
+                    <button
+                      className="absolute bottom-0 w-12 h-14 bg-[#334155] rounded-b-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-end justify-center pb-2 shadow-lg"
+                      onClick={() => handleControl("DOWN")}
+                    >
+                      <ArrowDown size={24} className="text-slate-900" />
+                    </button>
+                    <button
+                      className="absolute left-0 h-12 w-14 bg-[#334155] rounded-l-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-start pl-2 shadow-lg"
+                      onClick={() => handleControl("LEFT")}
+                    >
+                      <ArrowLeft size={24} className="text-slate-900" />
+                    </button>
+                    <button
+                      className="absolute right-0 h-12 w-14 bg-[#334155] rounded-r-lg hover:bg-[#475569] active:bg-blue-600 transition-colors flex items-center justify-end pr-2 shadow-lg"
+                      onClick={() => handleControl("RIGHT")}
+                    >
+                      <ArrowRight size={24} className="text-slate-900" />
+                    </button>
+                    <div className="w-12 h-12 bg-[#334155] z-10"></div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleControl("ENTER")}
+                  className="w-24 h-24 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 shadow-[0_6px_0_rgb(30,58,138),0_15px_20px_rgba(0,0,0,0.4)] active:shadow-none active:translate-y-1.5 transition-all flex items-center justify-center border-4 border-[#1e293b]"
+                >
+                  <span className="font-black text-white text-xl tracking-wider">
+                    Play
+                  </span>
+                </button>
+                <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-[-20px]">
+                  Enter / Space
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex gap-2 justify-center">
               <button

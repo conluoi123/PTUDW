@@ -167,7 +167,7 @@ export function MessagesPage() {
     const { user } = useContext(AuthContext);
     const [conversationsPage, setConversationsPage] = useState(1);
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
 
     // Fetch conversations list

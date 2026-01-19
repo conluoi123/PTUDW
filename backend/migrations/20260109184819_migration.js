@@ -19,7 +19,7 @@ export async function up(knex) {
         table.string("email").notNullable().unique();
         table.string("phone");
         table.timestamp("last_login_at").defaultTo(knex.fn.now());
-        table.timestamp("streak").defaultTo(0);
+        table.timestamp('streak').defaultTo(knex.fn.now());
         table.timestamp("created_at").defaultTo(knex.fn.now());
       })
 

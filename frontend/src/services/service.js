@@ -15,6 +15,7 @@ const api = axios.create({
   headers: {
     "ngrok-skip-browser-warning": "true",
     "Content-Type": "application/json",
+    "x-api-key": import.meta.env.VITE_X_API_KEY,
   },
 });
 

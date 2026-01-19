@@ -52,8 +52,8 @@ achievementRoutes(app);
 profileRouter(app);
 
 //======================= MIDDLEWARE =======================
-
-
+// import checkApiKey from "./middlewares/apiKey.middleware.js";
+// app.use(checkApiKey);
 
 //======================= ROUTER =======================
 // GAMES

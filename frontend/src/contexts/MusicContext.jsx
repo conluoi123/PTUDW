@@ -8,9 +8,15 @@ export function MusicProvider({ children }) {
   const audioRef = useRef(null);
 
   useEffect(() => {
-    // Create audio element with royalty-free music
-    // Using a reliable CORS-enabled source
-    const musicUrl = 'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3';
+    // Gaming background music - Action/Electronic style
+    // Option 1: Epic gaming music
+    // const musicUrl = 'https://cdn.pixabay.com/audio/2022/03/10/audio_4a468f6d5c.mp3'; // Epic Action
+    
+    // Option 2: Electronic gaming music (uncomment to use)
+    const musicUrl = 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3'; // Electronic Gaming
+    
+    // Option 3: Upbeat gaming music (uncomment  to use)
+    // const musicUrl = 'https://cdn.pixabay.com/audio/2023/02/28/audio_c91e16d35c.mp3'; // Upbeat Gaming
     
     audioRef.current = new Audio(musicUrl);
     audioRef.current.loop = true;

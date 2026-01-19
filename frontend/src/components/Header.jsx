@@ -9,8 +9,7 @@ import { Card, CardContent } from './ui/card';
 import { NotificationsDropdown } from './NotificationsDropdown';
 import { FavoritesDropdown } from './FavoritesDropdown';
 import { SearchModal } from './SearchModal';
-import { UserDropdown } from './UserDropDown';
-import { MusicControl } from './ui/MusicControl';
+import { UserDropdown } from './UserDropDown'; // Changed import manually to match file on disk if needed, assuming user created UserDropDown.jsx
 
 export const Header = memo(function Header({
     isDarkMode,
@@ -172,8 +171,6 @@ export const Header = memo(function Header({
                   <Moon className="w-5 h-5 text-indigo-600" />
                 )}
               </Button>
-
-              <MusicControl />
 
               {user ? (
                 <div className="relative ml-1">

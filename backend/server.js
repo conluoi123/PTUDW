@@ -11,6 +11,7 @@ import friendRouter from "./routers/friends.router.js"
 import rankingRouter from "./routers/ranking.routers.js";
 import achievementRoutes from "./controllers/achievements/achievement.controller.js";
 import { profileRouter } from "./routers/profile.routers.js";
+import gameSessionRouter from "./routers/game_sessions.router.js";
 const app = express();
 const PORT = ENV.PORT || 3000;
 
@@ -58,6 +59,9 @@ profileRouter(app);
 // GAMES
 import gameRouter from "./routers/game.routers.js";
 app.use("/api/games", gameRouter);
+
+// GAME SESSIONS
+app.use("/api/game-sessions", gameSessionRouter);
 
 // MESSAGES 
 import messageRouter from "./routers/message.routers.js";

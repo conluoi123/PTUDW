@@ -8,7 +8,6 @@ import { AchievementsPage } from './components/pages/AchievementsPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { AuthProvider } from './contexts/AuthContext';
-import { MusicProvider } from './contexts/MusicContext';
 import { RankingPage } from './components/pages/RankingPage';
 import { AdminPage } from './components/pages/AdminPage';
 import { ProfilePage } from './components/pages/ProfilePage';
@@ -21,14 +20,12 @@ import { FriendsPage } from './components/pages/FriendsPage';
 import { MemoryCardGame } from './components/games/MemoryCardGame';
 import { Caro5 } from './components/games/Caro5';
 import { Caro4 } from './components/games/Caro4';
- 
 function App() {
   
     return (
       <BrowserRouter>
         <ThemeProvider>
-          <MusicProvider>
-            <AuthProvider>
+          <AuthProvider>
             <Routes>
               {/* Public Routes (Guest Only) */}
               <Route element={<GuestRoute />}>
@@ -63,7 +60,6 @@ function App() {
               </Route>  
             </Routes>
           </AuthProvider>
-        </MusicProvider>
         </ThemeProvider>
       </BrowserRouter>
     );

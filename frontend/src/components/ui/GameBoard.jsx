@@ -6,6 +6,7 @@ import {
     ArrowLeft,
     HelpCircle,
 } from "lucide-react";
+import { useTheme } from "../../contexts/ThemeContext";
 
 
 export function GameBoard({
@@ -21,6 +22,7 @@ export function GameBoard({
     const [selectedCell, setSelectedCell] = useState({ row: 0, col: 0 });
     const [currentColor, setCurrentColor] =
         useState("blue");
+    const [hintMessage, setHintMessage] = useState("");
 
     const colors = [
         {
@@ -91,10 +93,72 @@ export function GameBoard({
     };
 
     const handleHint = () => {
-        // Mock hint functionality
-        alert(
-            "Hint: Try matching 3 or more cells of the same color!",
-        );
+        // Analyze the grid to provide intelligent hints
+        let hint = "";
+        
+        // Count empty cells
+        const emptyCells = grid.flat().filter(cell => cell === "empty").length;
+        const totalCells = rows * cols;
+        const filledPercentage = ((totalCells - emptyCells) / totalCells * 100).toFixed(0);
+        
+        // Find potential matches (2 in a row that could become 3)
+        const potentialMatches = [];
+        
+        // Check horizontal matches
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols - 2; col++) {
+                const cell1 = grid[row][col];
+                const cell2 = grid[row][col + 1];
+                const cell3 = grid[row][col + 2];
+                
+                if (cell1 !== "empty" && cell1 === cell2 && cell3 === "empty") {
+                    potentialMatches.push({ row, col: col + 2, color: cell1, direction: "horizontal" });
+                }
+                if (cell1 === "empty" && cell2 !== "empty" && cell2 === cell3) {
+                    potentialMatches.push({ row, col, color: cell2, direction: "horizontal" });
+                }
+            }
+        }
+        
+        // Check vertical matches
+        for (let col = 0; col < cols; col++) {
+            for (let row = 0; row < rows - 2; row++) {
+                const cell1 = grid[row][col];
+                const cell2 = grid[row + 1][col];
+                const cell3 = grid[row + 2][col];
+                
+                if (cell1 !== "empty" && cell1 === cell2 && cell3 === "empty") {
+                    potentialMatches.push({ row: row + 2, col, color: cell1, direction: "vertical" });
+                }
+                if (cell1 === "empty" && cell2 !== "empty" && cell2 === cell3) {
+                    potentialMatches.push({ row, col, color: cell2, direction: "vertical" });
+                }
+            }
+        }
+        
+        // Generate hint based on analysis
+        if (potentialMatches.length > 0) {
+            const match = potentialMatches[0];
+            const colorName = colors.find(c => c.state === match.color)?.label || match.color;
+            hint = `💡 Try placing ${colorName} at row ${match.row + 1}, column ${match.col + 1} to create a ${match.direction} match!`;
+            
+            // Highlight the suggested cell
+            setSelectedCell({ row: match.row, col: match.col });
+            setCurrentColor(match.color);
+        } else if (emptyCells === totalCells) {
+            hint = "🎮 Start by placing some colors on the board! Try creating patterns or matching colors.";
+        } else if (emptyCells > totalCells / 2) {
+            hint = `📊 Board is ${filledPercentage}% filled. Try to create groups of 3 or more matching colors!`;
+        } else {
+            hint = "🌟 Look for opportunities to extend existing color groups or create new matches!";
+        }
+        
+        setHintMessage(hint);
+        
+        // Auto-dismiss hint after 5 seconds
+        setTimeout(() => {
+            setHintMessage("");
+        }, 5000);
     };
 
     const handleReset = () => {
@@ -108,6 +172,18 @@ export function GameBoard({
 
     return (
         <div className="w-full max-w-4xl mx-auto">
+            {/* Hint Message Banner */}
+            {hintMessage && (
+                <div className="mb-4 animate-slide-down">
+                    <div className="bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-yellow-500/20 border-2 border-yellow-500/50 rounded-xl p-4 shadow-lg backdrop-blur-sm">
+                        <div className="flex items-center gap-3">
+                            <HelpCircle className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                            <p className="text-foreground font-medium">{hintMessage}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Game Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-gradient-to-br from-card to-card/90 border-2 border-cyan-500/30 rounded-xl p-4 shadow-lg">

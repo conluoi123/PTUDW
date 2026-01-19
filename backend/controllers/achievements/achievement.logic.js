@@ -1,108 +1,70 @@
 import db from "../../models/db.js";
-
 import { insert_user_achieve } from "./helper_function.js";
 
-// Define achievement conditions here
-// This could be stored in the database in the future for more flexibility
-const ACHIEVEMENT_DEFINITIONS = [
-  {
-    id: 1, // Corresponds to the achievement ID in the 'achievements' table
-    name: "First Win",
-    description: "Win your first game.",
-    check: async (userId, gameSession) => {
-      if (gameSession.result !== 'win') return false;
-      const wins = await db("game_sessions")
-        .where({ user_id: userId, result: "win" })
-        .count("id as count")
-        .first();
-      return parseInt(wins.count, 10) === 1;
-    },
-  },
-  {
-    id: 2, // Corresponds to the achievement ID in the 'achievements' table
-    name: "High Scorer",
-    description: "Score over 1000 points in a single game.",
-    check: async (userId, gameSession) => {
-      return gameSession.score > 1000;
-    },
-  },
-  {
-    id: 3, 
-    name: "Ten Games Played",
-    description: "Play 10 games.",
-    check: async (userId, gameSession) => {
-        const gamesPlayed = await db("game_sessions")
-            .where({ user_id: userId })
-            .count("id as count")
-            .first();
-        return parseInt(gamesPlayed.count, 10) >= 10;
-    }
-  },
-  {
-    id: 4,
-    name: "Speed Runner",
-    description: "Win a game in under 30 seconds.",
-    check: async (userId, gameSession) => {
-      if (gameSession.result !== 'win') return false;
-      return gameSession.duration && gameSession.duration < 30;
-    }
-  },
-  {
-    id: 5,
-    name: "Perfect Score",
-    description: "Achieve a score of 1500 or higher.",
-    check: async (userId, gameSession) => {
-      return gameSession.score >= 1500;
-    }
-  },
-  {
-    id: 6,
-    name: "Fifty Wins",
-    description: "Win 50 games.",
-    check: async (userId, gameSession) => {
-      if (gameSession.result !== 'win') return false;
-      const wins = await db("game_sessions")
-        .where({ user_id: userId, result: "win" })
-        .count("id as count")
-        .first();
-      return parseInt(wins.count, 10) >= 50;
-    }
-  }
-  // Add more achievement definitions here
-];
-
+/**
+ * Checks if the user has unlocked any achievements based on the current game session.
+ * Compares game session data against thresholds stored in the 'achievements' database table.
+ *
+ * @param {string} userId - The UUID of the user (extracted from req.userId in middleware)
+ * @param {object} gameSession - The data from the completed game (e.g., { score: 120, game_id: 1 })
+ */
 async function checkAndGrantAchievements(userId, gameSession) {
   try {
-    // Get IDs of achievements the user already has
+    // 1. Fetch all available achievements definitions from the database
+    // Expected structure: [{ id: 8, name: "Kiện tướng Caro", score: 100, game_id: 1 }, ...]
+    const allAchievements = await db("achievements").select("*");
+
+    // 2. Get IDs of achievements the user already has to avoid duplicates
     const userAchievements = await db("user_achievements")
       .where("user_id", userId)
       .select("achievement_id");
-    const earnedAchievementIds = userAchievements.map(
-      (a) => a.achievement_id
-    );
+    
+    const earnedAchievementIds = new Set(userAchievements.map((a) => a.achievement_id));
 
-    // Find achievements that haven't been earned yet
-    const achievementsToCheck = ACHIEVEMENT_DEFINITIONS.filter(
-      (def) => !earnedAchievementIds.includes(def.id)
+    // 3. Filter for achievements that haven't been earned yet
+    const achievementsToCheck = allAchievements.filter(
+      (ach) => !earnedAchievementIds.has(ach.id)
     );
 
     if (achievementsToCheck.length === 0) {
-      return; // No new achievements to check
+      return; 
     }
 
     console.log(`Checking ${achievementsToCheck.length} unearned achievements for user ${userId}...`);
 
     for (const achievement of achievementsToCheck) {
-      const isEarned = await achievement.check(userId, gameSession);
+      let isEarned = false;
+
+      // Ensure the achievement belongs to the current game (if game_id is present in session)
+      if (gameSession.game_id && achievement.game_id && gameSession.game_id !== achievement.game_id) {
+        continue;
+      }
+
+      // --- Dynamic Check Logic based on DB columns ---
+      
+      // Check: Score Threshold
+      // If the achievement row has a 'score' value, check if session score meets it
+      if (achievement.score !== null && achievement.score !== undefined) {
+        if (gameSession.score >= achievement.score) {
+          isEarned = true;
+        }
+      }
+
+      // Add logic here for other DB columns if they exist (e.g., win_count, duration)
+      // Example: if (achievement.min_duration && gameSession.duration < achievement.min_duration) ...
+
+      // -----------------------------------------------
+
       if (isEarned) {
-        console.log(`User ${userId} earned achievement: ${achievement.name}`);
-        // Grant the new achievement
+        console.log(`User ${userId} earned achievement: ${achievement.name} (ID: ${achievement.id})`);
+        
+        // Grant the achievement
+        // This updates the user_achievements table
         await insert_user_achieve(userId, achievement.id);
       }
     }
   } catch (error) {
     console.error(`Error checking achievements for user ${userId}:`, error);
-    // We throw the error so the calling controller is aware of it
     throw error;
   }
 }

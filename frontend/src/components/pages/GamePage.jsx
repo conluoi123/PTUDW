@@ -32,14 +32,33 @@ const COLORS = {
 };
 
 const DRAW_COLORS = [
-  "#ffffff", // White
-  "#ef4444", // Red
-  "#3b82f6", // Blue
-  "#22c55e", // Green
-  "#eab308", // Yellow
-  "#a855f7", // Purple
-  "#f97316", // Orange
-  "#ec4899", // Pink
+  "#ffffff", 
+  "#ef4444", 
+  "#3b82f6", 
+  "#22c55e", 
+  "#eab308", 
+  "#a855f7", 
+  "#f97316", 
+  "#ec4899", 
+];
+
+const MEMORY_ICONS = [
+  "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼",
+  "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐙", "🐵",
+  "🐔", "🐧", "🐦", "🦆", "🦅", "🦉", "🦇", "🐺",
+  "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞",
+  "🐜", "🦟", "🦗", "🕷", "🦂", "🐢", "🐍", "🦎",
+  "🦖", "🦕", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍",
+  "🦧", "🦣", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒",
+  "🦘", "🦬", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏",
+  "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕‍🦺",
+  "🐈", "🐈‍⬛", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩",
+  "🕊", "🐇", "🦝", "🦨", "🦡", "🦦", "🦥", "🐁",
+  "🐀", "🐿", "🦔", "🐉", "🐲", "🌵", "🎄", "🌲",
+  "🌳", "🌴", "🌱", "🌿", "☘️", "🍀", "🎍", "🎋",
+  "🍃", "🍂", "🍁", "🍄", "🌾", "💐", "🌷", "🌹",
+  "🥀", "🌺", "🌸", "🌼", "🌻", "🌞", "🌝", "🌛", 
+  "🌜", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒"
 ];
 
 const GAMES = [
@@ -252,28 +271,24 @@ const resolveMatch3Board = (board) => {
 };
 
 export const GamesPage = () => {
-    const location = useLocation();
-    const [mode, setMode] = useState("MENU");
-    const [gameIdx, setGameIdx] = useState(0);
+  const location = useLocation();
+  const [mode, setMode] = useState("MENU");
+  const [gameIdx, setGameIdx] = useState(0);
 
-    // Effect to handle navigation from HomePage
-    useEffect(() => {
-        if (location.state?.gameId) {
-            const targetDbId = location.state.gameId;
-            // Find frontend ID from DB ID
-            const targetFrontendId = Object.keys(GAME_DB_IDS).find(key => GAME_DB_IDS[key] === targetDbId);
-            
-            if (targetFrontendId) {
-                const targetIndex = GAMES.findIndex(g => g.id === targetFrontendId);
-                if (targetIndex !== -1) {
-                    setGameIdx(targetIndex);
-                    // Optional: Immediately start playing if desired, or just show in menu
-                     // setMode("PLAYING"); 
-                     // initGame(targetFrontendId);
-                }
-            }
+  useEffect(() => {
+    if (location.state?.gameId) {
+      const targetDbId = location.state.gameId;
+      const targetFrontendId = Object.keys(GAME_DB_IDS).find(key => GAME_DB_IDS[key] === targetDbId);
+      
+      if (targetFrontendId) {
+        const targetIndex = GAMES.findIndex(g => g.id === targetFrontendId);
+        if (targetIndex !== -1) {
+          setGameIdx(targetIndex);
         }
-    }, [location.state]);
+      }
+    }
+  }, [location.state]);
+
   const [board, setBoard] = useState(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
   const [cursor, setCursor] = useState(112);
   const [score, setScore] = useState(0);
@@ -389,7 +404,8 @@ export const GamesPage = () => {
   }, [mode, isPaused, winner, snakeStep, gameIdx, showRating]);
 
   const initGame = (id) => {
-    setBoard(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
+    const totalCells = BOARD_SIZE * BOARD_SIZE;
+    setBoard(Array(totalCells).fill(null));
     setWinner(null);
     setScore(0);
     setTimer(0);
@@ -407,12 +423,32 @@ export const GamesPage = () => {
       setDirection("UP");
       setFood(40);
     } else if (id === "memory") {
-      const icons = [1, 2, 3, 4, 5, 6, 7, 8];
-      setBoard([...icons, ...icons].sort(() => Math.random() - 0.5));
+      const pairCount = Math.floor(totalCells / 2);
+      let deck = [];
+      while (deck.length < pairCount) {
+        deck = [...deck, ...MEMORY_ICONS];
+      }
+      deck = deck.slice(0, pairCount);
+      deck = [...deck, ...deck];
+      deck.sort(() => Math.random() - 0.5);
+      
+      const newBoard = Array(totalCells).fill(null);
+      let deckIdx = 0;
+      for (let i = 0; i < totalCells; i++) {
+        if (totalCells % 2 !== 0 && i === Math.floor(totalCells / 2)) {
+            newBoard[i] = null;
+        } else {
+            if (deckIdx < deck.length) {
+                newBoard[i] = deck[deckIdx];
+                deckIdx++;
+            }
+        }
+      }
+      setBoard(newBoard);
       setMemoryRevealed([]);
       setMemoryMatched([]);
     } else if (id === "match3") {
-      const newB = Array(BOARD_SIZE * BOARD_SIZE)
+      const newB = Array(totalCells)
         .fill(null)
         .map(() => Math.floor(Math.random() * 5) + 1);
       const resolved = resolveMatch3Board(newB);
@@ -470,12 +506,19 @@ export const GamesPage = () => {
     if (mode !== "PLAYING" || isPaused || winner || showRating) return;
     setIsDragging(true);
     setCursor(index);
-    const action = board[index] ? "REMOVE" : "ADD";
-    dragAction.current = action;
 
-    const newB = [...board];
-    newB[index] = action === "ADD" ? drawColor : null;
-    setBoard(newB);
+    if (GAMES[gameIdx].id === "draw") {
+      dragAction.current = "PAINT";
+      const newB = [...board];
+      newB[index] = drawColor;
+      setBoard(newB);
+    } else {
+      const action = board[index] ? "REMOVE" : "ADD";
+      dragAction.current = action;
+      const newB = [...board];
+      newB[index] = action === "ADD" ? "X" : null;
+      setBoard(newB);
+    }
   };
 
   const handleDrawMove = (index) => {
@@ -483,14 +526,19 @@ export const GamesPage = () => {
       return;
     setCursor(index);
     const newB = [...board];
-    if (dragAction.current === "ADD") newB[index] = drawColor;
+
+    if (GAMES[gameIdx].id === "draw" && dragAction.current === "PAINT") {
+      newB[index] = drawColor;
+    } else if (dragAction.current === "ADD") newB[index] = "X";
     else if (dragAction.current === "REMOVE") newB[index] = null;
+
     setBoard(newB);
   };
 
   const handleGameInput = (action, overrideCursor = null) => {
     const gameId = GAMES[gameIdx].id;
     const activeCursor = overrideCursor !== null ? overrideCursor : cursor;
+    const totalCells = BOARD_SIZE * BOARD_SIZE;
 
     if (gameId === "snake") {
       if (["UP", "DOWN", "LEFT", "RIGHT"].includes(action)) {
@@ -549,7 +597,8 @@ export const GamesPage = () => {
             setMemoryMatched([...memoryMatched, ...newRev]);
             setScore((s) => s + 10);
             setMemoryRevealed([]);
-            if (memoryMatched.length + 2 === 16) setWinner("WIN");
+            const totalPlayable = totalCells - (totalCells % 2);
+            if (memoryMatched.length + 2 === totalPlayable) setWinner("WIN");
           } else {
             setTimeout(() => setMemoryRevealed([]), 1000);
           }
@@ -674,13 +723,61 @@ export const GamesPage = () => {
     let text = "";
     let glow = false;
 
-    const isSnake =
-      gameId === "snake" && snake.some((s) => s[1] * 15 + s[0] === i);
-    const isSnakeHead =
-      gameId === "snake" &&
-      snake.length > 0 &&
-      snake[0][1] * 15 + snake[0][0] === i;
-    const isFood = gameId === "snake" && food === i;
+    // --- MENU MODE LOGIC ---
+    if (mode === "MENU") {
+      if (val === "ICON") {
+        color = COLORS.accent;
+        glow = true;
+      }
+    } else {
+      // --- PLAYING MODE LOGIC ---
+      
+      const isSnake =
+        gameId === "snake" && snake.some((s) => s[1] * 15 + s[0] === i);
+      const isSnakeHead =
+        gameId === "snake" &&
+        snake.length > 0 &&
+        snake[0][1] * 15 + snake[0][0] === i;
+      const isFood = gameId === "snake" && food === i;
+
+      if (gameId === "draw" && val) color = val;
+
+      if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
+        if (val === "X") {
+          color = COLORS.playerX;
+          text = "X";
+          glow = true;
+        }
+        if (val === "O") {
+          color = COLORS.playerO;
+          text = "O";
+          glow = true;
+        }
+      }
+
+      if (isSnake) color = isSnakeHead ? "#4ade80" : COLORS.snake;
+      if (isFood) {
+        color = COLORS.food;
+        glow = true;
+      }
+
+      if (gameId === "match3" && val) {
+        const colors = ["#ef4444", "#3b82f6", "#eab308", "#a855f7", "#22c55e"];
+        color = colors[val - 1] || "#fff";
+        text = ["●", "■", "▲", "◆", "★"][val - 1];
+      }
+
+      if (gameId === "memory") {
+        if (memoryRevealed.includes(i) || memoryMatched.includes(i)) {
+          text = val;
+          color = "#cbd5e1";
+          glow = true;
+        } else if (val) {
+          text = "?";
+          color = COLORS.cell;
+        }
+      }
+    }
 
     const isCursor = mode === "PLAYING" && cursor === i && gameId !== "snake";
     const isHint = hintCell === i;
@@ -689,61 +786,24 @@ export const GamesPage = () => {
     const isClickable = mode === "PLAYING" && gameId !== "snake";
     const isGridDot = color === "transparent" && !val;
 
-    if (mode === "MENU" && val === "ICON") {
-      color = COLORS.accent;
-      glow = true;
-    }
-    if (gameId === "draw" && val) color = val;
-    if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
-      if (val === "X") {
-        color = COLORS.playerX;
-        text = "X";
-        glow = true;
-      }
-      if (val === "O") {
-        color = COLORS.playerO;
-        text = "O";
-        glow = true;
-      }
-    }
-    if (isSnake) color = isSnakeHead ? "#4ade80" : COLORS.snake;
-    if (isFood) {
-      color = COLORS.food;
-      glow = true;
-    }
-    if (gameId === "match3" && val) {
-      const colors = ["#ef4444", "#3b82f6", "#eab308", "#a855f7", "#22c55e"];
-      color = colors[val - 1] || "#fff";
-      text = ["●", "■", "▲", "◆", "★"][val - 1];
-    }
-    if (gameId === "memory") {
-      if (memoryRevealed.includes(i) || memoryMatched.includes(i)) {
-        text = val;
-        color = "#cbd5e1";
-        glow = true;
-      } else if (val) {
-        text = "?";
-        color = COLORS.cell;
-      }
-    }
-
     const isMatch3Cursor = gameId === "match3" && isCursor;
-    const cellBackgroundColor = isMatch3Cursor
-      ? color === "transparent"
-        ? "rgba(255,255,255,0.1)"
-        : color
+    
+    const cellBackgroundColor = (gameId === "draw" && val)
+      ? val
+      : isMatch3Cursor
+      ? (color === "transparent" ? "rgba(255,255,255,0.1)" : color)
       : isCursor
       ? "#fff"
       : isHint
       ? "#fbbf24"
-      : color === "transparent"
-      ? COLORS.cell
-      : color;
+      : (color === "transparent" ? COLORS.cell : color);
 
     const cellFilter =
       gameId === "match3" && (isCursor || isSelected)
         ? "brightness(1.5)"
         : "none";
+
+    const textSizeClass = gameId === "memory" ? "text-2xl" : "text-xs";
 
     return (
       <div
@@ -764,7 +824,7 @@ export const GamesPage = () => {
             : null
         }
         className={`
-            relative flex items-center justify-center text-xs font-bold transition-all duration-150
+            relative flex items-center justify-center ${textSizeClass} font-bold transition-all duration-150
             ${
               isGridDot
                 ? "rounded-full opacity-10 scale-50"
@@ -1063,7 +1123,6 @@ export const GamesPage = () => {
               </button>
             </div>
 
-            {/* COLOR PICKER CHO FREE DRAW */}
             {mode === "PLAYING" && GAMES[gameIdx].id === "draw" && (
               <div className="min-h-[320px] flex flex-col justify-center mb-4">
                 <div className="bg-[#0f172a] p-3 rounded-xl border border-slate-700">
@@ -1088,7 +1147,6 @@ export const GamesPage = () => {
               </div>
             )}
 
-            {/* D-PAD */}
             {!(mode === "PLAYING" && GAMES[gameIdx].id === "draw") && (
               <div className="flex flex-col items-center gap-8 mb-4">
                 <div className="relative w-40 h-40">

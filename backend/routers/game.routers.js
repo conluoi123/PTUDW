@@ -1,6 +1,6 @@
 import { Router } from "express";
 import gameControllers from "../controllers/game.controllers.js";
-import { saveGame, loadGame } from "../controllers/gameState.controllers.js";
+import { saveGame, loadGame, deleteSavedGame } from "../controllers/gameState.controllers.js";
 import { authenticateAccessToken } from "../middlewares/jwt.middlewares.js";
 
 const router = Router();
@@ -8,6 +8,7 @@ const router = Router();
 // Game State Routes (Protected)
 router.post("/save", authenticateAccessToken, saveGame);
 router.get("/load", authenticateAccessToken, loadGame);
+router.delete("/save/:id", authenticateAccessToken, deleteSavedGame);
 
 // Game Management Routes
 router.get("/", gameControllers.getAllGames);

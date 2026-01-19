@@ -55,6 +55,14 @@ const GameState = {
       return await db('game_states')
         .where({ user_id: userId, id: gameStateId })
         .first();
+  },
+
+  // Delete game state
+  delete: async (userId, id) => {
+      return await db('game_states')
+          .where({ user_id: userId, id: id })
+          .del()
+          .returning('*');
   }
 };
 

@@ -376,6 +376,14 @@ export const GamesPage = () => {
   const [currentRating, setCurrentRating] = useState(5);
   const [commentText, setCommentText] = useState("");
 
+  // Save/Load States
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [savedGames, setSavedGames] = useState([]);
+  const [loadPage, setLoadPage] = useState(1);
+  const LOAD_LIMIT = 2;
+
   const gameLoopRef = useRef(null);
   const timerRef = useRef(null);
 
@@ -599,6 +607,105 @@ export const GamesPage = () => {
     setBoard(newB);
   };
 
+  const handleSaveGame = async () => {
+    if (!saveName.trim()) {
+      showToast("Please enter a name");
+      return;
+    }
+    const dataToSave = {
+      board,
+      score,
+      timer,
+      winner, // Save if game is over too? usually valid.
+      logicKey,
+      currentBoardSize
+    };
+    // If turn-based (caro, tictactoe), we might want to save whose turn it is. 
+    // Logic for turn is generic in this file, usually implicitly tracked or calculated.
+    // Wait, the code doesn't explicitly have `turn` state, it calculates `X` count vs `O` count?
+    // Looking at `handleGameInput`: 
+    // const xCount = board.filter(c => c === 'X').length; 
+    // const oCount = board.filter(c => c === 'O').length;
+    // So board state is enough to restore turn for Caro/TicTacToe.
+    // For Snake: needs snake, food, direction.
+    if (logicKey === "snake") {
+        dataToSave.snake = snake;
+        dataToSave.food = food;
+        dataToSave.direction = direction;
+    }
+    // For Memory: revealed, matched
+    if (logicKey === "memory") {
+        dataToSave.memoryRevealed = memoryRevealed;
+        dataToSave.memoryMatched = memoryMatched;
+    }
+    
+    // Call Service
+    const res = await GameService.saveGame(currentGame.id, saveName, JSON.stringify(dataToSave));
+    if (res) {
+        showToast("Game saved successfully!");
+        setShowSaveDialog(false);
+        setSaveName("");
+    } else {
+        showToast("Failed to save game");
+    }
+  };
+
+  const openSaveDialog = () => {
+      setSaveName(`Save ${new Date().toLocaleString()}`);
+      setShowSaveDialog(true);
+  };
+
+  const handleLoadGame = async () => {
+      const res = await GameService.loadGames();
+      if (res && res.data) {
+          const relevantGames = res.data.filter(g => g.game_id === currentGame.id);
+          setSavedGames(relevantGames);
+          setLoadPage(1);
+          setShowLoadDialog(true);
+      } else {
+          showToast("Failed to load games");
+      }
+  };
+
+  const handleSelectSavedGame = async (gameState) => {
+      try {
+          // Delete save after selecting (Load Once / Permadeath)
+          const delRes = await GameService.deleteSavedGame(gameState.id);
+          if (!delRes) {
+             showToast("Error: Could not load (delete failed)");
+             return;
+          }
+
+          let data = gameState.data;
+          if (typeof data === 'string') {
+              data = JSON.parse(data);
+          }
+
+          setBoard(data.board);
+          setScore(data.score || 0);
+          setTimer(data.timer || 0);
+          setWinner(data.winner || null);
+          
+          if (data.snake) setSnake(data.snake);
+          if (data.food) setFood(data.food);
+          if (data.direction) setDirection(data.direction);
+          
+          if (data.memoryRevealed) setMemoryRevealed(data.memoryRevealed);
+          if (data.memoryMatched) setMemoryMatched(data.memoryMatched);
+
+          setShowLoadDialog(false);
+          setMode("PLAYING");
+          setIsPaused(true); 
+          showToast(`Loaded "${gameState.name}"`);
+      } catch (err) {
+          console.error("Error restoring game:", err);
+          showToast("Failed to restore game");
+      }
+  };
+
+  const totalLoadPages = Math.ceil(savedGames.length / LOAD_LIMIT);
+  const currentLoadItems = savedGames.slice((loadPage - 1) * LOAD_LIMIT, loadPage * LOAD_LIMIT);
+
   const handleGameInput = (action, overrideCursor = null) => {
     const gameId = logicKey;
     const activeCursor = overrideCursor !== null ? overrideCursor : cursor;
@@ -722,35 +829,7 @@ export const GamesPage = () => {
     }
   }, [board]);
 
-  const handleSave = () => {
-    localStorage.setItem(
-      "retro_save",
-      JSON.stringify({
-        gameIdx,
-        board,
-        score,
-        timer,
-        snake,
-        food,
-        memoryMatched,
-      })
-    );
-    alert("Game Saved");
-  };
 
-  const handleLoad = () => {
-    const data = JSON.parse(localStorage.getItem("retro_save"));
-    if (data) {
-      setGameIdx(data.gameIdx);
-      setBoard(data.board);
-      setScore(data.score);
-      setTimer(data.timer);
-      setSnake(data.snake);
-      setFood(data.food);
-      setMemoryMatched(data.memoryMatched);
-      setMode("PLAYING");
-    }
-  };
 
   const toggleRating = () => {
     if (mode === "PLAYING") setIsPaused(true);
@@ -1225,7 +1304,6 @@ export const GamesPage = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => handleControl("BACK")}
                 className="h-12 bg-slate-700 rounded-full shadow-[0_4px_0_rgb(30,41,59)] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-2 text-slate-300 font-bold text-xs"
@@ -1238,7 +1316,78 @@ export const GamesPage = () => {
               >
                 <Play size={16} /> PAUSE (P)
               </button>
-            </div>
+
+
+            {/* Save Dialog */}
+            {showSaveDialog && (
+                <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4 rounded-xl">
+                    <div className="bg-slate-800 p-4 rounded-lg w-full max-w-sm border border-slate-700">
+                        <h3 className="text-white font-bold mb-2">Save Game</h3>
+                        <input 
+                            type="text" 
+                            value={saveName}
+                            onChange={e => setSaveName(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white mb-4 text-sm"
+                            placeholder="Save Name..."
+                        />
+                        <div className="flex gap-2 justify-end">
+                            <button onClick={() => setShowSaveDialog(false)} className="px-3 py-1 text-slate-400 text-xs">Cancel</button>
+                            <button onClick={handleSaveGame} className="px-3 py-1 bg-blue-600 rounded text-white text-xs font-bold">Save</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Load Dialog */}
+            {showLoadDialog && (
+                <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center p-4 rounded-xl">
+                    <div className="bg-slate-800 p-4 rounded-lg w-full max-w-sm border border-slate-700 flex flex-col max-h-[400px]">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-white font-bold">Load Game</h3>
+                            <button onClick={() => setShowLoadDialog(false)}><X size={16} className="text-slate-400" /></button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto min-h-[150px]">
+                            {savedGames.length === 0 ? (
+                                <p className="text-slate-500 text-sm text-center py-4">No saved games found.</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {currentLoadItems.map(save => (
+                                        <button 
+                                            key={save.id}
+                                            onClick={() => handleSelectSavedGame(save)}
+                                            className="w-full bg-slate-700/50 hover:bg-slate-700 p-2 rounded text-left border border-slate-600 transition-colors"
+                                        >
+                                            <div className="text-white text-sm font-bold truncate">{save.name}</div>
+                                            <div className="text-slate-400 text-[10px]">{new Date(save.update_at || save.create_at).toLocaleString()}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {savedGames.length > 0 && (
+                            <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-700">
+                                <button 
+                                    disabled={loadPage === 1}
+                                    onClick={() => setLoadPage(p => p - 1)}
+                                    className="p-1 rounded hover:bg-slate-700 disabled:opacity-30 text-slate-300"
+                                >
+                                    <ArrowLeft size={14} />
+                                </button>
+                                <span className="text-xs text-slate-500">{loadPage} / {totalLoadPages}</span>
+                                <button 
+                                    disabled={loadPage === totalLoadPages}
+                                    onClick={() => setLoadPage(p => p + 1)}
+                                    className="p-1 rounded hover:bg-slate-700 disabled:opacity-30 text-slate-300"
+                                >
+                                    <ArrowRight size={14} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {mode === "PLAYING" && logicKey === "draw" && (
               <div className="min-h-[320px] flex flex-col justify-center mb-4">
@@ -1313,13 +1462,13 @@ export const GamesPage = () => {
 
             <div className="flex gap-2 justify-center">
               <button
-                onClick={handleSave}
+                onClick={openSaveDialog}
                 className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
               >
                 <Save size={16} />
               </button>
               <button
-                onClick={handleLoad}
+                onClick={handleLoadGame}
                 className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
               >
                 <FolderOpen size={16} />

@@ -56,4 +56,31 @@ export const GameService = {
       return null;
     }
   },
+  saveGame: async (gameId, name, data) => {
+    try {
+      const response = await api.post(`${BASE_URL}/save`, { gameId, name, data });
+      return response.data;
+    } catch (err) {
+      console.error("Error saving game:", err);
+      return null;
+    }
+  },
+  deleteSavedGame: async (saveId) => {
+    try {
+      const response = await api.delete(`${BASE_URL}/save/${saveId}`);
+      return response.data;
+    } catch (err) {
+      console.error("Error deleting saved game:", err);
+      return null;
+    }
+  },
+  loadGames: async () => {
+    try {
+      const response = await api.get(`${BASE_URL}/load`);
+      return response.data; // { message, data: [] }
+    } catch (err) {
+      console.error("Error loading games:", err);
+      return { data: [] };
+    }
+  }
 };

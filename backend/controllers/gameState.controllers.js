@@ -35,4 +35,24 @@ async function loadGame(req, res) {
   }
 }
 
-export { saveGame, loadGame };
+async function deleteSavedGame(req, res) {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const deleted = await GameState.delete(userId, id);
+    if (!deleted || deleted.length === 0) {
+        return res.status(404).json({ error: "Saved game not found or not authorized" });
+    }
+
+    return res.status(200).json({ 
+        message: "Saved game deleted successfully", 
+        data: deleted 
+    });
+  } catch (error) {
+    console.error("Delete saved game error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export { saveGame, loadGame, deleteSavedGame };

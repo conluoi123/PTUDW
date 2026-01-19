@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useLocation } from 'react-router-dom';
 import {
   Save,
   FolderOpen,
@@ -251,8 +252,28 @@ const resolveMatch3Board = (board) => {
 };
 
 export const GamesPage = () => {
-  const [mode, setMode] = useState("MENU");
-  const [gameIdx, setGameIdx] = useState(0);
+    const location = useLocation();
+    const [mode, setMode] = useState("MENU");
+    const [gameIdx, setGameIdx] = useState(0);
+
+    // Effect to handle navigation from HomePage
+    useEffect(() => {
+        if (location.state?.gameId) {
+            const targetDbId = location.state.gameId;
+            // Find frontend ID from DB ID
+            const targetFrontendId = Object.keys(GAME_DB_IDS).find(key => GAME_DB_IDS[key] === targetDbId);
+            
+            if (targetFrontendId) {
+                const targetIndex = GAMES.findIndex(g => g.id === targetFrontendId);
+                if (targetIndex !== -1) {
+                    setGameIdx(targetIndex);
+                    // Optional: Immediately start playing if desired, or just show in menu
+                     // setMode("PLAYING"); 
+                     // initGame(targetFrontendId);
+                }
+            }
+        }
+    }, [location.state]);
   const [board, setBoard] = useState(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
   const [cursor, setCursor] = useState(112);
   const [score, setScore] = useState(0);

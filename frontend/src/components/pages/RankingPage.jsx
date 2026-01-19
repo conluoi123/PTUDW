@@ -9,6 +9,7 @@ import { rankingService } from '@/services/ranking.services';
 import { AuthContext } from '@/contexts/AuthContext';
 import { GameService } from '@/services/game.services.js';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
+import { Pagination } from '@/components/ui/pagination';
 export function RankingPage() {
     const [activeTab, setActiveTab] = useState('global');
     const { user } = useContext(AuthContext);
@@ -233,34 +234,7 @@ export function RankingPage() {
         );
     };
 
-    // Pagination component
-    const PaginationControls = ({ currentPage, onPageChange, itemsLength }) => {
-        return (
-            <div className="border-t border-border pt-4 mt-4">
-                <div className="flex items-center justify-center gap-2">
-                <button
-                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                    <ChevronLeft className="w-4 h-4" />
-                    Previous
-                </button>
-                <span className="px-4 py-2 text-sm font-medium">
-                    Page {currentPage}
-                </span>
-                <button
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={itemsLength < 3}
-                    className="px-3 py-2 rounded-md border border-border bg-background hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                </button>
-                </div>
-            </div>
-        );
-    };
+
 
     const globalLeaderboard = isLoading ? [] : (globalRanking.length > 0 ? mapRankingData(globalRanking, user?.id, globalPage, 3) : []);
     const top3Leaderboard = top3GlobalRanking.length > 0 ? mapRankingData(top3GlobalRanking, user?.id, 1, 3) : [];
@@ -459,10 +433,12 @@ export function RankingPage() {
                                 </tbody>
                             </table>
                         </div>
-                        <PaginationControls 
+                        <Pagination 
                             currentPage={globalPage} 
                             onPageChange={setGlobalPage}
-                            itemsLength={globalRanking.length}
+                            hasNext={globalRanking.length >= 3}
+                            hasPrevious={globalPage > 1}
+                            className="border-t border-border pt-4 mt-4"
                         />
                     </Card>
                 </TabsContent>
@@ -611,10 +587,12 @@ export function RankingPage() {
                                 </tbody>
                             </table>
                         </div>
-                        <PaginationControls 
+                        <Pagination 
                             currentPage={friendsPage} 
                             onPageChange={setFriendsPage}
-                            itemsLength={friendsRanking.length}
+                            hasNext={friendsRanking.length >= 3}
+                            hasPrevious={friendsPage > 1}
+                            className="border-t border-border pt-4 mt-4"
                         />
                     </Card>
                 </TabsContent>
@@ -746,10 +724,12 @@ export function RankingPage() {
                                     </div>
                                 )}
                             </div>
-                            <PaginationControls 
+                            <Pagination 
                                 currentPage={gamePage} 
                                 onPageChange={setGamePage}
-                                itemsLength={gameRanking.length}
+                                hasNext={gameRanking.length >= 3}
+                                hasPrevious={gamePage > 1}
+                                className="border-t border-border pt-4 mt-4"
                             />
                         </CardContent>
                     </Card>

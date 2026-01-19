@@ -318,7 +318,7 @@ export function FriendsPage() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         {filteredFriends.map(friend => (
                             <FriendCard
                                 key={friend.id}
@@ -356,7 +356,7 @@ export function FriendsPage() {
                 </TabsContent>
 
                 <TabsContent value="requests" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         {friendRequests.map(request => (
                             <FriendRequestCard
                                 key={request.id}

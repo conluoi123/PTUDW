@@ -1,22 +1,25 @@
+
 import { useState, useEffect, useCallback, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { ArrowLeft, RotateCcw, Circle, X, User, Cpu, Clock, Trophy, Play, Menu, Skull, Frown, Grid3x3, Save, FolderOpen, Pause } from "lucide-react";
 import { Button, Box, Typography, Paper, Card, CardContent } from "@mui/material";
-import { QuickSaveButtons } from './QuickSaveButtons';
-import { GameWithRating } from "./GameWithRating";
+// Assuming these components exist in your project structure
+import { GameWithRating } from "./GameWithRating"; 
 import GameSessionService from '../../services/gameSession.service.js';
 import { AuthContext } from '../../contexts/AuthContext';
 
-const BOARD_SIZE = 15;
-const WIN_STREAK = 5;
-const SAVE_KEY = "caro5_save_state";
+// --- CONSTANTS ---
+const BOARD_SIZE = 3;
+const WIN_STREAK = 3;
+const SAVE_KEY = "tictactoe_save_state";
 
-// Score calculation function
+// --- LOGIC HELPERS ---
+
+// Score calculation
 const calculateScore = (result, durationInSeconds, moveCount, difficulty) => {
   let baseScore = 0;
-  const speedBonus = Math.max(0, 500 - durationInSeconds * 5); // Bonus for quick games
+  const speedBonus = Math.max(0, 500 - durationInSeconds * 5);
   
-  // Difficulty multiplier
   const difficultyMultipliers = {
     easy: 1.0,
     medium: 1.5,
@@ -24,18 +27,156 @@ const calculateScore = (result, durationInSeconds, moveCount, difficulty) => {
   };
   const difficultyMultiplier = difficultyMultipliers[difficulty] || 1.0;
   
-  // Base score varies by result
-  if (result === 'win') {
-    baseScore = 800;
-  } else if (result === 'lose') {
-    baseScore = 0; // Set score to 0 when user loses
-  } else if (result === 'draw') {
-    baseScore = 500;
+  if (result === 'win') baseScore = 800;
+  else if (result === 'lose') baseScore = 0;
+  else if (result === 'draw') baseScore = 500;
+
+  const totalScore = Math.round((baseScore + speedBonus) * difficultyMultiplier);
+  return Math.max(0, totalScore);
+};
+
+// Dynamic Winner Calculation (Works for any BOARD_SIZE)
+const calculateWinner = (squares) => {
+  const size = BOARD_SIZE;
+  
+  // Helper to check a line of indices
+  const checkLine = (indices) => {
+    const first = squares[indices[0]];
+    if (!first) return null;
+    for (let i = 1; i < indices.length; i++) {
+      if (squares[indices[i]] !== first) return null;
+    }
+    return { winner: first, line: indices };
+  };
+
+  // 1. Check Rows
+  for (let r = 0; r < size; r++) {
+    const rowIndices = [];
+    for (let c = 0; c < size; c++) {
+      rowIndices.push(r * size + c);
+    }
+    const result = checkLine(rowIndices);
+    if (result) return result;
   }
 
-  // Apply difficulty multiplier (harder games give more points)
-  const totalScore = Math.round((baseScore + speedBonus) * difficultyMultiplier);
-  return Math.max(0, totalScore); // Minimum score of 0
+  // 2. Check Columns
+  for (let c = 0; c < size; c++) {
+    const colIndices = [];
+    for (let r = 0; r < size; r++) {
+      colIndices.push(r * size + c);
+    }
+    const result = checkLine(colIndices);
+    if (result) return result;
+  }
+
+  // 3. Check Main Diagonal
+  const mainDiag = [];
+  for (let i = 0; i < size; i++) {
+    mainDiag.push(i * size + i);
+  }
+  const mainDiagResult = checkLine(mainDiag);
+  if (mainDiagResult) return mainDiagResult;
+
+  // 4. Check Anti-Diagonal
+  const antiDiag = [];
+  for (let i = 0; i < size; i++) {
+    antiDiag.push(i * size + (size - 1 - i));
+  }
+  const antiDiagResult = checkLine(antiDiag);
+  if (antiDiagResult) return antiDiagResult;
+
+  // 5. Check Draw
+  if (!squares.includes(null)) return { winner: 'draw', line: [] };
+
+  return null;
+};
+
+// Minimax Algorithm (Unbeatable)
+const minimax = (board, depth, isMaximizing) => {
+  const result = calculateWinner(board);
+  if (result?.winner === 'O') return 10 - depth;
+  if (result?.winner === 'X') return depth - 10;
+  if (result?.winner === 'draw') return 0;
+
+  if (isMaximizing) {
+    let bestScore = -Infinity;
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === null) {
+        board[i] = 'O';
+        const score = minimax(board, depth + 1, false);
+        board[i] = null;
+        bestScore = Math.max(score, bestScore);
+      }
+    }
+    return bestScore;
+  } else {
+    let bestScore = Infinity;
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === null) {
+        board[i] = 'X';
+        const score = minimax(board, depth + 1, true);
+        board[i] = null;
+        bestScore = Math.min(score, bestScore);
+      }
+    }
+    return bestScore;
+  }
+};
+
+// AI Move Logic
+const getBestMove = (squares, difficulty) => {
+  const availableMoves = squares.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
+  if (availableMoves.length === 0) return null;
+
+  // Easy: Pure Random
+  if (difficulty === 'easy') {
+    return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+  }
+
+  // Medium: Block immediate threats or win immediately, otherwise random
+  if (difficulty === 'medium') {
+    // 1. Try to win
+    for (let move of availableMoves) {
+      const tempBoard = [...squares];
+      tempBoard[move] = 'O';
+      if (calculateWinner(tempBoard)?.winner === 'O') return move;
+    }
+    // 2. Block player win
+    for (let move of availableMoves) {
+      const tempBoard = [...squares];
+      tempBoard[move] = 'X';
+      if (calculateWinner(tempBoard)?.winner === 'X') return move;
+    }
+    // 3. 30% chance to play optimally (Minimax), 70% random if no immediate threat
+    if (Math.random() > 0.7) {
+        // Fall through to Minimax logic below
+    } else {
+        return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+    }
+  }
+
+  // Hard: Minimax (Unbeatable)
+  let bestScore = -Infinity;
+  let move = null;
+  
+  // Optimization: If it's the first move and center is open, take it (saves computation)
+  const center = Math.floor(squares.length / 2);
+  if (squares.filter(x => x !== null).length === 0 || (squares.filter(x => x !== null).length === 1 && squares[center] === null)) {
+     if(squares[center] === null) return center;
+  }
+
+  for (let i = 0; i < squares.length; i++) {
+    if (squares[i] === null) {
+      squares[i] = 'O';
+      const score = minimax(squares, 0, false);
+      squares[i] = null;
+      if (score > bestScore) {
+        bestScore = score;
+        move = i;
+      }
+    }
+  }
+  return move;
 };
 
 const DIFFICULTIES = {
@@ -71,94 +212,7 @@ const DIFFICULTIES = {
   },
 };
 
-const calculateWinner = (squares) => {
-  const directions = [[1, 0], [0, 1], [1, 1], [1, -1]];
-  for (let i = 0; i < squares.length; i++) {
-    if (!squares[i]) continue;
-    const x = i % BOARD_SIZE;
-    const y = Math.floor(i / BOARD_SIZE);
-    const player = squares[i];
-    for (let [dx, dy] of directions) {
-      let streak = 0;
-      let line = [];
-      for (let k = 0; k < WIN_STREAK; k++) {
-        const nx = x + k * dx;
-        const ny = y + k * dy;
-        const idx = ny * BOARD_SIZE + nx;
-        if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE && squares[idx] === player) {
-          streak++;
-          line.push(idx);
-        } else break;
-      }
-      if (streak === WIN_STREAK) return { winner: player, line };
-    }
-  }
-  if (!squares.includes(null)) return { winner: 'draw', line: [] };
-  return null;
-};
-
-const getBestMove = (squares, difficulty) => {
-  const availableMoves = squares.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
-  
-  if (difficulty === 'easy') {
-    const meaningfulMoves = availableMoves.filter(idx => {
-      const neighbors = [-1, 1, -BOARD_SIZE, BOARD_SIZE, -BOARD_SIZE-1, -BOARD_SIZE+1, BOARD_SIZE-1, BOARD_SIZE+1];
-      return neighbors.some(n => squares[idx + n] !== undefined && squares[idx + n] !== null);
-    });
-    const pool = meaningfulMoves.length > 0 ? meaningfulMoves : availableMoves;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  const scoreMove = (idx, player) => {
-    let score = 0;
-    const directions = [[1,0], [0,1], [1,1], [1,-1]];
-    const x = idx % BOARD_SIZE;
-    const y = Math.floor(idx / BOARD_SIZE);
-    for (let [dx, dy] of directions) {
-      let streak = 0;
-      let openEnds = 0;
-      for (let dir of [1, -1]) {
-        for (let k = 1; k < 5; k++) {
-          const nx = x + k * dx * dir;
-          const ny = y + k * dy * dir;
-          const nIdx = ny * BOARD_SIZE + nx;
-          if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
-            if (squares[nIdx] === player) streak++;
-            else if (squares[nIdx] === null) { openEnds++; break; }
-            else break;
-          } else break;
-        }
-      }
-      if (streak >= 4) score += 10000;
-      else if (streak === 3 && openEnds > 0) score += 1000;
-      else if (streak === 2 && openEnds === 2) score += 100;
-      else if (streak === 1 && openEnds === 2) score += 10;
-    }
-    return score;
-  };
-
-  let bestScore = -Infinity;
-  let move = availableMoves[0];
-  const candidateMoves = availableMoves.filter(idx => {
-    const neighbors = [-1, 1, -BOARD_SIZE, BOARD_SIZE, -BOARD_SIZE-1, -BOARD_SIZE+1, BOARD_SIZE-1, BOARD_SIZE+1];
-    return neighbors.some(n => squares[idx + n] !== undefined && squares[idx + n] !== null);
-  });
-  const searchPool = candidateMoves.length > 0 ? candidateMoves : [Math.floor(squares.length / 2)];
-
-  for (let idx of searchPool) {
-    let attackScore = scoreMove(idx, 'O');
-    let defenseScore = scoreMove(idx, 'X');
-    let totalScore = attackScore + (difficulty === 'hard' ? defenseScore * 0.95 : defenseScore * 0.6);
-    totalScore += Math.random() * 5;
-    if (totalScore > bestScore) {
-      bestScore = totalScore;
-      move = idx;
-    }
-  }
-  return move;
-};
-
-export function Caro5() {
+export function TicTacToe() {
   const location = useLocation();
   const { gameId } = location.state || {};
   const { user } = useContext(AuthContext);
@@ -175,52 +229,38 @@ export function Caro5() {
 
   // Handle saving the game session when a game ends
   const handleGameEnd = async (gameWinner) => {
-    // Only save if a user is logged in and the game has started
     if (!user || !startTime) return;
 
     const endTime = new Date();
     const durationInSeconds = Math.round((endTime - startTime) / 1000);
-    
-    // Count moves played
     const moveCount = board.filter(cell => cell !== null).length;
 
-    // Determine result
     let result = 'draw';
     if (gameWinner && gameWinner !== 'draw') {
-      // Assuming the user is always 'X' for simplicity
       result = gameWinner === 'X' ? 'win' : 'lose';
     }
 
     const score = calculateScore(result, durationInSeconds, moveCount, difficulty);
 
     const sessionData = {
-      game_id: 1, // Caro5 Game ID
+      game_id: gameId || 3, // Default to 3 (Tic Tac Toe) if not passed
       score,
       result,
       duration: durationInSeconds,
     };
 
     try {
-      console.log("Saving game session:", sessionData);
-      console.log("Game result:", result, "Duration:", durationInSeconds, "s", "Score:", score);
-      const response = await GameSessionService.create(sessionData);
-      console.log("Game session saved successfully.", response);
-      
-      // Show achievement unlock notification (optional enhancement)
-      if (response.data?.achievements_unlocked) {
-        console.log("New achievements unlocked:", response.data.achievements_unlocked);
-      }
+      await GameSessionService.create(sessionData);
     } catch (error) {
       console.error("Failed to save game session:", error);
     }
   };
 
-  // Effect to handle game end
   useEffect(() => {
     if (winner && (gameStatus === 'won' || gameStatus === 'lost' || gameStatus === 'draw')) {
       handleGameEnd(winner);
     }
-  }, [gameStatus]);
+  }, [gameStatus, winner]);
 
   const startGame = (level) => {
     setDifficulty(level);
@@ -230,21 +270,17 @@ export function Caro5() {
     setWinner(null);
     setLastMove(null);
     setTimeLeft(DIFFICULTIES[level].time);
-    setStartTime(new Date()); // Set start time for scoring
+    setStartTime(new Date());
     setGameStatus("playing");
   };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Enter') {
-        if (gameStatus === 'playing') {
-          setGameStatus('paused');
-        } else if (gameStatus === 'paused') {
-          setGameStatus('playing');
-        }
+        if (gameStatus === 'playing') setGameStatus('paused');
+        else if (gameStatus === 'paused') setGameStatus('playing');
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameStatus]);
@@ -279,11 +315,12 @@ export function Caro5() {
     }
   }, [board, gameStatus, xIsNext, winner]);
 
+  // AI Turn Effect
   useEffect(() => {
     if (gameStatus === "playing" && !xIsNext && !winner && timeLeft > 0) {
       const timer = setTimeout(() => {
         const move = getBestMove(board, difficulty);
-        if (move !== undefined) {
+        if (move !== undefined && move !== null) {
           const newBoard = [...board];
           newBoard[move] = 'O';
           setBoard(newBoard);
@@ -300,7 +337,7 @@ export function Caro5() {
              }
           }
         }
-      }, 500);
+      }, 500); // 500ms delay for realism
       return () => clearTimeout(timer);
     }
   }, [xIsNext, gameStatus, winner, board, difficulty, timeLeft]);
@@ -310,22 +347,21 @@ export function Caro5() {
     setDifficulty(null);
     setBoard(Array(BOARD_SIZE * BOARD_SIZE).fill(null));
     setTimeLeft(0);
-    setStartTime(null); // Reset start time
-  };
-
-  const gameState = {
-    gameStatus: gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw" ? "menu" : (gameStatus === "paused" ? "playing" : gameStatus),
-    difficulty,
-    board,
-    xIsNext,
-    lastMove,
-    winningLine,
-    winner: null,
-    timeLeft
+    setStartTime(null);
   };
 
   const handleSaveGame = () => {
     try {
+      const gameState = {
+        gameStatus: gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw" ? "menu" : (gameStatus === "paused" ? "playing" : gameStatus),
+        difficulty,
+        board,
+        xIsNext,
+        lastMove,
+        winningLine,
+        winner: null,
+        timeLeft
+      };
       localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
       alert("Game saved successfully!");
     } catch (error) {
@@ -362,12 +398,13 @@ export function Caro5() {
 
   const btnStyle = "flex items-center justify-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg active:scale-95 active:translate-y-0 active:shadow-sm bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-700 dark:hover:text-blue-400 cursor-pointer shadow-sm";
 
-  const boardCellStyle = "aspect-square w-full rounded-sm md:rounded-lg flex items-center justify-center text-xl md:text-2xl transition-all duration-200 shadow-sm border border-slate-200 dark:border-slate-700";
+  const boardCellStyle = "aspect-square w-full rounded-lg flex items-center justify-center text-5xl md:text-6xl transition-all duration-200 shadow-sm border border-slate-200 dark:border-slate-700";
 
   return (
-    <GameWithRating gameName="Caro 5" gameId={gameId}>
+    <GameWithRating gameName="Tic Tac Toe" gameId={gameId}>
       <Box className="h-full flex flex-col font-sans selection:bg-blue-100 bg-slate-50 dark:bg-slate-950">
         
+        {/* Header Section */}
         <Box className="w-full px-6 py-4 flex items-center justify-between sticky top-0 z-10 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-100 dark:border-slate-800">
           <button onClick={() => window.location.href = '/games'} className={btnStyle}>
             <ArrowLeft className="w-4 h-4 stroke-[3px]" />
@@ -375,10 +412,10 @@ export function Caro5() {
           </button>
 
           <Box className="flex flex-col items-center">
-            <Typography className="text-5xl md:text-6xl font-black uppercase tracking-widest flex items-center gap-4">
-              <Grid3x3 className="w-10 h-10 md:w-12 md:h-12 text-blue-600 dark:text-blue-500" />
+            <Typography className="text-4xl md:text-5xl font-black uppercase tracking-widest flex items-center gap-4">
+              <Grid3x3 className="w-8 h-8 md:w-10 md:h-10 text-blue-600 dark:text-blue-500" />
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">
-                CARO 5
+                TIC TAC TOE
               </span>
             </Typography>
           </Box>
@@ -403,8 +440,10 @@ export function Caro5() {
           </Box>
         </Box>
 
+        {/* Game Area */}
         <Box className="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto relative">
           
+          {/* MENU VIEW */}
           {gameStatus === "menu" && (
             <div className="w-full max-w-5xl animate-in fade-in zoom-in-95 duration-500">
               <div className="text-center mb-12">
@@ -412,7 +451,7 @@ export function Caro5() {
                   Ready to Play?
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-medium max-w-2xl mx-auto">
-                  Connect <span className="text-blue-600 dark:text-blue-400 font-bold">5 pieces</span> to win. Select your challenge level below.
+                  Connect <span className="text-blue-600 dark:text-blue-400 font-bold">{WIN_STREAK} pieces</span> to win. Select your challenge level below.
                 </p>
               </div>
 
@@ -457,9 +496,11 @@ export function Caro5() {
             </div>
           )}
 
+          {/* PLAYING / RESULT VIEW */}
           {(gameStatus === "playing" || gameStatus === "paused" || gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw") && (
-            <div className="w-full max-w-3xl flex flex-col items-center gap-6 animate-in fade-in duration-500 py-4">
+            <div className="w-full max-w-sm flex flex-col items-center gap-6 animate-in fade-in duration-500 py-4">
               
+              {/* Score/Status Bar */}
               <div className="w-full bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className={`flex items-center gap-3 px-4 py-2 rounded-2xl transition-colors ${xIsNext ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-transparent'}`}>
                   <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -489,22 +530,23 @@ export function Caro5() {
                 </div>
               </div>
 
+              {/* Game Board */}
               <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-800 w-full overflow-hidden relative">
                 
                 {gameStatus === 'paused' && (
                   <div className="absolute inset-0 z-40 flex items-center justify-center bg-slate-900/10 backdrop-blur-sm animate-in fade-in">
-                     <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl border-2 border-slate-100 dark:border-slate-700 flex flex-col items-center">
+                      <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-2xl border-2 border-slate-100 dark:border-slate-700 flex flex-col items-center">
                         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-4">
                            <Pause className="w-8 h-8 text-blue-600 dark:text-blue-400 stroke-[3px]" />
                         </div>
                         <Typography variant="h5" className="font-black text-slate-800 dark:text-white mb-2">GAME PAUSED</Typography>
                         <Typography className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">Press Enter to Resume</Typography>
-                     </div>
+                      </div>
                   </div>
                 )}
 
                 <div 
-                  className="grid gap-1 p-2 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800"
+                  className="grid gap-2 p-2 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800"
                   style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}
                 >
                   {board.map((cell, idx) => {
@@ -519,8 +561,8 @@ export function Caro5() {
                           ${isWinning ? (cell === 'X' ? 'ring-2 ring-blue-400 bg-blue-50 dark:bg-blue-900/30 z-10' : 'ring-2 ring-red-400 bg-red-50 dark:bg-red-900/30 z-10') : ''}
                         `}
                       >
-                        {cell === 'X' && <X className={`w-3/5 h-3/5 text-blue-500 dark:text-blue-400 stroke-[3px] ${isWinning ? 'animate-bounce' : 'animate-in zoom-in'}`} />}
-                        {cell === 'O' && <Circle className={`w-3/5 h-3/5 text-red-500 dark:text-red-400 stroke-[3px] ${isWinning ? 'animate-bounce' : 'animate-in zoom-in'}`} />}
+                        {cell === 'X' && <X className={`w-3/5 h-3/5 text-blue-500 dark:text-blue-400 stroke-[4px] ${isWinning ? 'animate-bounce' : 'animate-in zoom-in'}`} />}
+                        {cell === 'O' && <Circle className={`w-3/5 h-3/5 text-red-500 dark:text-red-400 stroke-[4px] ${isWinning ? 'animate-bounce' : 'animate-in zoom-in'}`} />}
                         {!cell && <div className="w-1 h-1 rounded-full bg-slate-100 dark:bg-slate-800" />}
                       </div>
                     );
@@ -534,6 +576,7 @@ export function Caro5() {
                 </Typography>
               </div>
 
+              {/* End Game Modal */}
               {(gameStatus === "won" || gameStatus === "lost" || gameStatus === "draw") && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
                   <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 border border-slate-100 dark:border-slate-800">

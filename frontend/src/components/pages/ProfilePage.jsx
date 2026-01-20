@@ -305,15 +305,22 @@ export function ProfilePage() {
                   <p>Đang tải thành tích...</p>
                 ) : (
                   achievements.map((achievement) => {
-                    const IconComponent = Gamepad2;
                     return (
                       <Card
                         key={achievement.id}
-                        className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer"
+                        className="group hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer relative"
                       >
                         <CardContent className="p-4">
                           <div className="w-16 h-16 mx-auto mb-3 rounded-xl bg-primary flex items-center justify-center shadow-lg">
-                            <IconComponent className="w-8 h-8 text-primary-foreground" />
+                            {achievement.icon_url ? (
+                              <img 
+                                src={achievement.icon_url} 
+                                alt={achievement.name}
+                                className="w-12 h-12 object-contain"
+                              />
+                            ) : (
+                              <Gamepad2 className="w-8 h-8 text-primary-foreground" />
+                            )}
                           </div>
                           <p className="text-sm text-center mb-1 font-medium">
                             {achievement.name}

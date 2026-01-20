@@ -59,7 +59,15 @@ function AchievementCard({ achievement }) {
         <div className="flex items-start gap-4">
           {/* Icon Section */}
           <div>
-            <Gamepad2 className="w-8 h-8" />
+            {achievement.icon_url ? (
+              <img 
+                src={achievement.icon_url} 
+                alt={achievement.name}
+                className="w-8 h-8 object-contain"
+              />
+            ) : (
+              <Gamepad2 className="w-8 h-8" />
+            )}
           </div>
           {/* Content Section */}
           <div className="flex-1">

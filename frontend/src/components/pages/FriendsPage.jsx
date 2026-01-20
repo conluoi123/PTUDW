@@ -135,6 +135,7 @@ const SuggestionCard = memo(({ suggestion, onSendRequest }) => (
 export function FriendsPage() {
     const [activeTab, setActiveTab] = useState('friends');
     const [searchQuery, setSearchQuery] = useState('');
+    const [suggestionsSearchQuery, setSuggestionsSearchQuery] = useState('');
 
     const [friends, setFriends] = useState([]);
     const [friendRequests, setFriendRequests] = useState([]);
@@ -260,6 +261,13 @@ export function FriendsPage() {
         );
     }, [friends, searchQuery]);
 
+    const filteredSuggestions = useMemo(() => {
+        if (!suggestionsSearchQuery) return suggestions;
+        return suggestions.filter(suggestion =>
+            (suggestion.name || suggestion.username || '').toLowerCase().includes(suggestionsSearchQuery.toLowerCase())
+        );
+    }, [suggestions, suggestionsSearchQuery]);
+
     const onlineFriends = useMemo(() =>
         friends.filter(f => f.isOnline).length
         , [friends]);
@@ -381,8 +389,19 @@ export function FriendsPage() {
                 </TabsContent>
 
                 <TabsContent value="suggestions" className="space-y-4">
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                            type="text"
+                            placeholder="Search suggestions..."
+                            value={suggestionsSearchQuery}
+                            onChange={(e) => setSuggestionsSearchQuery(e.target.value)}
+                            className="pl-12 h-12"
+                        />
+                    </div>
+
                     <div className="grid grid-cols-1 gap-4">
-                        {suggestions.map(suggestion => (
+                        {filteredSuggestions.map(suggestion => (
                             <SuggestionCard
                                 key={suggestion.id}
                                 suggestion={suggestion}
@@ -391,20 +410,22 @@ export function FriendsPage() {
                         ))}
                     </div>
 
-                    {suggestions.length === 0 && (
+                    {filteredSuggestions.length === 0 && (
                         <Card>
                             <CardContent className="text-center py-12">
                                 <UserPlus className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold">No suggestions</h3>
+                                <h3 className="text-lg font-semibold">
+                                    {suggestionsSearchQuery ? 'No suggestions found' : 'No suggestions'}
+                                </h3>
                                 <p className="text-muted-foreground mt-2">
-                                    We'll show you friend suggestions based on mutual connections
+                                    {suggestionsSearchQuery ? 'Try a different search term' : "We'll show you friend suggestions based on mutual connections"}
                                 </p>
                             </CardContent>
                         </Card>
                     )}
 
                     {/* Pagination for suggestions */}
-                    {suggestions.length > 0 && (
+                    {filteredSuggestions.length > 0 && !suggestionsSearchQuery && (
                         <Pagination 
                             currentPage={suggestionsPage} 
                             onPageChange={setSuggestionsPage} 

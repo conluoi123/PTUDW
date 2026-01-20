@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { useLocation } from 'react-router-dom';
 import {
   Save,
@@ -20,8 +20,43 @@ import {
 } from "lucide-react";
 import { ratingService } from "../../services/gamePage.services";
 import { GameService } from "../../services/game.services";
+import { AuthContext } from "../../contexts/AuthContext";
+import { handleGameEnd } from "../../services/game_end.services.js";
 
 const DEFAULT_BOARD_SIZE = 15;
+
+// --- Scoring (modeled after Caro4.jsx) ---
+// Note: GamePage currently doesn't have difficulty levels, so we keep it simple + game-specific multipliers.
+const calculateScore = (result, durationInSeconds, moveCount, logicKey) => {
+  const safeDuration = Math.max(0, Number(durationInSeconds) || 0);
+  const safeMoves = Math.max(0, Number(moveCount) || 0);
+
+  // Base score by result
+  let baseScore = 0;
+  if (result === "win") baseScore = 800;
+  else if (result === "draw") baseScore = 500;
+  else if (result === "lose") baseScore = 0;
+
+  // Faster completion -> higher bonus (cap at 0)
+  const speedBonus = Math.max(0, 500 - safeDuration * 5);
+
+  // Small reward for "meaningful" play; keeps snake/match3 from being only time-based.
+  const moveBonus = Math.min(300, safeMoves * 3);
+
+  // Game-specific balancing
+  const gameMultipliers = {
+    caro5: 1.2,
+    caro4: 1.1,
+    tictactoe: 1.0,
+    memory: 1.0,
+    snake: 1.0,
+    match3: 1.0,
+    draw: 0.0,
+  };
+  const mult = gameMultipliers[logicKey] ?? 1.0;
+
+  return Math.max(0, Math.round((baseScore + speedBonus + moveBonus) * mult));
+};
 
 const COLORS = {
   bg: "#0f172a",
@@ -67,15 +102,6 @@ const FALLBACK_GAMES = [
   { id: "caro5", name: "Caro 5", description: "5 in a row", config: { board_size: "15*15" }, status: "active", instruction: "Win by getting 5 in a row." },
 ];
 
-// This mapping might still be needed if your backend returns numeric IDs but frontend uses string IDs for logic.
-// However, if backend returns the string ID in the 'id' field (or 'slug'), we can use that directly.
-// For now, assuming backend 'id' matches the frontend logic keys (caro5, tictactoe, etc.), OR we map them dynamically.
-// If backend IDs are numeric (1, 2, 3) and we need string keys for ICONS, we might need a reverse map or rely on `game.name` or `game.tictactoe_id` if it exists.
-// Let's assume the API returns an 'id' that is the NUMERIC ID, and maybe a 'code' or we infer logic from name?
-// Actually, looking at previous context, GAME_DB_IDS mapped "caro5" -> 1.
-// If the API returns the numeric ID as `id`, we need to know which frontend logic (ICONS, rules) to apply.
-// We will try to match by Name or assume the API returns a `code` field. If not, we might have to map by Name.
-// For now, let's keep GAME_DB_IDS for reverse lookup if needed, but we will mostly rely on the fetched list.
 
 const GAME_DB_IDS = {
   "caro5": 1,
@@ -280,6 +306,7 @@ const resolveMatch3Board = (board, boardSize) => {
 
 export const GamesPage = () => {
   const location = useLocation();
+  const { user } = useContext(AuthContext);
   const [mode, setMode] = useState("MENU");
   const [games, setGames] = useState([]);
   const [gameIdx, setGameIdx] = useState(0);
@@ -290,6 +317,7 @@ export const GamesPage = () => {
 
   // Instruction Modal State
   const [showInstruction, setShowInstruction] = useState(false);
+  const [startTime, setStartTime] = useState(null);
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -357,6 +385,12 @@ export const GamesPage = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [winner, setWinner] = useState(null);
   const [hintCell, setHintCell] = useState(null);
+  const [finalScore, setFinalScore] = useState(null); // computed when a game ends (win/draw/lose)
+  const endHandledRef = useRef(false);
+  const [showEndPopup, setShowEndPopup] = useState(false);
+  const [endResult, setEndResult] = useState(null); // 'win' | 'lose' | 'draw'
+  const [unlockedAchievements, setUnlockedAchievements] = useState([]);
+  const exitAfterEndRef = useRef(false);
 
   const [snake, setSnake] = useState([[7, 7]]);
   const [food, setFood] = useState(null);
@@ -482,6 +516,13 @@ export const GamesPage = () => {
     setCursor(Math.floor(totalCells / 2)); // Dynamic center
     setIsDragging(false);
     dragAction.current = null;
+    setStartTime(new Date());
+    setFinalScore(null);
+    endHandledRef.current = false;
+    exitAfterEndRef.current = false;
+    setShowEndPopup(false);
+    setEndResult(null);
+    setUnlockedAchievements([]);
     if (id === "snake") {
       setSnake([
         [7, 5],
@@ -526,6 +567,74 @@ export const GamesPage = () => {
     }
   };
 
+  // When a game ends, compute a final score (win/draw/lose) once.
+  useEffect(() => {
+    if (!winner) return;
+    if (finalScore !== null) return;
+
+    const endTime = new Date();
+    const durationInSeconds = startTime ? Math.round((endTime - startTime) / 1000) : timer;
+
+    let moveCount = 0;
+    if (["caro5", "caro4", "tictactoe"].includes(logicKey)) {
+      moveCount = board.filter((c) => c !== null).length;
+    } else if (logicKey === "memory") {
+      moveCount = memoryMatched.length + memoryRevealed.length;
+    } else if (logicKey === "draw") {
+      moveCount = board.filter((c) => c !== null).length;
+    } else if (logicKey === "snake" || logicKey === "match3") {
+      moveCount = score;
+    }
+
+    // Determine result
+    let result = "draw";
+    if (winner === "X" || winner === "WIN") result = "win";
+    else if (winner === "O" || winner === "GAME OVER") result = "lose";
+    else if (winner === "draw") result = "draw";
+
+    const computed = calculateScore(result, durationInSeconds, moveCount, logicKey);
+
+    // For score-based games, keep the higher of computed score and gameplay score (so snake/match3 feel right).
+    const scoreBased = logicKey === "snake" || logicKey === "match3";
+    const finalVal = scoreBased ? Math.max(computed, score) : computed;
+    setFinalScore(finalVal);
+  }, [winner, finalScore, startTime, timer, logicKey, board, score, memoryMatched, memoryRevealed]);
+
+  // Step 2: When the game completes, show a popup with the score, then save a game session via handleGameEnd().
+  useEffect(() => {
+    if (!winner) return;
+    if (finalScore === null) return;
+    if (endHandledRef.current) return;
+
+    endHandledRef.current = true;
+
+    const endTime = new Date();
+    const durationInSeconds = startTime ? Math.round((endTime - startTime) / 1000) : timer;
+
+    let result = "draw";
+    if (winner === "X" || winner === "WIN") result = "win";
+    else if (winner === "O" || winner === "GAME OVER") result = "lose";
+    else if (winner === "draw") result = "draw";
+
+    setEndResult(result);
+    setShowEndPopup(true);
+
+    // Send sessionData (only if logged in)
+    (async () => {
+      const gameId = currentGame?.id;
+      if (!gameId) return;
+      const res = await handleGameEnd({
+        user,
+        gameId,
+        score: finalScore,
+        result,
+        duration: durationInSeconds,
+      });
+      const unlocked = res?.data?.achievements_unlocked || [];
+      setUnlockedAchievements(Array.isArray(unlocked) ? unlocked : []);
+    })();
+  }, [winner, finalScore, user, currentGame, startTime, timer]);
+
   const handleControl = (action) => {
     if (showRating) return;
 
@@ -555,6 +664,13 @@ export const GamesPage = () => {
         return;
       }
       if (action === "BACK") {
+        // For these games, exiting should still calculate score + submit session + show popup.
+        if (["memory", "match3", "draw"].includes(logicKey)) {
+          exitAfterEndRef.current = true;
+          setIsPaused(true);
+          setWinner("draw");
+          return;
+        }
         setWinner(null);
         setMode("MENU");
         return;
@@ -620,14 +736,7 @@ export const GamesPage = () => {
       logicKey,
       currentBoardSize
     };
-    // If turn-based (caro, tictactoe), we might want to save whose turn it is. 
-    // Logic for turn is generic in this file, usually implicitly tracked or calculated.
-    // Wait, the code doesn't explicitly have `turn` state, it calculates `X` count vs `O` count?
-    // Looking at `handleGameInput`: 
-    // const xCount = board.filter(c => c === 'X').length; 
-    // const oCount = board.filter(c => c === 'O').length;
-    // So board state is enough to restore turn for Caro/TicTacToe.
-    // For Snake: needs snake, food, direction.
+
     if (logicKey === "snake") {
         dataToSave.snake = snake;
         dataToSave.food = food;
@@ -685,6 +794,9 @@ export const GamesPage = () => {
           setScore(data.score || 0);
           setTimer(data.timer || 0);
           setWinner(data.winner || null);
+          // Align "startTime" so duration uses the restored timer value.
+          setStartTime(new Date(Date.now() - (data.timer || 0) * 1000));
+          endHandledRef.current = false;
           
           if (data.snake) setSnake(data.snake);
           if (data.food) setFood(data.food);
@@ -750,6 +862,13 @@ export const GamesPage = () => {
           return;
         }
 
+        // No winner: if board is full, it's a draw (fixes TicTacToe/Caro not ending).
+        const hasEmpty = newB.some((c) => c === null);
+        if (!hasEmpty) {
+          setWinner("draw");
+          return;
+        }
+
         setTimeout(() => aiMove(newB, gameId), 300);
       } else if (gameId === "draw") {
         const newB = [...board];
@@ -806,6 +925,11 @@ export const GamesPage = () => {
     if (gameId === "caro4") streak = 4;
 
     if (["caro5", "caro4", "tictactoe"].includes(gameId)) {
+      // If no moves left, it's a draw.
+      if (!currentBoard.some((c) => c === null)) {
+        setWinner("draw");
+        return;
+      }
       move = findBestMove(currentBoard, currentBoardSize, streak, "O", "X");
     }
 
@@ -814,7 +938,12 @@ export const GamesPage = () => {
       newB[move] = "O";
       setBoard(newB);
       const w = checkWin(newB, currentBoardSize, streak);
-      if (w) setWinner(w);
+      if (w) {
+        setWinner(w);
+        return;
+      }
+      // No winner after AI move: if board full -> draw.
+      if (!newB.some((c) => c === null)) setWinner("draw");
     }
   };
 
@@ -1148,7 +1277,7 @@ export const GamesPage = () => {
               >
                 {board.map((_, i) => renderCell(i))}
 
-                {winner && (
+                {winner && !showEndPopup && (
                   <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg z-30 backdrop-blur-sm">
                     <div className="text-center animate-bounce">
                       <Trophy
@@ -1175,6 +1304,56 @@ export const GamesPage = () => {
                           className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-xs shadow-lg transition-all"
                         >
                           PLAY AGAIN (Enter)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {showEndPopup && (
+                  <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg z-[60] backdrop-blur-sm p-4">
+                    <div className="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl p-5 text-white shadow-2xl">
+                      <div className="text-center mb-3">
+                        <div className="text-slate-400 text-xs uppercase tracking-widest">
+                          Game Result
+                        </div>
+                        <div className="font-black text-2xl mt-1">
+                          {(endResult || "draw").toUpperCase()}
+                        </div>
+                        <div className="text-emerald-400 font-mono text-3xl mt-2">
+                          +{finalScore ?? 0}
+                        </div>
+                      </div>
+
+                      {unlockedAchievements.length > 0 && (
+                        <div className="mt-4 bg-slate-800/50 border border-slate-700 rounded-xl p-3">
+                          <div className="text-yellow-400 font-bold text-xs uppercase tracking-wider mb-2">
+                            New Achievements
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            {unlockedAchievements.map((a) => (
+                              <div key={a.id} className="text-slate-200">
+                                - {a.name}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-5 flex gap-2 justify-end">
+                        <button
+                          onClick={() => {
+                            setShowEndPopup(false);
+                            setUnlockedAchievements([]);
+                            if (exitAfterEndRef.current) {
+                              exitAfterEndRef.current = false;
+                              setWinner(null);
+                              setIsPaused(false);
+                              setMode("MENU");
+                            }
+                          }}
+                          className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold"
+                        >
+                          OK
                         </button>
                       </div>
                     </div>

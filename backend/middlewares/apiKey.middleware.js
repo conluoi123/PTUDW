@@ -15,6 +15,7 @@ const checkApiKey = (req, res, next) => {
         // Compare with stored hash
         // ENV.X_API_KEY should be the HASHED value as per user description
         if (hashedKey === ENV.X_API_KEY) {
+            console.log("ok")
             next();
         } else {
             return res.status(403).json({ error: 'Invalid API Key' });

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { WelcomePage } from './components/pages/WelcomePage';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { MusicProvider } from './contexts/MusicContext';
 import { MessagesPage } from './components/pages/MessagePage';
 import { HomePage } from './components/pages/HomePage';
 import { MainLayout } from './components/layouts/MainLayout';
@@ -29,43 +30,45 @@ function App() {
       <BrowserRouter>
         <ScrollToTop />
         <ThemeProvider>
-          <AuthProvider>
-            <Routes>
-              {/* Public Routes (Guest Only) */}
-              <Route element={<GuestRoute />}>
-                <Route path="/" element={<WelcomePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-              </Route>
+          <MusicProvider>
+            <AuthProvider>
+              <Routes>
+                {/* Public Routes (Guest Only) */}
+                <Route element={<GuestRoute />}>
+                  <Route path="/" element={<WelcomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                </Route>
 
-              {/* Protected Routes (User Only) */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<MainLayout />}>
-                <Route path="/messages" element={<MessagesPage />} />
-                <Route path="/home" element={<HomePage />} />
-                <Route path="/achievements" element={<AchievementsPage />} />
-                <Route path="/ranking" element={<RankingPage />} />
-                <Route path="/friends" element={<FriendsPage />} />
-                <Route 
-                  path="/admin" 
-                  element={
-                    <AdminRoute>
-                      <AdminPage />
-                    </AdminRoute>
-                  } 
-                />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/games" element={<GamesPage />} />
-                <Route path="/games/drawing-board" element={<DrawingBoardGame />} />
-                <Route path="/games/memory-card" element={<MemoryCardGame />} />
-                <Route path="/games/caro-5" element={<Caro5 />} />
-                <Route path="/games/caro-4" element={<Caro4 />} />
-                <Route path = "/games/TicTacToe" element = {<TicTacToe />} />
-                {/* <Route path ="/games/snake" element = {<Snake/>}/> */}
-              </Route>
-              </Route>  
-            </Routes>
-          </AuthProvider>
+                {/* Protected Routes (User Only) */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<MainLayout />}>
+                  <Route path="/messages" element={<MessagesPage />} />
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/achievements" element={<AchievementsPage />} />
+                  <Route path="/ranking" element={<RankingPage />} />
+                  <Route path="/friends" element={<FriendsPage />} />
+                  <Route 
+                    path="/admin" 
+                    element={
+                      <AdminRoute>
+                        <AdminPage />
+                      </AdminRoute>
+                    } 
+                  />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/games" element={<GamesPage />} />
+                  <Route path="/games/drawing-board" element={<DrawingBoardGame />} />
+                  <Route path="/games/memory-card" element={<MemoryCardGame />} />
+                  <Route path="/games/caro-5" element={<Caro5 />} />
+                  <Route path="/games/caro-4" element={<Caro4 />} />
+                  <Route path = "/games/TicTacToe" element = {<TicTacToe />} />
+                  {/* <Route path ="/games/snake" element = {<Snake/>}/> */}
+                </Route>
+                </Route>  
+              </Routes>
+            </AuthProvider>
+          </MusicProvider>
         </ThemeProvider>
       </BrowserRouter>
     );

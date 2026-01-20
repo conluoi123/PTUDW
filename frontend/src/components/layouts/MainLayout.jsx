@@ -1,17 +1,40 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AuthContext } from '../../contexts/AuthContext';
 import { Sidebar } from '../SideBar';
 import { Header } from '../Header';
 import { userApi } from '@/services/userApi.services';
+import { MessageService } from '@/services/message.services';
 
 export function MainLayout() {
   const { user, logout } = useContext(AuthContext);
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Fetch unread messages count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!user?.id) return;
+      try {
+        const conversations = await MessageService.getConversations(user.id, 1);
+        const unreadCount = conversations.data?.reduce((total, conv) => {
+          return total + (conv.unread_count || 0);
+        }, 0) || 0;
+        setUnreadMessagesCount(unreadCount);
+      } catch (error) {
+        console.error('Failed to fetch unread messages:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    // Poll every 30 seconds for new messages
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   // Xác định currentPage dựa trên URL để highlight sidebar
   const getCurrentPage = () => {
@@ -45,6 +68,7 @@ export function MainLayout() {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           isLoggedIn={true}
+          unreadMessagesCount={unreadMessagesCount}
         />
 
         <main className="flex-1 pt-16 lg:ml-20 min-h-screen overflow-x-hidden">

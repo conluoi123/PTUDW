@@ -34,8 +34,6 @@ export const HomePage = () => {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState("Tất cả");
-  const CATEGORIES = ["Tất cả", "Trí tuệ", "Chiến thuật", "Đối kháng", "Giải trí"];
   const { user } = useContext(AuthContext);
   const [ratings, setRatings] = useState([]);
   const [ratingsPage, setRatingsPage] = useState(1);
@@ -221,23 +219,6 @@ export const HomePage = () => {
                   <LayoutGrid className="w-5 h-5 text-indigo-500" /> 
                   Kho game
               </h3>
-              
-              {/* Category Chips */}
-              <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((cat) => (
-                      <button
-                          key={cat}
-                          onClick={() => setActiveTab(cat)}
-                          className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
-                              activeTab === cat 
-                              ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' 
-                              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                          }`}
-                      >
-                          {cat}
-                      </button>
-                  ))}
-              </div>
           </div>
           
           {/* Responsive Grid: 1 col mobile, 2 tablet, 3 desktop (max-w-7xl prevents overflow) */}

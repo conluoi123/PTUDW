@@ -1,7 +1,8 @@
-import { Moon, Sun, Menu, Gamepad2 } from 'lucide-react';
+import { Moon, Sun, Menu, Gamepad2, Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { memo, useState } from 'react';
 import { Button } from './ui/button';
 import { Avatar } from './ui/avatar';
+import { useMusic } from '@/contexts/MusicContext';
 
 import { UserDropdown } from './UserDropDown';
 
@@ -18,6 +19,8 @@ export const Header = memo(function Header({
     onShowRegister
 }) {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+    const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+    const { isPlaying, volume, setVolume, toggleMusic } = useMusic();
 
     const handleUserClick = () => {
         setIsUserDropdownOpen(!isUserDropdownOpen);
@@ -63,6 +66,57 @@ export const Header = memo(function Header({
                   <Moon className="w-5 h-5 text-indigo-600" />
                 )}
               </Button>
+
+              {/* Music Controls */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl"
+                onClick={toggleMusic}
+                title={isPlaying ? 'Pause Music' : 'Play Music'}
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5 text-green-500" />
+                ) : (
+                  <Play className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )}
+              </Button>
+
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl"
+                  onClick={() => setShowVolumeSlider(!showVolumeSlider)}
+                  title="Volume"
+                >
+                  {volume === 0 ? (
+                    <VolumeX className="w-5 h-5" />
+                  ) : (
+                    <Volume2 className="w-5 h-5 text-blue-500" />
+                  )}
+                </Button>
+
+                {showVolumeSlider && (
+                  <div className="absolute top-full right-0 mt-2 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                    <div className="flex items-center gap-3">
+                      <VolumeX className="w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={volume * 100}
+                        onChange={(e) => setVolume(Number(e.target.value) / 100)}
+                        className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                      />
+                      <Volume2 className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="text-xs text-center mt-2 text-muted-foreground">
+                      {Math.round(volume * 100)}%
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {user ? (
                 <div className="relative ml-1">

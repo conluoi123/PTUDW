@@ -14,6 +14,8 @@ import { profileRouter } from "./routers/profile.routers.js";
 import gameSessionRouter from "./routers/game_sessions.router.js";
 import checkApiKey from "./middlewares/apiKey.middleware.js";
 import { authenticateAccessToken } from "./middlewares/jwt.middlewares.js";
+import swaggerUi from "swagger-ui-express";
+import { specs } from "./swagger.config.js";
 const app = express();
 const PORT = ENV.PORT || 3000;
 
@@ -43,7 +45,9 @@ app.use(
     },
   })
 );
+
 app.use(checkApiKey);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 userRouter(app);
 adminRouter(app);
 rankingRouter(app);

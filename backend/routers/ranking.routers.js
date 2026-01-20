@@ -14,13 +14,13 @@ const rankingRouter = (app) => {
 
     // Public routes (không cần auth)
     /**
+/**
  * @swagger
  * /api/rankings/global/overall:
  *   get:
  *     summary: Get overall global rankings
  *     tags: [Rankings]
  *     security:
- *       - cookieAuth: []
  *       - ApiKeyAuth: []
  *     responses:
  *       200:
@@ -42,7 +42,8 @@ const rankingRouter = (app) => {
  *                     type: integer
  *                     example: 5000
  */
-router.get("/global/overall", authenticateAccessToken, getRankingGlobalOverall);
+router.get("/global/overall", getRankingGlobalOverall);
+router.post("/global/overall", getRankingGlobalOverall);
 
 /**
  * @swagger
@@ -51,7 +52,6 @@ router.get("/global/overall", authenticateAccessToken, getRankingGlobalOverall);
  *     summary: Get global rankings for a specific game
  *     tags: [Rankings]
  *     security:
- *       - cookieAuth: []
  *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
@@ -80,7 +80,8 @@ router.get("/global/overall", authenticateAccessToken, getRankingGlobalOverall);
  *                     type: integer
  *                     example: 500
  */
-router.get("/global/:gameId", authenticateAccessToken, getRankingGlobal);
+router.get("/global/:gameId", getRankingGlobal);
+router.post("/global/:gameId", getRankingGlobal);
 
 /**
  * @swagger
@@ -112,6 +113,7 @@ router.get("/global/:gameId", authenticateAccessToken, getRankingGlobal);
  *                     example: 2000
  */
 router.get("/friends/overall", authenticateAccessToken, getRankingFriendsOverall);
+router.post("/friends/overall", authenticateAccessToken, getRankingFriendsOverall);
 
 /**
  * @swagger
@@ -150,6 +152,7 @@ router.get("/friends/overall", authenticateAccessToken, getRankingFriendsOverall
  *                     example: 100
  */
 router.get("/friends/:gameId", authenticateAccessToken, getRankingFriendList);
+router.post("/friends/:gameId", authenticateAccessToken, getRankingFriendList);
 
 /**
  * @swagger

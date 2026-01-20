@@ -426,26 +426,28 @@ export function MessagesPage() {
                         />
 
                         {/* Messages Area */}
-                        <ScrollArea className="flex-1 p-4 lg:p-6 h-[calc(100vh-200px)]" type='always'>
-                            <div className="max-w-screen mx-auto space-y-6">
-                                <div className="text-center py-6">
-                                    <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
-                                        Bây giờ
-                                    </span>
+                        <div className="flex-1 min-h-0 overflow-hidden">
+                            <ScrollArea className="h-full p-4 lg:p-6" type='always'>
+                                <div className="max-w-screen mx-auto space-y-6">
+                                    <div className="text-center py-6">
+                                        <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-white/5 text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                                            Bây giờ
+                                        </span>
+                                    </div>
+                                    {selectedConversation.messages && selectedConversation.messages.map((message) => (
+                                        <MessageBubble
+                                            key={message.id}
+                                            message={message}
+                                            isSentByMe={message.senderId === 'me'}
+                                        />
+                                    ))}
+                                    <div ref={messagesEndRef} />
                                 </div>
-                                {selectedConversation.messages && selectedConversation.messages.map((message) => (
-                                    <MessageBubble
-                                        key={message.id}
-                                        message={message}
-                                        isSentByMe={message.senderId === 'me'}
-                                    />
-                                ))}
-                                <div ref={messagesEndRef} />
-                            </div>
-                        </ScrollArea>
+                            </ScrollArea>
+                        </div>
 
                         {/* Input Area */}
-                        <div className="p-4 bg-white dark:bg-[#16181d] border-t border-gray-200/50 dark:border-white/5 backdrop-blur-md">
+                        <div className="flex-shrink-0 p-4 bg-white dark:bg-[#16181d] border-t border-gray-200/50 dark:border-white/5 backdrop-blur-md">
                             <div className="max-w-screen mx-auto bg-gray-100 dark:bg-white/5 p-2 rounded-3xl flex items-end gap-2 border border-transparent focus-within:border-indigo-500/30 focus-within:bg-white dark:focus-within:bg-black/20 transition-all shadow-inner">
                                 <Button variant="ghost" size="icon" className="text-gray-400 hover:text-indigo-500 hover:bg-transparent rounded-full h-10 w-10">
                                     <Smile className="w-5 h-5" />

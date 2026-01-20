@@ -232,12 +232,12 @@ export function LoginPage({ onBack }) {
                   Remember me
                 </span>
               </label>
-              <button
+              {/* <button
                 type="button"
                 className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
               >
                 Forgot password?
-              </button>
+              </button> */}
             </div>
 
             <Button

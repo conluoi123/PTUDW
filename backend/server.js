@@ -59,10 +59,10 @@ profileRouter(app);
 //======================= ROUTER =======================
 // GAMES
 import gameRouter from "./routers/game.routers.js";
-app.use("/api/games", authenticateAccessToken, gameRouter);
+app.use("/api/games", gameRouter);
 
 // GAME SESSIONS
-app.use("/api/game-sessions", authenticateAccessToken, gameSessionRouter);
+app.use("/api/game-sessions", gameSessionRouter);
 
 // MESSAGES 
 import messageRouter from "./routers/message.routers.js";

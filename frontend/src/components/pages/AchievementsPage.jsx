@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { fetchAchievements } from "@/services/achievements.services";
 import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
-// TODO : Phải đổi backend có userId để có thể lấy achievements của user đó
+
 export function AchievementsPage() {
   const [achievementsRepo, setAchievementsRepo] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,14 +27,7 @@ export function AchievementsPage() {
       setAchievementsRepo([]);
     };
   }, []);
-  // if (achievementsRepo.length == 0) {
-  //   return (
-  //     <div className="text-center p-10">
-  //       <p>You haven't unlocked any achievements yet.</p>
-  //       <p>Play a game to get started!</p>
-  //     </div>
-  //   );
-  // }
+
   
   return (
     <div className="space-y-6 animate-fadeIn">

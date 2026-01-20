@@ -28,6 +28,62 @@ export const GAME_TUTORIALS = {
                 content: "Hãy quan sát kỹ để chặn ngay khi đối thủ (O) sắp có 4 quân thẳng hàng. Đồng thời, cố gắng tạo ra các thế cờ đôi (2 đường thắng cùng lúc) để đối thủ không đỡ kịp.",
                 highlight: "board"
             }
+        ],
+        scenario: [
+            {
+                text: "Chào mừng! Đích đến là 5 quân thẳng hàng. Hãy bắt đầu bằng nước đi giữa bàn.",
+                action: "MOVE",
+                index: 112, // Center (7,7) for 15x15
+                highlightIdx: 112
+            },
+            {
+                text: "Máy (O) chặn bên trái. Hãy phát triển sang bên phải.",
+                action: "AUTO",
+                index: 111
+            },
+            {
+                text: "Đánh tiếp vào ô bên cạnh để tạo chuỗi.",
+                action: "MOVE",
+                index: 113,
+                highlightIdx: 113
+            },
+            {
+                text: "Máy vẫn cố chặn đầu bên kia. Đừng lo, tiếp tục tấn công!",
+                action: "AUTO",
+                index: 110 // Block left again? or 114? Let's say it blocks far left.
+            },
+            {
+                text: "Kéo dài chuỗi lên 3 quân.",
+                action: "MOVE",
+                index: 114,
+                highlightIdx: 114
+            },
+            {
+                 text: "Máy sơ suất chưa chặn đường này! Cơ hội của bạn.",
+                 action: "AUTO",
+                 index: 97 // Random move somewhere else
+            },
+            {
+                text: "Đã có 3 quân, hãy đánh tiếp để tạo nước 4.",
+                action: "MOVE",
+                index: 115,
+                highlightIdx: 115
+            },
+            {
+                text: "Máy cuống cuồng chặn nhưng không kịp rồi!",
+                action: "AUTO",
+                index: 128
+            },
+            {
+                text: "Hoàn tất chiến thắng với 5 quân hàng ngang!",
+                action: "MOVE",
+                index: 116,
+                highlightIdx: 116
+            },
+            {
+                text: "Chúc mừng! Bạn đã thắng. Đó là cách tấn công cơ bản.",
+                action: "END"
+            }
         ]
     },
     caro4: {
@@ -48,6 +104,51 @@ export const GAME_TUTORIALS = {
                 content: "Vì chỉ cần 4 quân là thắng, nên ngay khi thấy đối thủ có 3 quân thẳng hàng không bị chặn, bạn PHẢI chặn ngay lập tức!",
                 highlight: "board"
             }
+        ],
+        scenario: [
+             {
+                text: "Caro 4: Thắng với 4 quân. Bắt đầu tấn công!",
+                action: "MOVE",
+                index: 55, 
+                highlightIdx: 55
+            },
+             {
+                text: "Máy chặn một đầu.",
+                action: "AUTO",
+                index: 54
+            },
+            {
+                 text: "Đánh sang hướng ngược lại.",
+                 action: "MOVE",
+                 index: 56,
+                 highlightIdx: 56
+            },
+            {
+                text: "Máy tiếp tục chặn. Hãy tìm hướng khác hoặc tiếp tục ép.",
+                action: "AUTO",
+                index: 45 // Random block
+            },
+            {
+                 text: "Ta cứ tiếp tục hàng ngang này thôi!",
+                 action: "MOVE",
+                 index: 57,
+                 highlightIdx: 57
+            },
+            {
+                text: "Máy sai lầm! Đây là cơ hội.",
+                action: "AUTO",
+                index: 44
+            },
+            {
+                text: "Chốt hạ! 4 quân thẳng hàng.",
+                action: "MOVE",
+                index: 58,
+                highlightIdx: 58
+            },
+            {
+                text: "Tuyệt vời! Bạn đã thắng.",
+                action: "END"
+            }
         ]
     },
     tictactoe: {
@@ -62,6 +163,40 @@ export const GAME_TUTORIALS = {
                 title: "Chiến Thuật",
                 content: "Chiếm ô trung tâm là chìa khóa quan trọng nhất. Nếu đi sau, hãy cố gắng phòng thủ để hòa cờ.",
                 highlight: "board"
+            }
+        ],
+        scenario: [
+            {
+                text: "Tic Tac Toe: Thắng với 3 quân. Đánh vào giữa là tốt nhất.",
+                action: "MOVE",
+                index: 4,
+                highlightIdx: 4
+            },
+            {
+                text: "Máy đi vào góc.",
+                action: "AUTO",
+                index: 0
+            },
+            {
+                text: "Đánh vào ô bên trái để tạo hàng ngang.",
+                action: "MOVE",
+                index: 3,
+                highlightIdx: 3
+            },
+            {
+                text: "Máy chặn sai chỗ rồi!",
+                action: "AUTO",
+                index: 1
+            },
+             {
+                text: "Kết liễu! Đánh vào ô bên phải để thắng.",
+                action: "MOVE",
+                index: 5,
+                highlightIdx: 5
+            },
+             {
+                text: "Chúc mừng! 3 quân thẳng hàng (3-4-5).",
+                action: "END"
             }
         ]
     },

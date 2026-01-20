@@ -90,13 +90,20 @@ export const getSuggestions = async (req, res) => {
     const currentUserId = req.query.userId || req.body.currentUserId
     const page = parseInt(req.body?.page || req.query?.page || 1)
     const limit = 3
+    const search = req.body?.search || req.query?.search || ''
     
-    let list = await friendService.getSuggestions(currentUserId, page, limit)
-    let total = await friendService.getSuggestionsCount(currentUserId);
+    let list = await friendService.getSuggestions(currentUserId, page, limit, search)
+    let total = await friendService.getSuggestionsCount(currentUserId, search);
     let currentPage = page;
 
     if ((!list || list.length === 0) && page > 1) {
-        list = await friendService.getSuggestions(currentUserId, 1, limit);
+        // If searching, we might just return empty if page > 1 not found, 
+        // but existing logic reset to page 1. Kept for consistency but might look weird if search has 0 results.
+        // Actually for search, if page > 1 is empty, it means no more results.
+        // But logic here says: if page > 1 (e.g. 5) empty, try fetching page 1.
+        // This is auto-correction if user stays on high page number then applies filter.
+        // However, if search truly has 0 results, fetching page 1 will also be 0 results.
+        list = await friendService.getSuggestions(currentUserId, 1, limit, search);
         currentPage = 1;
     }
 

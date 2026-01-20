@@ -4,17 +4,22 @@ import { AuthContext } from '@/contexts/AuthContext';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 
 const ProtectedRoute = () => {
-    const { isAuthenticated, isLoading } = useContext(AuthContext);
+    const { isAuthenticated, isLoading, user } = useContext(AuthContext);
+    if (user) {
+        localStorage.setItem("userId", user.id);
+    }
     const hasStoredUser = !!localStorage.getItem('userId');
 
     // If no user in local storage and not authenticated, fail fast
+    if (isLoading) {
+        return <LoadingOverlay message="Checking Info" description="Please wait..." />;
+    }
+    
     if (!hasStoredUser && !isAuthenticated) {
         return <Navigate to="/" replace />;
     }
 
-    if (isLoading) {
-        return <LoadingOverlay message="Checking Info" description="Please wait..." />;
-    }
+    
 
     return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };

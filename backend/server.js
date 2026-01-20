@@ -12,6 +12,10 @@ import rankingRouter from "./routers/ranking.routers.js";
 import achievementRoutes from "./controllers/achievements/achievement.controller.js";
 import { profileRouter } from "./routers/profile.routers.js";
 import gameSessionRouter from "./routers/game_sessions.router.js";
+import checkApiKey from "./middlewares/apiKey.middleware.js";
+import { authenticateAccessToken } from "./middlewares/jwt.middlewares.js";
+import swaggerUi from "swagger-ui-express";
+import { specs } from "./swagger.config.js";
 const app = express();
 const PORT = ENV.PORT || 3000;
 
@@ -36,11 +40,14 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: false,
+      sameSite: "lax",
       maxAge: 1000 * 60 * 10,
     },
   })
 );
 
+app.use(checkApiKey);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 userRouter(app);
 adminRouter(app);
 rankingRouter(app);
@@ -52,8 +59,7 @@ achievementRoutes(app);
 profileRouter(app);
 
 //======================= MIDDLEWARE =======================
-// import checkApiKey from "./middlewares/apiKey.middleware.js";
-// app.use(checkApiKey);
+
 
 //======================= ROUTER =======================
 // GAMES
@@ -65,11 +71,11 @@ app.use("/api/game-sessions", gameSessionRouter);
 
 // MESSAGES 
 import messageRouter from "./routers/message.routers.js";
-app.use("/api/messages", messageRouter);
+app.use("/api/messages", authenticateAccessToken, messageRouter);
 
 
 
-app.use('/api/friends', friendRouter)
+app.use('/api/friends', authenticateAccessToken, friendRouter)
 
 
 app.listen(PORT, () => {

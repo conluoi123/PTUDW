@@ -35,6 +35,7 @@ export const HomePage = () => {
   const [loading, setLoading] = useState(true);
 
   const { user } = useContext(AuthContext);
+  localStorage.setItem("userId", user.id)
   const [ratings, setRatings] = useState([]);
   const [ratingsPage, setRatingsPage] = useState(1);
   useEffect(() => {

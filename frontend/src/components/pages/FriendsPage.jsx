@@ -140,6 +140,7 @@ export function FriendsPage() {
     const [friends, setFriends] = useState([]);
     const [friendRequests, setFriendRequests] = useState([]);
     const [suggestions, setSuggestions] = useState([]);
+    const [debouncedSuggestionsSearch, setDebouncedSuggestionsSearch] = useState('');
 
     const [totalSuggestions, setTotalSuggestions] = useState(0);
 
@@ -182,8 +183,20 @@ export function FriendsPage() {
         }
     }, [user]);
 
+    // Cleanup for debouncing
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSuggestionsSearch(suggestionsSearchQuery);
+            if (suggestionsSearchQuery !== debouncedSuggestionsSearch) {
+                 setSuggestionsPage(1); // Reset to page 1 on new search
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [suggestionsSearchQuery]);
+
     // Refetch when page changes
     // Refetch when pagination changes
+    // Refetch when page changes or search changes
     useEffect(() => {
         if (user?.id) {
             const fetchData = async () => {
@@ -193,11 +206,11 @@ export function FriendsPage() {
                     // Here we update friends and suggestions as they are paginated
                     const [friendsData, suggestionsData] = await Promise.all([
                         friendService.getFriendsList(user.id, friendsPage),
-                        friendService.getSuggestions(user.id, suggestionsPage)
+                        friendService.getSuggestions(user.id, suggestionsPage, debouncedSuggestionsSearch)
                     ]);
                     setFriends((friendsData.data || []).map(enrichUserData));
                     setSuggestions((suggestionsData.data || []).map(enrichUserData));
-                    if (suggestionsData.total) setTotalSuggestions(suggestionsData.total);
+                    if (suggestionsData.total !== undefined) setTotalSuggestions(suggestionsData.total);
 
                     if (friendsData.page && friendsData.page !== friendsPage) setFriendsPage(friendsData.page);
                     if (suggestionsData.page && suggestionsData.page !== suggestionsPage) setSuggestionsPage(suggestionsData.page);
@@ -207,7 +220,7 @@ export function FriendsPage() {
             };
             fetchData();
         }
-    }, [friendsPage, suggestionsPage, user]);
+    }, [friendsPage, suggestionsPage, user, debouncedSuggestionsSearch]);
 
     const handleAcceptRequest = useCallback(
         async (requesterId) => {
@@ -262,11 +275,9 @@ export function FriendsPage() {
     }, [friends, searchQuery]);
 
     const filteredSuggestions = useMemo(() => {
-        if (!suggestionsSearchQuery) return suggestions;
-        return suggestions.filter(suggestion =>
-            (suggestion.name || suggestion.username || '').toLowerCase().includes(suggestionsSearchQuery.toLowerCase())
-        );
-    }, [suggestions, suggestionsSearchQuery]);
+        // Server side search, so just return suggestions
+        return suggestions;
+    }, [suggestions]);
 
     const onlineFriends = useMemo(() =>
         friends.filter(f => f.isOnline).length
@@ -425,7 +436,7 @@ export function FriendsPage() {
                     )}
 
                     {/* Pagination for suggestions */}
-                    {filteredSuggestions.length > 0 && !suggestionsSearchQuery && (
+                    {filteredSuggestions.length >= 0 && (
                         <Pagination 
                             currentPage={suggestionsPage} 
                             onPageChange={setSuggestionsPage} 

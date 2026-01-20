@@ -5,6 +5,10 @@ const checkApiKey = (req, res, next) => {
     if (req.method === "OPTIONS") {
         return next();
     }
+    // Allow Google OAuth flow to bypass API Key check (handled by browser redirect)
+    if (req.originalUrl && req.originalUrl.includes('/api/user/login/google')) {
+        return next();
+    }
     const apiKey = req.headers['x-api-key'];
 
     if (!apiKey) {

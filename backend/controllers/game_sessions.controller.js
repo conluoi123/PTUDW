@@ -41,8 +41,9 @@ async function createGameSession(req, res) {
     const newSession = await GameSession.create(sessionData);
 
     // Trigger achievement check
+    let achievements_unlocked = [];
     try {
-      await checkAndGrantAchievements(user_id, newSession);
+      achievements_unlocked = await checkAndGrantAchievements(user_id, newSession);
     } catch (achievementError) {
       // Log the error but don't fail the whole request
       console.error("Could not grant achievements:", achievementError);
@@ -50,7 +51,7 @@ async function createGameSession(req, res) {
 
     return res
       .status(201)
-      .json({ message: "Game session saved successfully", data: newSession });
+      .json({ message: "Game session saved successfully", data: newSession, achievements_unlocked });
   } catch (error) {
     console.error("Error creating game session:", error);
     

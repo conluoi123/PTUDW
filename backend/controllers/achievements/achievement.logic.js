@@ -27,11 +27,12 @@ async function checkAndGrantAchievements(userId, gameSession) {
     );
 
     if (achievementsToCheck.length === 0) {
-      return; 
+      return []; 
     }
 
     console.log(`Checking ${achievementsToCheck.length} unearned achievements for user ${userId}...`);
 
+    const unlocked = [];
     for (const achievement of achievementsToCheck) {
       let isEarned = false;
 
@@ -61,8 +62,16 @@ async function checkAndGrantAchievements(userId, gameSession) {
         // Grant the achievement
         // This updates the user_achievements table
         await insert_user_achieve(userId, achievement.id);
+        unlocked.push({
+          id: achievement.id,
+          name: achievement.name,
+          game_id: achievement.game_id,
+          score: achievement.score,
+        });
       }
     }
+
+    return unlocked;
   } catch (error) {
     console.error(`Error checking achievements for user ${userId}:`, error);
     throw error;

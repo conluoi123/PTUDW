@@ -1395,9 +1395,7 @@ export const GamesPage = () => {
                           >
                             <div className="flex justify-between text-slate-400 mb-1 text-[10px]">
                               <span>
-                                {rev.user_name ||
-                                  rev.user_username ||
-                                  "Anonymous User"}
+                                {rev.user_name || "Anonymous User"}
                               </span>
                               <span>
                                 {new Date(rev.created_at).toLocaleDateString()}

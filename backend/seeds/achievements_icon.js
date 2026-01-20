@@ -35,7 +35,7 @@ export async function seed(knex) {
     {
       achievement_id: 13, // Bậc thầy X/O
       // Icon: Trò chơi Tic-tac-toe
-      icon_url: 'https://img.icons8.com/color/96/tic-tac-toe.png'
+      icon_url: 'https://img.icons8.com/?size=96&id=2zlzBTZr9z1H&format=png'
     },
     {
       achievement_id: 14, // Mãng xà khổng lồ

@@ -22,7 +22,7 @@ import { ratingService } from "../../services/gamePage.services";
 import { GameService } from "../../services/game.services";
 import { AuthContext } from "../../contexts/AuthContext";
 import { handleGameEnd } from "../../services/game_end.services.js";
-
+import { LoadingOverlay } from "../ui/LoadingOverlay";
 const DEFAULT_BOARD_SIZE = 15;
 
 // --- Scoring (modeled after Caro4.jsx) ---
@@ -1179,9 +1179,7 @@ export const GamesPage = () => {
 
   if (loading || games.length === 0) {
       return (
-        <div className="w-full min-h-screen flex items-center justify-center bg-zinc-900 text-white font-mono">
-           LOADING SYSTEM...
-        </div>
+        <LoadingOverlay message="Loading..." />
       );
   }
 
@@ -1194,7 +1192,6 @@ export const GamesPage = () => {
               <button onClick={() => setToast(null)}><X size={18} /></button>
           </div>
       )}
-
       {/* Instruction Modal */}
       {showInstruction && (
         <div className="absolute inset-0 z-[60] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -1458,7 +1455,7 @@ export const GamesPage = () => {
               </div>
 
               <div className="mt-4 flex justify-between items-end z-10 relative">
-                <div className="text-slate-500 text-xs">LVL: 1</div>
+                {/* <div className="text-slate-500 text-xs">LVL: 1</div> */}
                 <div className="text-right">
                   <div className="text-slate-500 text-[10px] uppercase">
                     Score

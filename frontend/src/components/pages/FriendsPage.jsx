@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { friendService } from '../../services/friends.services';
 import { Pagination } from '@/components/ui/pagination';
-
+import { LoadingOverlay } from '../ui/LoadingOverlay';
 const enrichUserData = (user) => ({
     ...user,
     avatar: user.avatar || (user.name ? user.name.substring(0, 2).toUpperCase() : 'UN'),
@@ -273,7 +273,7 @@ export function FriendsPage() {
         , [friends]);
 
     if (loading) {
-        return <div className="p-8 text-center">Loading data...</div>;
+        return <LoadingOverlay message="Loading..." />
     }
 
     return (

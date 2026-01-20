@@ -65,12 +65,12 @@ export const getPendingRequests = async (userId) => {
     .select('users.id', 'users.username', 'users.name', 'users.email', 'friendships.create_at as requestedAt')
 }
 
-export const getSuggestions = async (userId, page = 1, limit = 3) => {
+export const getSuggestions = async (userId, page = 1, limit = 3, search = '') => {
   const offset = (page - 1) * limit;
 
   // Use whereNotExists to filter out existing relationships (both pending and accepted)
   // Check both directions: requester_id=userId OR addressee_id=userId
-  return await db('users')
+  let query = db('users')
     .whereNot('id', userId)
     .whereNotExists(function() {
       this.select('*')
@@ -79,7 +79,16 @@ export const getSuggestions = async (userId, page = 1, limit = 3) => {
           this.whereRaw('friendships.requester_id = users.id AND friendships.addressee_id = ?', [userId])
               .orWhereRaw('friendships.requester_id = ? AND friendships.addressee_id = users.id', [userId])
         })
-    })
+    });
+
+  if (search) {
+      query = query.andWhere(function() {
+          this.whereLike('username', `%${search}%`)
+              .orWhereLike('name', `%${search}%`);
+      });
+  }
+
+  return await query
     .select('id', 'username', 'name', 'avatar')
     .limit(limit)
     .offset(offset);
@@ -89,8 +98,8 @@ export const getUserById = async (id) => {
   return await db('users').where('id', id).first();
 }
 
-export const getSuggestionsCount = async (userId) => {
-    const result = await db('users')
+export const getSuggestionsCount = async (userId, search = '') => {
+    let query = db('users')
       .whereNot('id', userId)
       .whereNotExists(function() {
         this.select('*')
@@ -99,8 +108,15 @@ export const getSuggestionsCount = async (userId) => {
             this.whereRaw('friendships.requester_id = users.id AND friendships.addressee_id = ?', [userId])
                 .orWhereRaw('friendships.requester_id = ? AND friendships.addressee_id = users.id', [userId])
           })
-      })
-      .count('id as total')
-      .first();
+      });
+
+    if (search) {
+        query = query.andWhere(function() {
+            this.whereLike('username', `%${search}%`)
+                .orWhereLike('name', `%${search}%`);
+        });
+    }
+
+    const result = await query.count('id as total').first();
     return result.total;
   }

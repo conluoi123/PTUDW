@@ -4,7 +4,7 @@ import { AuthContext } from '@/contexts/AuthContext';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 
 const ProtectedRoute = () => {
-    const { isAuthenticated, isLoading } = useContext(AuthContext);
+    const { isAuthenticated, isLoading, user } = useContext(AuthContext);
     if (user) {
         localStorage.setItem("userId", user.id);
     }

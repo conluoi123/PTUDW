@@ -18,6 +18,25 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: List of achievements
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: "Kiện tướng Caro"
+ *                   game_id:
+ *                     type: integer
+ *                     example: 1
+ *                   score:
+ *                     type: integer
+ *                     example: 100
  */
 router.get(
   "/me",
@@ -48,6 +67,25 @@ router.get(
  *     responses:
  *       200:
  *         description: List of achievements
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: "Kiện tướng Caro"
+ *                   game_id:
+ *                     type: integer
+ *                     example: 1
+ *                   score:
+ *                     type: integer
+ *                     example: 100
  */
 router.get(
   "/:id",

@@ -20,9 +20,18 @@ const router = express.Router()
  *             properties:
  *               receiverId:
  *                 type: string
+ *                 example: "friend_id_123"
  *     responses:
  *       200:
  *         description: Request sent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Friend request sent"
  */
 router.post('/request', friendController.sendRequest)
 
@@ -41,9 +50,18 @@ router.post('/request', friendController.sendRequest)
  *         required: true
  *         schema:
  *           type: string
+ *         example: "request_id_123"
  *     responses:
  *       200:
  *         description: Request accepted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Friend request accepted"
  */
 router.post('/accept/:id', friendController.acceptRequest)
 
@@ -62,9 +80,18 @@ router.post('/accept/:id', friendController.acceptRequest)
  *         required: true
  *         schema:
  *           type: string
+ *         example: "friend_id_123"
  *     responses:
  *       200:
  *         description: Friend removed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Friend removed"
  */
 router.delete('/remove/:id', friendController.removeFriend)
 
@@ -83,9 +110,18 @@ router.delete('/remove/:id', friendController.removeFriend)
  *         required: true
  *         schema:
  *           type: string
+ *         example: "user_to_check"
  *     responses:
  *       200:
  *         description: Friendship status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "friend"
  */
 router.get('/search/:id', friendController.searchFriendStatus)
 
@@ -101,6 +137,19 @@ router.get('/search/:id', friendController.searchFriendStatus)
  *     responses:
  *       200:
  *         description: List of friends
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     example: "friend_id_123"
+ *                   username:
+ *                     type: string
+ *                     example: "friend_name"
  */
 router.get('/list', friendController.getListFriends)
 router.post('/list', friendController.getListFriends)
@@ -117,6 +166,22 @@ router.post('/list', friendController.getListFriends)
  *     responses:
  *       200:
  *         description: Pending requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     example: "request_id"
+ *                   sender:
+ *                     type: object
+ *                     properties:
+ *                       username: 
+ *                         type: string
+ *                         example: "requester_name"
  */
 router.get('/requests', friendController.getPendingRequests)
 
@@ -132,6 +197,16 @@ router.get('/requests', friendController.getPendingRequests)
  *     responses:
  *       200:
  *         description: Suggestions list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   username:
+ *                     type: string
+ *                     example: "suggested_user"
  */
 router.get('/suggestions', friendController.getSuggestions)
 router.post('/suggestions', friendController.getSuggestions)
@@ -148,6 +223,15 @@ router.post('/suggestions', friendController.getSuggestions)
  *     responses:
  *       200:
  *         description: User found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 username:
+ *                   type: string
  */
 router.get('/find', friendController.findUserById)
 

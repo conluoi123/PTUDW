@@ -52,7 +52,6 @@ const options = {
       },
     ],
   },
-  apis: ['./routers/*.js', './controllers/*.js', './server.js'], 
+  apis: ['./routers/**/*.js', './controllers/**/*.js', './server.js'], 
 };
-
 export const specs = swaggerJsdoc(options);

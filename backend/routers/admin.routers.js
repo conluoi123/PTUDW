@@ -23,6 +23,20 @@ const adminRouter = (app) => {
    *     responses:
    *       200:
    *         description: Dashboard statistics
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 totalUsers:
+   *                   type: integer
+   *                   example: 120
+   *                 activeUsers:
+   *                   type: integer
+   *                   example: 45
+   *                 totalGamesPlayed:
+   *                   type: integer
+   *                   example: 1050
    */
   router.get("/dashboard/overview", authenticateAccessToken, getDashboardOverview);
 
@@ -38,6 +52,25 @@ const adminRouter = (app) => {
    *     responses:
    *       200:
    *         description: List of users
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id:
+   *                     type: string
+   *                     example: "user123"
+   *                   username:
+   *                     type: string
+   *                     example: "john_doe"
+   *                   role:
+   *                     type: string
+   *                     example: "user"
+   *                   status:
+   *                     type: string
+   *                     example: "active"
    */
   router.get("/users", authenticateAccessToken, getAllUsers);
 
@@ -56,14 +89,30 @@ const adminRouter = (app) => {
    *         required: true
    *         schema:
    *           type: string
+   *         example: "user123"
    *     requestBody:
    *       content:
    *         application/json:
    *           schema:
    *             type: object
+   *             properties:
+   *               role:
+   *                 type: string
+   *                 example: "admin"
+   *               status:
+   *                 type: string
+   *                 example: "banned"
    *     responses:
    *       200:
    *         description: User updated
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "User updated"
    */
   router.put("/:userId", authenticateAccessToken, updateUser);
 
@@ -79,6 +128,16 @@ const adminRouter = (app) => {
    *     responses:
    *       201:
    *         description: User created
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                    type: string
+   *                    example: "User created"
+   *                 user:
+   *                    type: object
    */
   router.post("/user", authenticateAccessToken, addUser);
 
@@ -97,9 +156,21 @@ const adminRouter = (app) => {
    *         required: true
    *         schema:
    *           type: string
+   *         example: "user123"
    *     responses:
    *       200:
    *         description: User details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 id:
+   *                   type: string
+   *                   example: "user123"
+   *                 username:
+   *                   type: string
+   *                   example: "john_doe"
    */
   router.get("/:userId", authenticateAccessToken, getUserInfo);
 
@@ -118,9 +189,18 @@ const adminRouter = (app) => {
    *         required: true
    *         schema:
    *           type: string
+   *         example: "user123"
    *     responses:
    *       200:
    *         description: User deleted
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: "User deleted"
    */
   router.delete("/:userId", authenticateAccessToken, deleteUser);
   app.use("/api/admin", router);

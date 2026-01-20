@@ -17,13 +17,18 @@ import {
   ArrowLeft,
   ArrowRight,
   Palette,
+  Signal,     // Easy
+  Zap,        // Medium
+  Flame,      // Hard
+  BrainCircuit // AI Icon
 } from "lucide-react";
 import { ratingService } from "../../services/gamePage.services";
 import { GameService } from "../../services/game.services";
 import { AuthContext } from "../../contexts/AuthContext";
-import { handleGameEnd } from "../../services/game_end.services.js";
+import { mediumAI, hardAI, easyAI } from "../../utils/aiDifficulty"; // Import AI Logic
+import { GameTutorial } from "../GameTutorial"; // Import Tutorial Component
 import { LoadingOverlay } from "../ui/LoadingOverlay";
-const DEFAULT_BOARD_SIZE = 15;
+const DEFAULT_BOARD_SIZE = 15; 
 
 // --- Scoring (modeled after Caro4.jsx) ---
 // Note: GamePage currently doesn't have difficulty levels, so we keep it simple + game-specific multipliers.
@@ -316,8 +321,13 @@ export const GamesPage = () => {
   const [toast, setToast] = useState(null); // { message, type }
 
   // Instruction Modal State
+  // Instruction Modal State
   const [showInstruction, setShowInstruction] = useState(false);
+  const [tutorialHighlight, setTutorialHighlight] = useState(null); // 'board', 'controls', etc.
   const [startTime, setStartTime] = useState(null);
+  
+  // AI Difficulty State
+  const [aiDifficulty, setAiDifficulty] = useState('medium'); // 'easy', 'medium', 'hard'
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -376,7 +386,13 @@ export const GamesPage = () => {
   const logicKey = currentGame?.logicKey || "caro5"; 
   const configBoardSize = currentGame?.config?.board_size;
   const parsedSize = configBoardSize ? parseInt(configBoardSize.split('*')[0]) : DEFAULT_BOARD_SIZE;
-  const currentBoardSize = isNaN(parsedSize) ? DEFAULT_BOARD_SIZE : parsedSize;
+  
+  // Force correct board size for known logic keys if config is missing or generic
+  let safeBoardSize = isNaN(parsedSize) ? DEFAULT_BOARD_SIZE : parsedSize;
+  if (logicKey === 'tictactoe') safeBoardSize = 3;
+  if (logicKey === 'caro4' && (!configBoardSize || safeBoardSize === DEFAULT_BOARD_SIZE)) safeBoardSize = 10;
+
+  const currentBoardSize = safeBoardSize;
 
   const [board, setBoard] = useState(Array(DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE).fill(null));
   const [cursor, setCursor] = useState(112);
@@ -930,7 +946,23 @@ export const GamesPage = () => {
         setWinner("draw");
         return;
       }
-      move = findBestMove(currentBoard, currentBoardSize, streak, "O", "X");
+
+      // Use the selected AI difficulty logic
+      const streakToWin = gameId === "caro5" ? 5 : gameId === "caro4" ? 4 : 3;
+      
+      if (aiDifficulty === 'easy') {
+        move = easyAI(currentBoard, currentBoardSize, streakToWin, "O", "X");
+      } else if (aiDifficulty === 'medium') {
+        move = mediumAI(currentBoard, currentBoardSize, streakToWin, "O", "X");
+      } else {
+        // Hard AI
+        move = hardAI(currentBoard, currentBoardSize, streakToWin, "O", "X");
+      }
+      
+      // Fallback if AI returns valid move failed (shouldn't happen but for safety)
+      if (move === null || move === undefined) {
+         move = findBestMove(currentBoard, currentBoardSize, streakToWin, "O", "X");
+      }
     }
 
     if (move !== null) {
@@ -1243,10 +1275,10 @@ export const GamesPage = () => {
               </div>
             </div>
 
-            <div className="flex-1 bg-black rounded-xl p-4 md:p-6 shadow-inner border-[1px] border-slate-700 relative overflow-hidden">
+            <div className={`flex-1 bg-black rounded-xl p-4 md:p-6 shadow-inner border-[1px] border-slate-700 relative overflow-hidden ${tutorialHighlight === 'board' ? 'z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}`}>
               <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-20 pointer-events-none bg-[length:100%_2px,3px_100%]"></div>
 
-              <div className="flex justify-between items-center mb-4 text-slate-400 font-mono text-xs z-10 relative border-b border-slate-800 pb-2">
+              <div className={`flex justify-between items-center mb-4 text-slate-400 font-mono text-xs z-10 relative border-b border-slate-800 pb-2 ${tutorialHighlight === 'info_panel' ? 'bg-yellow-500/20 text-yellow-200 p-2 rounded-lg ring-2 ring-yellow-400' : ''}`}>
                 <span>
                   {mode === "MENU"
                     ? "SYSTEM READY"
@@ -1587,8 +1619,62 @@ export const GamesPage = () => {
               </div>
             )}
 
+            {/* Difficulty Selector (Only for Board Games) */}
+            {mode === "MENU" && ["caro5", "caro4", "tictactoe"].includes(logicKey) && (
+              <div 
+                className={`mb-8 w-full max-w-[300px] bg-slate-800/80 rounded-xl p-4 border border-slate-700 backdrop-blur-sm animate-in fade-in slide-in-from-top-4 
+                  ${tutorialHighlight === 'difficulty_selector' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}
+                `}
+              >
+                <div className="flex items-center gap-2 mb-3 text-sm text-slate-400 font-bold uppercase tracking-wider justify-center">
+                  <BrainCircuit className="w-4 h-4" />
+                  Select Difficulty
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => setAiDifficulty('easy')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
+                      aiDifficulty === 'easy' 
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
+                      : 'bg-slate-900/50 border-slate-700 text-slate-500 hover:border-slate-600 hover:bg-slate-800'
+                    }`}
+                  >
+                    <Signal className="w-6 h-6 mb-2" />
+                    <span className="text-[10px] font-black tracking-wider">EASY</span>
+                  </button>
+                  <button
+                    onClick={() => setAiDifficulty('medium')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
+                      aiDifficulty === 'medium' 
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]' 
+                      : 'bg-slate-900/50 border-slate-700 text-slate-500 hover:border-slate-600 hover:bg-slate-800'
+                    }`}
+                  >
+                    <Zap className="w-6 h-6 mb-2" />
+                    <span className="text-[10px] font-black tracking-wider">MEDIUM</span>
+                  </button>
+                  <button
+                    onClick={() => setAiDifficulty('hard')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all ${
+                      aiDifficulty === 'hard' 
+                      ? 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.3)]' 
+                      : 'bg-slate-900/50 border-slate-700 text-slate-500 hover:border-slate-600 hover:bg-slate-800'
+                    }`}
+                  >
+                    <Flame className="w-6 h-6 mb-2" />
+                    <span className="text-[10px] font-black tracking-wider">HARD</span>
+                  </button>
+                </div>
+                <div className="mt-3 text-center text-xs text-slate-400 font-medium">
+                  {aiDifficulty === 'easy' && "Random moves & Luck"}
+                  {aiDifficulty === 'medium' && "Balanced strategy"}
+                  {aiDifficulty === 'hard' && "Minimax Algorithm"}
+                </div>
+              </div>
+            )}
+
             {!(mode === "PLAYING" && logicKey === "draw") && (
-              <div className="flex flex-col items-center gap-8 mb-4">
+              <div className={`flex flex-col items-center gap-8 mb-4 ${tutorialHighlight === 'controls' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)] rounded-3xl p-4' : ''}`}>
                 <div className="relative w-40 h-40">
                   <div className="absolute inset-0 bg-[#0f172a] rounded-full opacity-50 blur-xl"></div>
                   <div className="relative w-full h-full flex items-center justify-center">
@@ -1634,6 +1720,29 @@ export const GamesPage = () => {
               </div>
             )}
 
+            {mode === "MENU" && (
+              <div className="flex flex-col items-center gap-4">
+
+                {/* TUTORIAL OVERLAY */}
+                <GameTutorial 
+                  gameId={logicKey} 
+                  isOpen={showInstruction} 
+                  onClose={() => setShowInstruction(false)} 
+                  onStepChange={setTutorialHighlight}
+                />
+                {/* Tutorial Button */}
+                <button
+                  onClick={() => setShowInstruction(true)}
+                  className={`mt-6 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white transition-all text-xs font-bold uppercase tracking-wider
+                    ${tutorialHighlight === 'how_to_play' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}
+                  `}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Hint/Help
+                </button>
+              </div>
+            )}
+
             <div className="flex gap-2 justify-center">
               <button
                 onClick={openSaveDialog}
@@ -1647,12 +1756,12 @@ export const GamesPage = () => {
               >
                 <FolderOpen size={16} />
               </button>
-              <button
+              {/* <button
                 onClick={() => setShowInstruction(true)}
                 className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-yellow-400 hover:bg-slate-700"
               >
                 <HelpCircle size={16} />
-              </button>
+              </button> */}
               <button
                 onClick={toggleRating}
                 className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-blue-400 hover:bg-slate-700"

@@ -26,7 +26,9 @@ import { ratingService } from "../../services/gamePage.services";
 import { GameService } from "../../services/game.services";
 import { AuthContext } from "../../contexts/AuthContext";
 import { mediumAI, hardAI, easyAI } from "../../utils/aiDifficulty"; // Import AI Logic
+import { handleGameEnd } from "../../services/game_end.services.js";
 import { GameTutorial } from "../GameTutorial"; // Import Tutorial Component
+import { GAME_TUTORIALS } from "../../data/gameTutorials"; // Import Data
 import { LoadingOverlay } from "../ui/LoadingOverlay";
 const DEFAULT_BOARD_SIZE = 15; 
 
@@ -435,7 +437,72 @@ export const GamesPage = () => {
   const LOAD_LIMIT = 2;
 
   const gameLoopRef = useRef(null);
+
+
+
   const timerRef = useRef(null);
+  const saveInputRef = useRef(null); // Fix lag with Vietnamese input
+
+  // --- SCENARIO MODE STATE ---
+  const [scenarioMode, setScenarioMode] = useState(false);
+  const [scenarioStepIdx, setScenarioStepIdx] = useState(0);
+  const currentScenario = scenarioMode && GAME_TUTORIALS[logicKey]?.scenario ? GAME_TUTORIALS[logicKey].scenario : [];
+
+  const activeScenarioStep = currentScenario[scenarioStepIdx];
+
+  // Advance Scenario Manual for INFO steps
+  const nextScenarioStep = () => {
+      setScenarioStepIdx(prev => prev + 1);
+  };
+
+  // Start Scenario
+  const startScenario = () => {
+     if (!GAME_TUTORIALS[logicKey]?.scenario) {
+         showToast("Chưa có kịch bản hướng dẫn cho game này!");
+         return;
+     }
+     setMode("PLAYING");
+     initGame(logicKey); // Reset game
+     setScenarioMode(true);
+     setScenarioStepIdx(0);
+     setShowInstruction(false); // Close normal help modal
+  };
+
+  // Scenario Auto-Runner
+  useEffect(() => {
+      if (!scenarioMode || !activeScenarioStep) return;
+
+      if (activeScenarioStep.action === 'AUTO') {
+          const timer = setTimeout(() => {
+              // Execute Bot Move
+              const idx = activeScenarioStep.index;
+              if (idx !== undefined) {
+                 // Force move for opponent (O)
+                 setBoard(prev => {
+                     const newB = [...prev];
+                     newB[idx] = "O"; 
+                     return newB;
+                 });
+                 // Advance
+                 setScenarioStepIdx(prev => prev + 1);
+              }
+          }, 1000);
+          return () => clearTimeout(timer);
+      } else if (activeScenarioStep.action === 'END') {
+          const timer = setTimeout(() => {
+              setScenarioMode(false);
+              showToast("Hoàn thành hướng dẫn!");
+              initGame(logicKey);
+          }, 3000);
+          return () => clearTimeout(timer);
+      }
+      // INFO action waits for user to click Next
+  }, [scenarioMode, scenarioStepIdx, activeScenarioStep]);
+
+  // Scenario Highlight Logic
+  const scenarioHighlightIdx = activeScenarioStep?.highlightIdx;
+  // Merge tutorialHighlight from modal with scenario highlight
+  const activeHighlight = tutorialHighlight || (scenarioMode ? activeScenarioStep?.highlight : null);
 
   useEffect(() => {
     if (mode === "MENU" && logicKey) {
@@ -620,7 +687,9 @@ export const GamesPage = () => {
   useEffect(() => {
     if (!winner) return;
     if (finalScore === null) return;
+    if (finalScore === null) return;
     if (endHandledRef.current) return;
+    if (scenarioMode) return; // Disable saving/popup in scenario mode
 
     endHandledRef.current = true;
 
@@ -702,6 +771,37 @@ export const GamesPage = () => {
   const handleMouseClick = (index) => {
     if (mode !== "PLAYING" || isPaused || winner || showRating) return;
     if (logicKey === "snake") return;
+
+
+    // --- SCENARIO INTERCEPTION ---
+    if (scenarioMode && activeScenarioStep) {
+        if (activeScenarioStep.action === 'MOVE') {
+            if (index === activeScenarioStep.index) {
+                // Correct move!
+                setCursor(index);
+                // Execute move manually to ensure it happens
+                // NOTE: logicKey check for draw/others? Assuming Board games for MOVE action
+                const newB = [...board];
+                newB[index] = "X"; // User is always X in scenario for simplicity
+                setBoard(newB);
+                
+                setScenarioStepIdx(prev => prev + 1);
+                return;
+            } else {
+                // Wrong move
+                showToast("Hãy làm theo hướng dẫn!");
+                return; 
+            }
+        }
+        if (activeScenarioStep.action === 'WAIT_DRAW') {
+             // Allow any draw
+        } else {
+            // Block other clicks if expecting AUTO or something else
+            return;
+        }
+    }
+    // -----------------------------
+
     setCursor(index);
     handleGameInput("ENTER", index);
   };
@@ -740,7 +840,10 @@ export const GamesPage = () => {
   };
 
   const handleSaveGame = async () => {
-    if (!saveName.trim()) {
+    // Read from ref to avoid re-rendering on every keystroke
+    const nameToSave = saveInputRef.current?.value || "";
+    
+    if (!nameToSave.trim()) {
       showToast("Please enter a name");
       return;
     }
@@ -765,7 +868,7 @@ export const GamesPage = () => {
     }
     
     // Call Service
-    const res = await GameService.saveGame(currentGame.id, saveName, JSON.stringify(dataToSave));
+    const res = await GameService.saveGame(currentGame.id, nameToSave, JSON.stringify(dataToSave));
     if (res) {
         showToast("Game saved successfully!");
         setShowSaveDialog(false);
@@ -1151,14 +1254,14 @@ export const GamesPage = () => {
           width: "100%",
           height: "100%",
           opacity: mode === "MENU" && val !== "ICON" ? 0.1 : 1,
-          boxShadow: glow || isSelected ? `0 0 10px ${color}` : "none",
+          boxShadow: (glow || isSelected || (scenarioMode && scenarioHighlightIdx === i)) ? `0 0 15px ${scenarioMode && scenarioHighlightIdx === i ? '#facc15' : color}` : "none",
           transform: isCursor
             ? "scale(1.15) translateZ(10px)"
             : isSelected
             ? "scale(0.9)"
             : "scale(1)",
           zIndex: isCursor ? 10 : 1,
-          border: isSelected ? "2px solid white" : "none",
+          border: (isSelected || (scenarioMode && scenarioHighlightIdx === i)) ? `2px solid ${scenarioMode && scenarioHighlightIdx === i ? '#facc15' : 'white'}` : "none",
         }}
       >
         {(!isGridDot || mode === "MENU") && text}
@@ -1265,7 +1368,7 @@ export const GamesPage = () => {
               <div className="flex items-center gap-2">
                 <Gamepad2 className="text-blue-500" />
                 <span className="font-black text-slate-400 tracking-widest text-sm">
-                  RETRO<span className="text-blue-500">BOY</span>
+                  GAMEHUB<span className="text-blue-500">PLAY</span>
                 </span>
               </div>
               <div className="flex gap-1">
@@ -1275,10 +1378,10 @@ export const GamesPage = () => {
               </div>
             </div>
 
-            <div className={`flex-1 bg-black rounded-xl p-4 md:p-6 shadow-inner border-[1px] border-slate-700 relative overflow-hidden ${tutorialHighlight === 'board' ? 'z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}`}>
+            <div className={`flex-1 bg-black rounded-xl p-4 md:p-6 shadow-inner border-[1px] border-slate-700 relative overflow-hidden ${activeHighlight === 'board' ? 'z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}`}>
               <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-20 pointer-events-none bg-[length:100%_2px,3px_100%]"></div>
 
-              <div className={`flex justify-between items-center mb-4 text-slate-400 font-mono text-xs z-10 relative border-b border-slate-800 pb-2 ${tutorialHighlight === 'info_panel' ? 'bg-yellow-500/20 text-yellow-200 p-2 rounded-lg ring-2 ring-yellow-400' : ''}`}>
+              <div className={`flex justify-between items-center mb-4 text-slate-400 font-mono text-xs z-10 relative border-b border-slate-800 pb-2 ${activeHighlight === 'info_panel' ? 'bg-yellow-500/20 text-yellow-200 p-2 rounded-lg ring-2 ring-yellow-400' : ''}`}>
                 <span>
                   {mode === "MENU"
                     ? "SYSTEM READY"
@@ -1531,8 +1634,9 @@ export const GamesPage = () => {
                         <h3 className="text-white font-bold mb-2">Save Game</h3>
                         <input 
                             type="text" 
-                            value={saveName}
-                            onChange={e => setSaveName(e.target.value)}
+                            ref={saveInputRef}
+                            defaultValue={saveName}
+                            // Uncontrolled input to fix lag with Vietnamese IME
                             className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white mb-4 text-sm"
                             placeholder="Save Name..."
                         />
@@ -1623,7 +1727,7 @@ export const GamesPage = () => {
             {mode === "MENU" && ["caro5", "caro4", "tictactoe"].includes(logicKey) && (
               <div 
                 className={`mb-8 w-full max-w-[300px] bg-slate-800/80 rounded-xl p-4 border border-slate-700 backdrop-blur-sm animate-in fade-in slide-in-from-top-4 
-                  ${tutorialHighlight === 'difficulty_selector' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}
+                  ${activeHighlight === 'difficulty_selector' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}
                 `}
               >
                 <div className="flex items-center gap-2 mb-3 text-sm text-slate-400 font-bold uppercase tracking-wider justify-center">
@@ -1674,7 +1778,7 @@ export const GamesPage = () => {
             )}
 
             {!(mode === "PLAYING" && logicKey === "draw") && (
-              <div className={`flex flex-col items-center gap-8 mb-4 ${tutorialHighlight === 'controls' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)] rounded-3xl p-4' : ''}`}>
+              <div className={`flex flex-col items-center gap-8 mb-4 ${activeHighlight === 'controls' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)] rounded-3xl p-4' : ''}`}>
                 <div className="relative w-40 h-40">
                   <div className="absolute inset-0 bg-[#0f172a] rounded-full opacity-50 blur-xl"></div>
                   <div className="relative w-full h-full flex items-center justify-center">
@@ -1728,13 +1832,25 @@ export const GamesPage = () => {
                   gameId={logicKey} 
                   isOpen={showInstruction} 
                   onClose={() => setShowInstruction(false)} 
+                  // onClose={() => setShowInstruction(false)} 
                   onStepChange={setTutorialHighlight}
                 />
+                
+                {/* Scenario Button (If available) */}
+                {GAME_TUTORIALS[logicKey]?.scenario && (
+                    <button
+                        onClick={startScenario}
+                        className="mt-2 flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg transform transition-all hover:scale-105 active:scale-95 font-bold uppercase tracking-wider text-xs"
+                    >
+                        <Play size={16} fill="currentColor" />
+                        Chơi Thử (Kịch Bản)
+                    </button>
+                )}
                 {/* Tutorial Button */}
                 <button
                   onClick={() => setShowInstruction(true)}
                   className={`mt-6 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white transition-all text-xs font-bold uppercase tracking-wider
-                    ${tutorialHighlight === 'how_to_play' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}
+                    ${activeHighlight === 'how_to_play' ? 'relative z-[110] ring-4 ring-yellow-400 ring-offset-4 ring-offset-slate-900 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}
                   `}
                 >
                   <HelpCircle className="w-4 h-4" />
@@ -1746,13 +1862,13 @@ export const GamesPage = () => {
             <div className="flex gap-2 justify-center">
               <button
                 onClick={openSaveDialog}
-                className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
+                className={`p-3 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 ${activeHighlight === 'save_btn' ? 'bg-blue-600 text-white ring-4 ring-yellow-400' : ''}`}
               >
                 <Save size={16} />
               </button>
               <button
                 onClick={handleLoadGame}
-                className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
+                className={`p-3 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 ${activeHighlight === 'load_btn' ? 'bg-blue-600 text-white ring-4 ring-yellow-400' : ''}`}
               >
                 <FolderOpen size={16} />
               </button>
@@ -1764,7 +1880,7 @@ export const GamesPage = () => {
               </button> */}
               <button
                 onClick={toggleRating}
-                className="p-3 rounded-full bg-slate-800 text-slate-400 hover:text-blue-400 hover:bg-slate-700"
+                className={`p-3 rounded-full bg-slate-800 text-slate-400 hover:text-blue-400 hover:bg-slate-700 ${activeHighlight === 'rating_btn' ? 'bg-blue-600 text-white ring-4 ring-yellow-400' : ''}`}
               >
                 <MessageSquare size={16} />
               </button>

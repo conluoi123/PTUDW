@@ -40,8 +40,9 @@ async function load_achievements_me(req, res, next) {
     const id_user =  req.userId ;
     const user_achivement = await db("achievements as a")
       .join("user_achievements as ua", "a.id", "ua.achievement_id")
+      .leftJoin("achievements_icon as ai", "a.id", "ai.achievement_id")
       .where("ua.user_id", id_user)
-      .select("a.*");
+      .select("a.*", "ai.icon_url");
     req.achievements = user_achivement;
     next();
   } catch (error) {
@@ -52,9 +53,10 @@ async function load_achievements_me(req, res, next) {
 async function load_achievements_id(req, res, next) {
   try {
     const id_achievement = req.params.id;
-    const achievement = await db("achievements")
-      .where("id", id_achievement)
-      .select("*");
+    const achievement = await db("achievements as a")
+      .leftJoin("achievements_icon as ai", "a.id", "ai.achievement_id")
+      .where("a.id", id_achievement)
+      .select("a.*", "ai.icon_url");
     req.achievements = achievement;
     next();
   } catch (error) {

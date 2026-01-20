@@ -366,12 +366,12 @@ export function RankingPage() {
                                         <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
                                             Games
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
+                                        {/* <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
                                             Win Rate
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
+                                        </th> */}
+                                        {/* <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
                                             Trend
-                                        </th>
+                                        </th> */}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
@@ -411,13 +411,13 @@ export function RankingPage() {
                                             <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
                                                 {player.games}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            {/* <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-2">
                                                     <Progress value={player.winRate} className="w-24 h-2" />
                                                     <span className="font-semibold">{player.winRate}%</span>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            </td> */}
+                                            {/* <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-2">
                                                     {getTrendIcon(player.trend)}
                                                     {player.change !== 0 && (
@@ -427,7 +427,7 @@ export function RankingPage() {
                                                         </span>
                                                     )}
                                                 </div>
-                                            </td>
+                                            </td> */}
                                         </tr>
                                     ))}
                                 </tbody>
@@ -534,9 +534,9 @@ export function RankingPage() {
                                         <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
                                             Games
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
+                                        {/* <th className="px-6 py-4 text-left text-xs text-muted-foreground uppercase tracking-wider">
                                             Win Rate
-                                        </th>
+                                        </th> */}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
@@ -576,12 +576,12 @@ export function RankingPage() {
                                             <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
                                                 {player.games}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            {/* <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-2">
                                                     <Progress value={player.winRate} className="w-24 h-2" />
                                                     <span className="font-semibold">{player.winRate}%</span>
                                                 </div>
-                                            </td>
+                                            </td> */}
                                         </tr>
                                     ))}
                                 </tbody>

@@ -2,7 +2,21 @@ import db from "../models/db.js";
 class Rating {
   static getRatings = async (gameId) => {
     try {
-      return await db("ratings").where("game_id", gameId);
+      return await db("ratings")
+        .join("users", "ratings.user_id", "users.id")
+        .where("ratings.game_id", gameId)
+        .select(
+          "ratings.id",
+          "ratings.user_id",
+          "ratings.game_id",
+          "ratings.point",
+          "ratings.comment",
+          "ratings.created_at",
+          "users.name as user_name",
+          "users.username as user_username",
+          "users.avatar as user_avatar"
+        )
+        .orderBy("ratings.created_at", "desc");
     } catch (error) {
       throw new Error("Error finding ratings: " + error.message);
     }

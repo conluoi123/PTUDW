@@ -37,18 +37,18 @@ export const GameWithRating = ({ gameName, gameId, children }) => {
             const reviewsList = Array.isArray(data) ? data : (data.ratings || []);
             
             const mappedReviews = reviewsList.map(r => {
-                const reviewId = r._id || r.id;
+                const reviewId = r.id;
                 if (!reviewId) {
                     console.warn('Review missing ID:', r);
                 }
                 return {
                     id: reviewId,
-                    userId: r.user_id?.id || r.user_id || r.user?.id,
-                    user: r.user_id?.name || r.user?.name || 'Anonymous User',
-                    avatarUrl: r.user_id?.avatar || r.user?.avatar,
-                    avatar: (r.user_id?.name || r.user?.name || 'A')[0]?.toUpperCase(),
+                    userId: r.user_id,
+                    user: r.user_name || 'Anonymous User',
+                    avatarUrl: r.user_avatar,
+                    avatar: (r.user_name || 'A')[0]?.toUpperCase(),
                     rating: r.point,
-                    date: r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : 'Recently',
+                    date: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : 'Recently',
                     comment: r.comment
                 };
             });
@@ -85,15 +85,15 @@ export const GameWithRating = ({ gameName, gameId, children }) => {
             const reviewsList = Array.isArray(freshData) ? freshData : (freshData.ratings || []);
             
             const mappedReviews = reviewsList.map(r => {
-                const reviewId = r._id || r.id;
+                const reviewId = r.id;
                 return {
                     id: reviewId,
-                    userId: r.user_id?.id || r.user_id || r.user?.id,
-                    user: r.user_id?.name || r.user?.name || 'Anonymous User',
-                    avatarUrl: r.user_id?.avatar || r.user?.avatar,
-                    avatar: (r.user_id?.name || r.user?.name || 'A')[0]?.toUpperCase(),
+                    userId: r.user_id,
+                    user: r.user_name || 'Anonymous User',
+                    avatarUrl: r.user_avatar,
+                    avatar: (r.user_name || 'A')[0]?.toUpperCase(),
                     rating: r.point,
-                    date: r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : 'Recently',
+                    date: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : 'Recently',
                     comment: r.comment
                 };
             });
@@ -108,15 +108,15 @@ export const GameWithRating = ({ gameName, gameId, children }) => {
             const reviewsList = Array.isArray(freshData) ? freshData : (freshData.ratings || []);
             
             const mappedReviews = reviewsList.map(r => {
-                const reviewId = r._id || r.id;
+                const reviewId = r.id;
                 return {
                     id: reviewId,
-                    userId: r.user_id?.id || r.user_id || r.user?.id,
-                    user: r.user_id?.name || r.user?.name || 'Anonymous User',
-                    avatarUrl: r.user_id?.avatar || r.user?.avatar,
-                    avatar: (r.user_id?.name || r.user?.name || 'A')[0]?.toUpperCase(),
+                    userId: r.user_id,
+                    user: r.user_name || 'Anonymous User',
+                    avatarUrl: r.user_avatar,
+                    avatar: (r.user_name || 'A')[0]?.toUpperCase(),
                     rating: r.point,
-                    date: r.createdAt ? new Date(r.createdAt).toISOString().split('T')[0] : 'Recently',
+                    date: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : 'Recently',
                     comment: r.comment
                 };
             });

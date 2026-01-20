@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { AuthContext } from '@/contexts/AuthContext';
 
-export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOpen, onClose, isLoggedIn, onShowLogin }) {
+export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOpen, onClose, isLoggedIn, onShowLogin, unreadMessagesCount = 0 }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const { user } = useContext(AuthContext);
 
@@ -14,12 +14,12 @@ export const Sidebar = memo(function Sidebar({ currentPage, setCurrentPage, isOp
         { id: 'home', label: 'Home', icon: <Home className="w-5 h-5" />, requireAuth: false },
         { id: 'games', label: 'Games', icon: <Gamepad2 className="w-5 h-5" />, requireAuth: false },
         { id: 'friends', label: 'Friends', icon: <Users className="w-5 h-5" />, requireAuth: true },
-        { id: 'messages', label: 'Messages', icon: <MessageCircle className="w-5 h-5" />, badge: 3, requireAuth: true },
+        { id: 'messages', label: 'Messages', icon: <MessageCircle className="w-5 h-5" />, badge: unreadMessagesCount, requireAuth: true },
         { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" />, requireAuth: true },
         { id: 'achievements', label: 'Achievements', icon: <Trophy className="w-5 h-5" />, requireAuth: true },
         { id: 'ranking', label: 'Ranking', icon: <TrendingUp className="w-5 h-5" />, requireAuth: true },
         { id: 'admin', label: 'Admin Portal', icon: <Shield className="w-5 h-5" />, requireAuth: true, adminOnly: true },
-    ], []);
+    ], [unreadMessagesCount]);
 
     // Filter menu items dựa trên role
     const visibleMenuItems = useMemo(() => {

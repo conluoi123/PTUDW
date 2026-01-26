@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
-    "seed": "knex seed:run"
+    "seed": "knex seed:run",
+    "generate-docs": "node scripts/generate-openapi.js"
   },
   "author": "",
   "license": "ISC",
@@ -32,6 +33,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "js-yaml": "^4.1.0"
   }
 }

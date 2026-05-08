@@ -46,7 +46,7 @@ app.use(
   })
 );
 
-app.use(checkApiKey);
+// app.use(checkApiKey);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 userRouter(app);
 adminRouter(app);

@@ -1,0 +1,17 @@
+# Ignore node_modules
+node_modules/** binary
+node_modules/** linguist-generated=true
+
+# Optional: Prevent node_modules from being tracked at all
+# This is the more common approach
+node_modules/
+
+# Optional: Also ignore backend and frontend node_modules specifically
+backend/node_modules/
+frontend/node_modules/
+
+# Also ignore .env files
+.env
+backend/.env
+frontend/.env
+*.env

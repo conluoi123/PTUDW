@@ -6,7 +6,7 @@ import ENV from "./models/env.configs.js";
 const config = {
   development: {
     client: "postgresql",
-    connection: `postgresql://postgres.tivfxvimpnncupgnglyj:${ENV.DB_PASSWORD}@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres`,
+    connection: `postgresql://postgres.apdedymcbhdcvenrjkij:${ENV.DB_PASSWORD}@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres`,
     migrations: {
       directory: "./migrations",
       tableName: "knex_migrations",
@@ -19,7 +19,7 @@ const config = {
 
   staging: {
     client: "postgresql",
-    connection: `postgresql://postgres.tivfxvimpnncupgnglyj:${ENV.DB_PASSWORD}@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres`,
+    connection: `postgresql://postgres.apdedymcbhdcvenrjkij:${ENV.DB_PASSWORD}@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres`,
     pool: { min: 2, max: 10 },
     migrations: {
       directory: "./migrations",
@@ -33,7 +33,7 @@ const config = {
 
   production: {
     client: "postgresql",
-    connection: `postgresql://postgres.tivfxvimpnncupgnglyj:${ENV.DB_PASSWORD}@aws-1-ap-southeast-2.pooler.supabase.com:6543/postgres`,
+    connection: `postgresql://postgres.apdedymcbhdcvenrjkij:${ENV.DB_PASSWORD}@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres`,
     pool: { min: 2, max: 10 },
     migrations: {
       directory: "./migrations",

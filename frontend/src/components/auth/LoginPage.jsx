@@ -78,7 +78,7 @@ export function LoginPage({ onBack }) {
       });
       
       console.log("Login success:", data);
-      navigate("/home")
+      // navigate("/home")
     } catch (error) {
       console.error("Login failed:", error);
       const status = error?.response?.status;
@@ -94,6 +94,9 @@ export function LoginPage({ onBack }) {
       }
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        navigate("/home");
+      }, 800);
     }
   };
 
@@ -249,12 +252,12 @@ export function LoginPage({ onBack }) {
                   Remember me
                 </span>
               </label>
-              <button
+              {/* <button
                 type="button"
                 className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
               >
                 Forgot password?
-              </button>
+              </button> */}
             </div>
 
             <Button

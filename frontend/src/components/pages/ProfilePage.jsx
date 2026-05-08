@@ -77,7 +77,6 @@ export function ProfilePage() {
     
   const stats = [
     { label: "Total Games", value: user?.total_game || 0, icon: Gamepad2 },
-    { label: "Streak", value: user?.streak || 0, icon: Flame },
     { label: "Rank", value: user.rank !== "none" ? `#${user?.rank}` : "none", icon: Medal },
   ];
   const handleOpenEdit = () => {

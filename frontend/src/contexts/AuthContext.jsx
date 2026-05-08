@@ -15,6 +15,8 @@ function AuthProvider({ children }) {
         await refreshUser();
       } catch (err) {
         console.log("User not authenticated: ", err);
+        localStorage.removeItem("userId");
+        setUser(null);
       } finally {
         setIsLoading(false);
       }

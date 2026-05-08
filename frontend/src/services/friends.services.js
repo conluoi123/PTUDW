@@ -16,8 +16,8 @@ export const friendService = {
         return res.data;
     },
 
-    getSuggestions: async (userId, page = 1) => {
-        const res = await api.post(`/api/friends/suggestions`, { currentUserId: userId, page });
+    getSuggestions: async (userId, page = 1, search = '') => {
+        const res = await api.post(`/api/friends/suggestions`, { currentUserId: userId, page, search });
         return res.data;
     },
 

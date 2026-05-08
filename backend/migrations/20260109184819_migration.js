@@ -19,7 +19,7 @@ export async function up(knex) {
         table.string("email").notNullable().unique();
         table.string("phone");
         table.timestamp("last_login_at").defaultTo(knex.fn.now());
-        table.timestamp('streak').defaultTo(knex.fn.now());
+        table.integer('streak').defaultTo(0);
         table.timestamp("created_at").defaultTo(knex.fn.now());
       })
 
@@ -64,7 +64,7 @@ export async function up(knex) {
           .inTable("users")
           .onDelete("CASCADE");
         table.text("content");
-        table.string("status"); 
+        table.string("status");
         table.timestamp("sent_at").defaultTo(knex.fn.now());
       })
 
@@ -138,6 +138,7 @@ export async function up(knex) {
           .onDelete("CASCADE");
         table.float("point");
         table.text("comment");
+        table.timestamp("created_at").defaultTo(knex.fn.now());
       })
 
       // 9. Bảng achievements

@@ -53,7 +53,17 @@ api.interceptors.response.use(
         }
         isRefreshing = true;
         try {
-            await api.post("/api/user/refreshAccessToken");
+            await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/user/refreshAccessToken`,
+        {},
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": import.meta.env.VITE_X_API_KEY,
+          },
+        },
+      );
             processQueue(null);
             return api(originalRequest);
         } catch (refreshError) {

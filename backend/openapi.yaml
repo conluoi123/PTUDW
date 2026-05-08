@@ -1,0 +1,1535 @@
+openapi: 3.0.0
+info:
+  title: GameHub API
+  version: 1.0.0
+  description: API documentation for GameHub Backend
+servers:
+  - url: https://gamehub-kzzk.onrender.com
+    description: Production Server
+  - url: https://israel-ramose-premeditatingly.ngrok-free.dev
+    description: Ngrok Tunnel
+  - url: http://localhost:3000
+    description: Local Development Server
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API Key for general access (x-api-key header)
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: JWT Access Token in cookie
+    refreshCookieAuth:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+      description: JWT Refresh Token in cookie
+security:
+  - ApiKeyAuth: []
+    cookieAuth: []
+paths:
+  /api/admin/dashboard/overview:
+    get:
+      summary: Get dashboard overview statistics
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalUsers:
+                    type: integer
+                    example: 120
+                  activeUsers:
+                    type: integer
+                    example: 45
+                  totalGamesPlayed:
+                    type: integer
+                    example: 1050
+  /api/admin/users:
+    get:
+      summary: Get list of all users
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: user123
+                    username:
+                      type: string
+                      example: john_doe
+                    role:
+                      type: string
+                      example: user
+                    status:
+                      type: string
+                      example: active
+  /api/admin/{userId}:
+    put:
+      summary: Update a user
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          example: user123
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: admin
+                status:
+                  type: string
+                  example: banned
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User updated
+    get:
+      summary: Get specific user details
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: user123
+                  username:
+                    type: string
+                    example: john_doe
+    delete:
+      summary: Delete a user
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deleted
+  /api/admin/user:
+    post:
+      summary: Create a new user (Admin)
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created
+                  user:
+                    type: object
+  /api/friends/request:
+    post:
+      summary: Send a friend request
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiverId:
+                  type: string
+                  example: friend_id_123
+      responses:
+        '200':
+          description: Request sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Friend request sent
+  /api/friends/accept/{id}:
+    post:
+      summary: Accept a friend request
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: request_id_123
+      responses:
+        '200':
+          description: Request accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Friend request accepted
+  /api/friends/remove/{id}:
+    delete:
+      summary: Remove a friend or reject request
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: friend_id_123
+      responses:
+        '200':
+          description: Friend removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Friend removed
+  /api/friends/search/{id}:
+    get:
+      summary: Check friendship status with a user
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: user_to_check
+      responses:
+        '200':
+          description: Friendship status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: friend
+  /api/friends/list:
+    post:
+      summary: Get list of friends (POST variant)
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of friends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: friend_id_123
+                    username:
+                      type: string
+                      example: friend_name
+  /api/friends/requests:
+    get:
+      summary: Get pending friend requests
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Pending requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: request_id
+                    sender:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                          example: requester_name
+  /api/friends/suggestions:
+    get:
+      summary: Get friend suggestions
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Suggestions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+                      example: suggested_user
+  /api/friends/find:
+    get:
+      summary: Find user by ID or specific criteria
+      tags:
+        - Friends
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  username:
+                    type: string
+  /api/game-sessions:
+    post:
+      summary: Create a new game session (and check achievements)
+      tags:
+        - Game Sessions
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: string
+                  example: tictactoe
+                score:
+                  type: integer
+                  example: 100
+                result:
+                  type: string
+                  example: win
+                duration:
+                  type: integer
+                  example: 120
+      responses:
+        '200':
+          description: Game session created
+  /api/games/save:
+    post:
+      summary: Save current game state
+      tags:
+        - Games
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: string
+                  example: tictactoe
+                name:
+                  type: string
+                  example: My Save 1
+                data:
+                  type: string
+                  example: '{"board":[[null,null],[null,"X"]],"turn":"O"}'
+      responses:
+        '200':
+          description: Game saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Game saved successfully
+                  saveId:
+                    type: string
+                    example: 60d0fe4f5311236168a109ca
+  /api/games/load:
+    get:
+      summary: Load saved games
+      tags:
+        - Games
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of saved games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: 60d0fe4f5311236168a109ca
+                    name:
+                      type: string
+                      example: My Save 1
+                    gameId:
+                      type: string
+                      example: tictactoe
+                    timestamp:
+                      type: string
+                      format: date-time
+                      example: '2024-01-20T12:00:00Z'
+  /api/games/save/{id}:
+    delete:
+      summary: Delete a saved game
+      tags:
+        - Games
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: 60d0fe4f5311236168a109ca
+      responses:
+        '200':
+          description: Saved game deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Save deleted
+  /api/games:
+    get:
+      summary: Retrieve a list of all games
+      tags:
+        - Games
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: A list of games.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: '1'
+                    name:
+                      type: string
+                      example: Tic Tac Toe
+                    description:
+                      type: string
+                      example: Classic X/O game
+    post:
+      summary: Create a new game (Admin)
+      tags:
+        - Games
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: New Game
+                description:
+                  type: string
+                  example: Description
+      responses:
+        '201':
+          description: Game created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Game created successfully
+  /api/games/{id}:
+    get:
+      summary: Get game details by ID
+      tags:
+        - Games
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: '1'
+      responses:
+        '200':
+          description: Game details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: '1'
+                  name:
+                    type: string
+                    example: Tic Tac Toe
+                  instructions:
+                    type: string
+                    example: Connect 3 to win
+    put:
+      summary: Update a game (Admin)
+      tags:
+        - Games
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Game updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Game updated
+    delete:
+      summary: Delete a game (Admin)
+      tags:
+        - Games
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          example: '1'
+      responses:
+        '200':
+          description: Game deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Game deleted
+  /api/messages:
+    post:
+      summary: Send a message
+      tags:
+        - Messages
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receiverId:
+                  type: string
+                  example: friend_id_123
+                content:
+                  type: string
+                  example: Hello world
+      responses:
+        '200':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Message sent
+                  data:
+                    type: object
+  /api/messages/conversation/{user_id}:
+    get:
+      summary: Get conversation with a user
+      tags:
+        - Messages
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: user_id
+          required: true
+          schema:
+            type: string
+          example: friend_id_123
+      responses:
+        '200':
+          description: Conversation history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    senderId:
+                      type: string
+                      example: user123
+                    content:
+                      type: string
+                      example: Hi there
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2024-01-20T10:00:00Z'
+  /api/messages/history:
+    get:
+      summary: Get list of recent conversations
+      tags:
+        - Messages
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Message history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    lastMessage:
+                      type: string
+                      example: See you later
+                    partner:
+                      type: object
+                      properties:
+                        username:
+                          type: string
+                          example: friend_name
+  /api/messages/read:
+    put:
+      summary: Mark messages as read
+      tags:
+        - Messages
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                senderId:
+                  type: string
+                  example: friend_id_123
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Messages marked as read
+  /api/user/profile/saveAvatar:
+    post:
+      summary: Check avatar and save url
+      tags:
+        - Profile
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                public_id:
+                  type: string
+                  example: cloudinary_public_id_123
+      responses:
+        '200':
+          description: Avatar saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Avatar saved successfully
+                  avatar:
+                    type: string
+                    example: https://res.cloudinary.com/...
+  /api/user/profile/signature:
+    get:
+      summary: Get Cloudinary signature for upload
+      tags:
+        - Profile
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Signature and timestamp
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timestamp:
+                    type: integer
+                    example: 1705728000
+                  signature:
+                    type: string
+                    example: a1b2c3d4e5f6...
+  /api/rankings/global/overall:
+    get:
+      summary: Get overall global rankings
+      tags:
+        - Rankings
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Global rankings list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: top_player
+                    score:
+                      type: integer
+                      example: 5000
+  /api/rankings/global/{gameId}:
+    get:
+      summary: Get global rankings for a specific game
+      tags:
+        - Rankings
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+          example: tictactoe
+      responses:
+        '200':
+          description: Game-specific global rankings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: tictactoe_master
+                    score:
+                      type: integer
+                      example: 500
+  /api/rankings/friends/overall:
+    get:
+      summary: Get overall rankings among friends
+      tags:
+        - Rankings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Friends rankings list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: friend_1
+                    score:
+                      type: integer
+                      example: 2000
+  /api/rankings/friends/{gameId}:
+    get:
+      summary: Get friend rankings for a specific game
+      tags:
+        - Rankings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+          example: tictactoe
+      responses:
+        '200':
+          description: Game-specific friend rankings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: friend_2
+                    score:
+                      type: integer
+                      example: 100
+  /api/rankings/personal/stats:
+    get:
+      summary: Get personal statistics
+      tags:
+        - Rankings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalGames:
+                    type: integer
+                    example: 50
+                  wins:
+                    type: integer
+                    example: 25
+                  winRate:
+                    type: number
+                    example: 50
+  /api/rankings/user/{gameId}:
+    get:
+      summary: Get user ranking for a specific game
+      tags:
+        - Rankings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+          example: tictactoe
+      responses:
+        '200':
+          description: User game ranking
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rank:
+                    type: integer
+                    example: 10
+                  score:
+                    type: integer
+                    example: 120
+  /api/ratings/list_ratings:
+    get:
+      summary: Get all ratings
+      tags:
+        - Ratings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of ratings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: rating_1
+                    gameId:
+                      type: string
+                      example: tictactoe
+                    rating:
+                      type: integer
+                      example: 5
+                    comment:
+                      type: string
+                      example: Great game!
+  /api/ratings/{ratingId}:
+    delete:
+      summary: Delete a rating
+      tags:
+        - Ratings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: ratingId
+          required: true
+          schema:
+            type: string
+          example: rating_1
+      responses:
+        '200':
+          description: Rating deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rating deleted
+    put:
+      summary: Update a rating
+      tags:
+        - Ratings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: ratingId
+          required: true
+          schema:
+            type: string
+          example: rating_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  example: 4
+                comment:
+                  type: string
+                  example: Updated review
+      responses:
+        '200':
+          description: Rating updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rating updated
+  /api/ratings/{gameId}:
+    post:
+      summary: Add a rating for a game
+      tags:
+        - Ratings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+          example: tictactoe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                  example: 5
+                comment:
+                  type: string
+                  example: Awesome!
+      responses:
+        '201':
+          description: Rating added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Rating added
+    get:
+      summary: Get rating for a specific game
+      tags:
+        - Ratings
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: gameId
+          required: true
+          schema:
+            type: string
+          example: tictactoe
+      responses:
+        '200':
+          description: Game rating details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  averageRating:
+                    type: number
+                    example: 4.5
+                  totalRatings:
+                    type: integer
+                    example: 100
+  /api/user/login/google:
+    get:
+      summary: Login with Google
+      tags:
+        - User
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '302':
+          description: Redirects to Google OAuth page
+  /api/user/login/google/callback:
+    get:
+      summary: Google Login Callback
+      tags:
+        - User
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: query
+          name: code
+          schema:
+            type: string
+          description: The authorization code returned by Google
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      username:
+                        type: string
+                      avatar:
+                        type: string
+  /api/user/refreshAccessToken:
+    post:
+      summary: Refresh Access Token
+      tags:
+        - User
+      security:
+        - refreshCookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Token refreshed
+  /api/user/me:
+    get:
+      summary: Get current user profile
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: The user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: 60d0fe4f5311236168a109ca
+                  username:
+                    type: string
+                    example: john_doe
+                  email:
+                    type: string
+                    example: john@example.com
+                  role:
+                    type: string
+                    example: user
+                  avatar:
+                    type: string
+                    example: https://example.com/avatar.jpg
+        '401':
+          description: Unauthorized
+  /api/user/rank:
+    get:
+      summary: Get user rank
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: User rank details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rank:
+                    type: integer
+                    example: 5
+                  matches:
+                    type: integer
+                    example: 100
+                  winRate:
+                    type: number
+                    example: 55.5
+  /api/user/totalGame:
+    get:
+      summary: Get total games played
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Total games count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalGames:
+                    type: integer
+                    example: 150
+  /api/user/profile:
+    patch:
+      summary: Update profile
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                  example: John Doe
+                bio:
+                  type: string
+                  example: Gamer life
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Update successfully
+    get:
+      summary: Get profile
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Profile data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      email:
+                        type: string
+  /api/user/logout:
+    post:
+      summary: Logout user
+      tags:
+        - User
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+  /api/user/login:
+    post:
+      summary: Login user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  format: password
+                  example: '123456'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      username:
+                        type: string
+        '401':
+          description: Invalid credentials
+  /api/user/register:
+    post:
+      summary: Register a new user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - email
+              properties:
+                username:
+                  type: string
+                  example: newuser
+                password:
+                  type: string
+                  format: password
+                  example: password123
+                email:
+                  type: string
+                  format: email
+                  example: newuser@example.com
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+  /achievements/me:
+    get:
+      summary: Get my achievements
+      tags:
+        - Achievements
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: List of achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: Kiện tướng Caro
+                    game_id:
+                      type: integer
+                      example: 1
+                    score:
+                      type: integer
+                      example: 100
+  /achievements/{id}:
+    get:
+      summary: Get achievements of a user by ID
+      tags:
+        - Achievements
+      security:
+        - cookieAuth: []
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: Kiện tướng Caro
+                    game_id:
+                      type: integer
+                      example: 1
+                    score:
+                      type: integer
+                      example: 100
+tags: []

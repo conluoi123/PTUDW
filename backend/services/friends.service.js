@@ -40,12 +40,12 @@ export const getPendingRequests = async (userId) => {
   return await friendModel.getPendingRequests(userId)
 }
 
-export const getSuggestions = async (userId, page = 1, limit = 3) => {
-  return await friendModel.getSuggestions(userId, page, limit)
+export const getSuggestions = async (userId, page = 1, limit = 3, search = '') => {
+  return await friendModel.getSuggestions(userId, page, limit, search)
 }
 
-export const getSuggestionsCount = async (userId) => {
-    return await friendModel.getSuggestionsCount(userId);
+export const getSuggestionsCount = async (userId, search = '') => {
+    return await friendModel.getSuggestionsCount(userId, search);
 }
 
 export const findUserById = async (id) => {

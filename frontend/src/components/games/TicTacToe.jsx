@@ -5,8 +5,8 @@ import { ArrowLeft, RotateCcw, Circle, X, User, Cpu, Clock, Trophy, Play, Menu, 
 import { Button, Box, Typography, Paper, Card, CardContent } from "@mui/material";
 // Assuming these components exist in your project structure
 import { GameWithRating } from "./GameWithRating"; 
-import GameSessionService from '../../services/gameSession.service.js';
 import { AuthContext } from '../../contexts/AuthContext';
+import { handleGameEnd } from '../../services/game_end.services.js';
 
 // --- CONSTANTS ---
 const BOARD_SIZE = 3;
@@ -228,37 +228,23 @@ export function TicTacToe() {
   const [startTime, setStartTime] = useState(null);
 
   // Handle saving the game session when a game ends
-  const handleGameEnd = async (gameWinner) => {
+  const persistGameEnd = async (gameWinner) => {
     if (!user || !startTime) return;
-
-    const endTime = new Date();
-    const durationInSeconds = Math.round((endTime - startTime) / 1000);
-    const moveCount = board.filter(cell => cell !== null).length;
-
-    let result = 'draw';
-    if (gameWinner && gameWinner !== 'draw') {
-      result = gameWinner === 'X' ? 'win' : 'lose';
-    }
-
-    const score = calculateScore(result, durationInSeconds, moveCount, difficulty);
-
-    const sessionData = {
-      game_id: gameId || 3, // Default to 3 (Tic Tac Toe) if not passed
-      score,
-      result,
-      duration: durationInSeconds,
-    };
-
-    try {
-      await GameSessionService.create(sessionData);
-    } catch (error) {
-      console.error("Failed to save game session:", error);
-    }
+    const moveCount = board.filter((cell) => cell !== null).length;
+    await handleGameEnd({
+      user,
+      gameId: gameId || 3, // Tic-tac-toe ID from games table
+      startTime,
+      moveCount,
+      difficulty,
+      winner: gameWinner,
+      playerSymbol: "X",
+    });
   };
 
   useEffect(() => {
     if (winner && (gameStatus === 'won' || gameStatus === 'lost' || gameStatus === 'draw')) {
-      handleGameEnd(winner);
+      persistGameEnd(winner);
     }
   }, [gameStatus, winner]);
 

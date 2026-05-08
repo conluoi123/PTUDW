@@ -23,12 +23,14 @@ import {
 import { CaroAI, AI_DIFFICULTY } from '../../utils/caroAI';
 import { GameWithRating } from './GameWithRating';
 import { QuickSaveButtons } from '../../common';
-import GameSessionService from '../../services/gameSession.service.js';
 import { AuthContext } from '../../contexts/AuthContext';
+import { handleGameEnd } from '../../services/game_end.services.js';
 
 
 export function CaroGame({ winCondition = 5 }) {
   const BOARD_SIZE = 15;
+  // Map to games table IDs from test.json: 5-in-a-row => 1, 4-in-a-row => 2
+  const derivedGameId = winCondition === 4 ? 2 : 1;
   
   // Game state
   const [board, setBoard] = useState(Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null)));
@@ -63,7 +65,7 @@ export function CaroGame({ winCondition = 5 }) {
   };
 
   // Handle saving the game session when a game ends
-  const handleGameEnd = async (gameWinner) => {
+  const persistGameEnd = async (gameWinner) => {
     // Only save if a user is logged in and the game has started
     if (!user || !startTime) return;
 
@@ -82,32 +84,23 @@ export function CaroGame({ winCondition = 5 }) {
 
     const score = calculateScore(result, durationInSeconds, moveCount);
 
-    const sessionData = {
-      game_id: 8, // Hardcoding Caro Game ID as 1. This should ideally be dynamic.
+    const saved = await handleGameEnd({
+      user,
+      gameId: derivedGameId,
       score,
       result,
       duration: durationInSeconds,
-    };
+    });
 
-    try {
-      console.log("Saving game session:", sessionData);
-      console.log("Game result:", result, "Duration:", durationInSeconds, "s", "Score:", score);
-      const response = await GameSessionService.create(sessionData);
-      console.log("Game session saved successfully.", response);
-      
-      // Show achievement unlock notification (optional enhancement)
-      if (response.data?.achievements_unlocked) {
-        console.log("New achievements unlocked:", response.data.achievements_unlocked);
-      }
-    } catch (error) {
-      console.error("Failed to save game session:", error);
+    if (saved?.success && saved.data?.achievements_unlocked) {
+      console.log("New achievements unlocked:", saved.data.achievements_unlocked);
     }
   };
   
   // This effect runs when the winner state changes
   useEffect(() => {
     if (winner) {
-      handleGameEnd(winner);
+      persistGameEnd(winner);
     }
   }, [winner]);
 

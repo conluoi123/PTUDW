@@ -174,51 +174,32 @@ export function Caro4() {
   const [startTime, setStartTime] = useState(null);
 
   // Handle saving the game session when a game ends
-  const handleGameEnd = async (gameWinner) => {
+  const persistGameEnd = async (gameWinner) => {
     // Only save if a user is logged in and the game has started
     if (!user || !startTime) return;
 
-    const endTime = new Date();
-    const durationInSeconds = Math.round((endTime - startTime) / 1000);
-    
     // Count moves played
     const moveCount = board.filter(cell => cell !== null).length;
+    const result = await handleGameEnd({
+      user,
+      gameId: gameId || 2, // Caro4 ID from games table
+      startTime,
+      moveCount,
+      difficulty,
+      winner: gameWinner,
+      playerSymbol: "X",
+    });
 
-    // Determine result
-    let result = 'draw';
-    if (gameWinner && gameWinner !== 'draw') {
-      // Assuming the user is always 'X' for simplicity
-      result = gameWinner === 'X' ? 'win' : 'lose';
-    }
-
-    const score = calculateScore(result, durationInSeconds, moveCount, difficulty);
-
-    const sessionData = {
-      game_id: 2, // Caro4 Game ID
-      score,
-      result,
-      duration: durationInSeconds,
-    };
-
-    try {
-      console.log("Saving game session:", sessionData);
-      console.log("Game result:", result, "Duration:", durationInSeconds, "s", "Score:", score);
-      const response = await GameSessionService.create(sessionData);
-      console.log("Game session saved successfully.", response);
-      
-      // Show achievement unlock notification (optional enhancement)
-      if (response.data?.achievements_unlocked) {
-        console.log("New achievements unlocked:", response.data.achievements_unlocked);
-      }
-    } catch (error) {
-      console.error("Failed to save game session:", error);
+    // Optional enhancement: achievement info
+    if (result?.success && result.data?.achievements_unlocked) {
+      console.log("New achievements unlocked:", result.data.achievements_unlocked);
     }
   };
 
   // Effect to handle game end
   useEffect(() => {
     if (winner && (gameStatus === 'won' || gameStatus === 'lost' || gameStatus === 'draw')) {
-      handleGameEnd(winner);
+      persistGameEnd(winner);
     }
   }, [gameStatus, winner]);
 

@@ -168,10 +168,12 @@ export function LoginPage({ onBack }) {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 <Input
+                  id="email"
                   type="email"
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  aria-describedby="email-error"
                   className={`pl-11 pr-4 h-12 bg-input border-border focus-visible:border-cyan-500 focus-visible:ring-cyan-500/20 ${
                     errors.email
                       ? "border-red-500 focus-visible:border-red-500"
@@ -180,23 +182,31 @@ export function LoginPage({ onBack }) {
                 />
               </div>
               {errors.email && (
-                <p className="text-red-400 text-xs mt-1.5 animate-in slide-in-from-top duration-200">
+                <p
+                  id="email-error"
+                  className="text-red-400 text-xs mt-1.5 animate-in slide-in-from-top duration-200"
+                >
                   {errors.email}
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-300 mb-2"
+              >
                 Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 <Input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  aria-describedby="password-error"
                   className={`pl-11 pr-12 h-12 bg-input border-border focus-visible:border-cyan-500 focus-visible:ring-cyan-500/20 ${
                     errors.password
                       ? "border-red-500 focus-visible:border-red-500"
@@ -216,15 +226,22 @@ export function LoginPage({ onBack }) {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-400 text-xs mt-1.5 animate-in slide-in-from-top duration-200">
+                <p
+                  id="password-error"
+                  className="text-red-400 text-xs mt-1.5 animate-in slide-in-from-top duration-200"
+                >
                   {errors.password}
                 </p>
               )}
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer group">
+              <label
+                htmlFor="remember-me"
+                className="flex items-center gap-2 cursor-pointer group"
+              >
                 <input
+                  id="remember-me"
                   type="checkbox"
                   className="w-4 h-4 rounded border-border bg-input text-cyan-500 focus:ring-cyan-500/20"
                 />
@@ -259,12 +276,12 @@ export function LoginPage({ onBack }) {
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
               Don't have an account?{" "}
-              <button
-                onClick={() => navigate("/register")}
+              <Link
+                to="/register"
                 className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
               >
                 Create Account
-              </button>
+              </Link>
             </p>
           </div>
 

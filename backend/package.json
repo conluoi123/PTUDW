@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
-    "seed": "knex seed:run",
+    "seed": "npx knex seed:run --specific=seeds.js && npx knex seed:run --specific=achievements_icon.js && npx knex seed:run --specific=new_achievements.js",
     "generate-docs": "node scripts/generate-openapi.js"
   },
   "author": "",
